@@ -1,0 +1,31 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background: linear-gradient(to right, #6d28d9, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+  
+    .icon {
+      margin-right: 8px;
+    }
+  
+    &:hover {
+      background-color: #4f46e5;
+      transform: scale(1.05);
+    }
+  
+    &:active {
+      transform: scale(0.95);
+    }
+  
+    &:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+  }
+  
