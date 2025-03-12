@@ -56,43 +56,44 @@ const Header = () => {
           </NavigationMenu>
         </div>
 
-      {/* Account Section - Đẩy về bên phải */}
-      <div className="ml-auto">
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <div className="flex items-center gap-3 cursor-pointer">
+        {/* Account Section - Đẩy về bên phải */}
+        <div className="ml-auto">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
                 <Avatar>
                   <AvatarImage src={user.photoURL || "/default-avatar.png"} />
                   <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:block text-sm">{user.displayName || user.email}</span>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="mt-2 w-40">
-              <DropdownMenuItem onClick={() => signOut(auth)}>
-                <LogoutButton />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="px-4 py-2 bg-white text-purple-600 font-bold rounded-lg hover:bg-gray-200 transition-all">
-              Đăng nhập
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-md overflow-hidden">
-              <DropdownMenuItem>
-                <Link href="/login">
-                  <span className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">Đăng nhập với email</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <LoginButton />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="mt-2 w-40">
+                <DropdownMenuItem className="text-center font-medium text-gray-700">
+                  {user.displayName || user.email}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => signOut(auth)}>
+                  <LogoutButton />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-4 py-2 bg-white text-purple-600 font-bold rounded-lg hover:bg-gray-200 transition-all">
+                Đăng nhập
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-md overflow-hidden">
+                <DropdownMenuItem>
+                  <Link href="/login">
+                    <span className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">Đăng nhập với email</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <LoginButton />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+
     </div>
   </header>
 
