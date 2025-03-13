@@ -2,8 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
+/* rest of the code remains the same */
 @layer base {
   :root {
 
@@ -106,6 +105,21 @@
     --chart-4: 280 65% 60%;
 
     --chart-5: 340 75% 55%
+  }
+
+  .blue {
+    --background: 210 80% 20%;
+    --foreground: 0 0% 98%;
+  }
+  .sepia {
+    --background: 34 44% 85%;
+    --foreground: 0 0% 15%;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 

@@ -2,7 +2,6 @@ import React from "react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area,
 } from "recharts";
-import DarkModeButton from "./DarkModeButton";
 
 // Dữ liệu số lượng
 const windTurbineData = [{ location: "Khu A", count: 10 }, { location: "Khu B", count: 15 }];
@@ -37,77 +36,87 @@ const deficit = dailyTotal.map(d => ({ time: d.time, deficit: d.total - d.cityNe
 
 export default function EnergyReport() {
   return (
-    <div className="w-full p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="w-full p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Bảng số lượng */}
-      <div>
-        <h2 className="w-full font-bold">Số lượng Cối xoay gió</h2>
-        <table className="w-full border">
-          <thead><tr><th>Khu vực</th><th>Số lượng</th></tr></thead>
-          <tbody>{windTurbineData.map((row, i) => <tr key={i}><td>{row.location}</td><td>{row.count}</td></tr>)}</tbody>
+      <div className="col-span-1 md:col-span-2 lg:col-span-1 border rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-2">Số lượng Cối xoay gió</h2>
+        <table className="w-full border-collapse border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="p-2 border text-center">Khu vực</th>
+              <th className="p-2 border text-center">Số lượng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {windTurbineData.map((row, i) => (
+              <tr key={i} className="hover:bg-gray-100">
+                <td className="p-2 border text-center">{row.location}</td>
+                <td className="p-2 border text-center">{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
-      <div>
-        <h2 className="font-bold">Số lượng Pin mặt trời</h2>
-        <table className="w-full border">
-          <thead><tr><th>Khu vực</th><th>Số lượng</th></tr></thead>
-          <tbody>{solarPanelData.map((row, i) => <tr key={i}><td>{row.location}</td><td>{row.count}</td></tr>)}</tbody>
+      <div className="col-span-1 md:col-span-2 lg:col-span-1 border rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-2">Số lượng Pin mặt trời</h2>
+        <table className="w-full border-collapse border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="p-2 border text-center">Khu vực</th>
+              <th className="p-2 border text-center">Số lượng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {solarPanelData.map((row, i) => (
+              <tr key={i} className="hover:bg-gray-100">
+                <td className="p-2 border text-center">{row.location}</td>
+                <td className="p-2 border text-center">{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
-
-      {/* Biểu đồ vùng sản lượng điện */}
-      <div>
-        <h2 className="font-bold">Điện gió trong ngày</h2>
-        <AreaChart width={400} height={250} data={windData}><XAxis dataKey="time" /><YAxis /><Tooltip /><Area type="monotone" dataKey="power" stroke="#82ca9d" fill="#82ca9d" /></AreaChart>
+      {/* Biểu đồ sản lượng điện */}
+      <div className="col-span-1 md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Điện gió</h2>
+          <AreaChart width={250} height={200} data={windData}>
+            <XAxis dataKey="time" /><YAxis /><Tooltip />
+            <Area type="monotone" dataKey="power" stroke="#82ca9d" fill="#82ca9d" />
+          </AreaChart>
+        </div>
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Điện mặt trời</h2>
+          <AreaChart width={250} height={200} data={solarData}>
+            <XAxis dataKey="time" /><YAxis /><Tooltip />
+            <Area type="monotone" dataKey="power" stroke="#ff7300" fill="#ff7300" />
+          </AreaChart>
+        </div>
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-2">Thủy điện</h2>
+          <AreaChart width={250} height={200} data={hydroData}>
+            <XAxis dataKey="time" /><YAxis /><Tooltip />
+            <Area type="monotone" dataKey="power" stroke="#0000ff" fill="#0000ff" />
+          </AreaChart>
+        </div>
       </div>
-      <div>
-        <h2 className="font-bold">Điện mặt trời trong ngày</h2>
-        <AreaChart width={400} height={250} data={solarData}><XAxis dataKey="time" /><YAxis /><Tooltip /><Area type="monotone" dataKey="power" stroke="#ff7300" fill="#ff7300" /></AreaChart>
-      </div>
-      <div>
-        <h2 className="font-bold">Thủy điện trong ngày</h2>
-        <AreaChart width={400} height={250} data={hydroData}><XAxis dataKey="time" /><YAxis /><Tooltip /><Area type="monotone" dataKey="power" stroke="#0000ff" fill="#0000ff" /></AreaChart>
-      </div>
-      
-      {/* Biểu đồ đường so sánh */}
-      <div>
-        <h2 className="font-bold">So sánh điện</h2>
-        <LineChart width={400} height={250} data={totalEnergy}><XAxis dataKey="time" /><YAxis /><Tooltip /><Legend />
+      {/* So sánh điện */}
+      <div className="col-span-1 md:col-span-2 lg:col-span-3 border rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-2">So sánh điện</h2>
+        <LineChart width={600} height={250} data={totalEnergy}>
+          <XAxis dataKey="time" /><YAxis /><Tooltip /><Legend />
           <Line type="monotone" dataKey="wind" stroke="#82ca9d" name="Gió" />
           <Line type="monotone" dataKey="solar" stroke="#ff7300" name="Mặt trời" />
           <Line type="monotone" dataKey="hydro" stroke="#0000ff" name="Thủy điện" />
         </LineChart>
       </div>
-      
-      {/* Tổng điện thu được */}
-      <div>
-        <h2 className="font-bold">Tổng năng lượng</h2>
-        <table className="w-full border">
-          <thead><tr><th>Thời gian</th><th>Tổng điện</th></tr></thead>
-          <tbody>{dailyTotal.map((row, i) => <tr key={i}><td>{row.time}</td><td>{row.total}</td></tr>)}</tbody>
-        </table>
-      </div>
-
-      {/* So sánh với nhu cầu thành phố */}
-      <div>
-        <h2 className="font-bold">So sánh với nhu cầu</h2>
-        <BarChart width={400} height={250} data={dailyTotal}><XAxis dataKey="time" /><YAxis /><Tooltip /><Legend />
-          <Bar dataKey="total" fill="#82ca9d" name="Điện xanh" />
-          <Bar dataKey="cityNeed" fill="#ff0000" name="Nhu cầu thành phố" />
-        </BarChart>
-      </div>
-
-      {/* Thiếu hụt */}
-      <div>
-        <h2 className="font-bold">Thiếu hụt điện</h2>
-        <BarChart width={400} height={250} data={deficit}><XAxis dataKey="time" /><YAxis /><Tooltip /><Legend />
+      {/* Thiếu hụt điện */}
+      <div className="col-span-1 md:col-span-2">
+        <h2 className="text-lg font-semibold mb-2">Thiếu hụt điện</h2>
+        <BarChart width={400} height={200} data={deficit}>
+          <XAxis dataKey="time" /><YAxis /><Tooltip /><Legend />
           <Bar dataKey="deficit" fill={(d) => d.deficit >= 0 ? "#82ca9d" : "#ff0000"} name="Thiếu/Dư điện" />
         </BarChart>
-      </div>
-
-      {/* Dự đoán số lượng cần để đáp ứng nhu cầu */}
-      <div>
-        <h2 className="font-bold">Dự đoán số lượng cần</h2>
-        <p>Cần tăng thêm {Math.ceil(Math.abs(deficit.reduce((sum, d) => sum + d.deficit, 0) / 3))} đơn vị năng lượng mỗi giờ để đáp ứng nhu cầu.</p>
       </div>
     </div>
   );

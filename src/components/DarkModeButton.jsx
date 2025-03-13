@@ -1,25 +1,40 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Palette } from "lucide-react";
+
+const themes = ["light", "dark", "blue", "sepia"];
 
 const DarkModeButton = () => {
-  const [darkMode, setDarkMode] = useState(
-    typeof window !== "undefined" && localStorage.getItem("theme") === "dark"
-  );
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") || "light";
+    }
+    return "light";
+  });
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.remove(...themes);
+      document.documentElement.classList.add(theme);
+      localStorage.setItem("theme", theme);
     }
-  }, [darkMode]);
+  }, [theme]);
+
+  const nextTheme = () => {
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
 
   return (
-    <Button variant="outline" onClick={() => setDarkMode(!darkMode)}>
-      {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    <Button variant="outline" onClick={nextTheme}>
+      {theme === "dark" ? (
+        <Sun className="w-5 h-5" />
+      ) : theme === "light" ? (
+        <Moon className="w-5 h-5" />
+      ) : (
+        <Palette className="w-5 h-5" />
+      )}
     </Button>
   );
 };
