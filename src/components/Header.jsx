@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Dùng 'next/navigation' thay vì 'next/router'
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
@@ -17,15 +17,13 @@ import LoginButton from "@/components/LoginButton";
 const Header = () => {
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State cho menu mobile
-  const router = useRouter(); // Khởi tạo useRouter
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
-  // Hàm điều hướng khi click vào menu
   const handleNavigation = (href) => {
     router.push(href);
   };
 
-  // Theo dõi trạng thái đăng nhập của Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -34,7 +32,6 @@ const Header = () => {
     return () => unsubscribe();
   }, []);
 
-  // Kiểm tra chế độ Dark Mode từ localStorage
   useEffect(() => {
     const savedMode = localStorage.getItem("darkMode");
     if (savedMode === "true") {
@@ -43,7 +40,6 @@ const Header = () => {
     }
   }, []);
 
-  // Chuyển đổi chế độ Dark Mode
   const toggleDarkMode = () => {
     if (darkMode) {
       document.documentElement.classList.remove("dark");
@@ -55,7 +51,6 @@ const Header = () => {
     setDarkMode(!darkMode);
   };
 
-  // Toggle menu mobile
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -63,29 +58,17 @@ const Header = () => {
   return (
     <header className="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-b-2 shadow-lg py-3 px-5 md:px-10 lg:px-20">
       <div className="flex items-center justify-between w-full">
-        {/* Logo */}
         <div className="flex items-center gap-5 md:gap-8">
           <Link href="/" passHref>
-            <h1 className="text-lg font-bold tracking-wide cursor-pointer hover:opacity-80 transition-all">
-              Smart Urban
-            </h1>
+            <h1 className="text-lg font-bold tracking-wide cursor-pointer hover:opacity-80 transition-all">Smart Urban</h1>
           </Link>
-
-          {/* Navigation Menu - Hiển thị trên iPad trở lên */}
           <div className="hidden md:block">
             <NavigationMenu>
               <NavigationMenuList className="flex flex-wrap gap-5 justify-start">
-                {[
-                  { href: "/home", text: "Home" },
-                  { href: "/garden", text: "Garden" },
-                  { href: "/energy", text: "Energy" },
-                  { href: "/waste", text: "Waste" },
-                ].map(({ href, text }) => (
+                {[{ href: "/home", text: "Home" }, { href: "/garden", text: "Garden" }, { href: "/energy", text: "Energy" }, { href: "/waste", text: "Waste" }].map(({ href, text }) => (
                   <NavigationMenuItem key={href}>
                     <Link href={href} passHref>
-                      <span className="cursor-pointer menu-item font-bold text-lg hover:text-black dark:hover:text-white hover:scale-110 transition-all">
-                        {text}
-                      </span>
+                      <span className="cursor-pointer menu-item font-bold text-lg hover:text-black dark:hover:text-white hover:scale-110 transition-all">{text}</span>
                     </Link>
                   </NavigationMenuItem>
                 ))}
@@ -93,21 +76,15 @@ const Header = () => {
             </NavigationMenu>
           </div>
         </div>
-
-        {/* Mobile Menu Button */}
-        <button className="block md:hidden p-2" onClick={toggleMenu}>
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-
-        {/* Dark Mode Toggle */}
-        <button onClick={toggleDarkMode} className="mr-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700">
-          {darkMode ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-800" />}
-        </button>
-
-        {/* Account Section */}
-        <div>
+        <div className="flex items-center gap-4">
+        <button onClick={toggleDarkMode} className="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+            {darkMode ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-800" />}
+          </button>
+          <button className="block md:hidden p-2" onClick={toggleMenu}>
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger>
@@ -117,9 +94,7 @@ const Header = () => {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="mt-2 w-40">
-                <DropdownMenuItem className="text-center font-medium">
-                  {user.displayName || user.email}
-                </DropdownMenuItem>
+                <DropdownMenuItem className="text-center font-medium">{user.displayName || user.email}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => signOut(auth)}>
                   <LogoutButton />
                 </DropdownMenuItem>
@@ -142,31 +117,24 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          
         </div>
       </div>
-
-      {/* Mobile Menu - Hiển thị khi isMenuOpen = true */}
       {isMenuOpen && (
-  <div className="md:hidden bg-white dark:bg-gray-900 shadow-md absolute top-16 left-0 w-full py-4 z-50">
+        <div className="md:hidden bg-white dark:bg-gray-900 shadow-md absolute top-16 left-0 w-full py-4 z-50">
           <NavigationMenu>
-          <NavigationMenuList className="flex flex-col gap-4 items-center">
-          {[
-          { href: "/home", text: "Home" },
-          { href: "/garden", text: "Garden" },
-          { href: "/energy", text: "Energy" },
-          { href: "/waste", text: "Waste" },
-        ].map(({ href, text }) => (
-          <NavigationMenuItem key={href}>
-            <Link href={href} passHref>
-              <span className="cursor-pointer font-bold text-lg hover:underline">{text}</span>
-            </Link>
-          </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
-  </div>
-)}
-
+            <NavigationMenuList className="flex flex-col gap-4 items-center">
+              {[{ href: "/home", text: "Home" }, { href: "/garden", text: "Garden" }, { href: "/energy", text: "Energy" }, { href: "/waste", text: "Waste" }].map(({ href, text }) => (
+                <NavigationMenuItem key={href}>
+                  <Link href={href} passHref>
+                    <span className="cursor-pointer font-bold text-lg hover:underline">{text}</span>
+                  </Link>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      )}
     </header>
   );
 };
