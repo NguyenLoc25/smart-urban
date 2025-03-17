@@ -2,7 +2,7 @@ import { db } from "@/lib/firebaseConfig";
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, onValue, set, push, remove } from "firebase/database";
-import CreateCollectionButton from "D:/Github/smart-urban/src/components/CreateCollectionButton";
+import CreateCollectionButton from "@/components/CreateCollectionButton";
 
 const categories = ["solar", "water", "wind"];
 
