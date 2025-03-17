@@ -3,7 +3,7 @@ import styles from './CreateCollectionButton.module.scss';
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
-const CreateCollectionButton = ({ userId }) => {
+const CreateCollectionButton = ({}) => {
   const router = useRouter();
 
   const handleCreate = async () => {
