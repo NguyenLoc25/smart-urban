@@ -94,11 +94,20 @@ const Header = () => {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="mt-2 w-40">
-                <DropdownMenuItem className="text-center font-medium">{user.displayName || user.email}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => signOut(auth)}>
-                  <LogoutButton />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+  <DropdownMenuItem className="text-center font-medium">{user.displayName || user.email}</DropdownMenuItem>
+  
+  {/* Kiểm tra nếu user có email đuôi @project.com thì hiển thị Settings */}
+  {user.email.endsWith("@project.com") && (
+    <DropdownMenuItem onClick={() => router.push("/settings")}>
+      <span className="cursor-pointer">⚙️ Cài đặt</span>
+    </DropdownMenuItem>
+  )}
+
+  <DropdownMenuItem onClick={() => signOut(auth)}>
+    <LogoutButton />
+  </DropdownMenuItem>
+</DropdownMenuContent>
+
             </DropdownMenu>
           ) : (
             <DropdownMenu>

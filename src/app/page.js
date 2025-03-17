@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { auth, db, ref, get } from "@/lib/firebaseConfig";
 
+// Đọc biến môi trường
+const emailToDataPath = JSON.parse(process.env.NEXT_PUBLIC_EMAILS || "{}");
+
 const HomePage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +19,7 @@ const HomePage = () => {
       } else {
         setData(null);
       }
+      
     });
 
     return () => unsubscribe();
@@ -23,12 +27,8 @@ const HomePage = () => {
 
   const fetchData = async (userEmail) => {
     setLoading(true);
-    let dataPath = "";
 
-    if (userEmail === "energy@project.com") dataPath = "energy";
-    if (userEmail === "waste@project.com") dataPath = "waste";
-    if (userEmail === "home@project.com") dataPath = "home";
-    if (userEmail === "garden@project.com") dataPath = "garden";
+    const dataPath = emailToDataPath[userEmail] || null;
 
     if (dataPath) {
       const dataRef = ref(db, dataPath);
@@ -38,7 +38,10 @@ const HomePage = () => {
       } else {
         setData("Không có dữ liệu.");
       }
+    } else {
+      setData("Email không hợp lệ hoặc không có quyền truy cập.");
     }
+
     setLoading(false);
   };
 
