@@ -4,19 +4,20 @@ import { Plus, Trash, Save } from "lucide-react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
+import { v4 as uuidv4 } from "uuid";
 
 const energyTypes = ["Solar", "Wind", "Water"];
 const defaultHeaders = { Solar: "Solar Panel", Wind: "Wind Turbine", Water: "Transformer" };
 const energyFields = { Solar: ["voltage", "current", "output_power", "size"], Wind: ["voltage", "current", "rotation_speed"], Water: ["shaft_diameter", "rpm"] };
 
 const initialState = [
-  { id: 1, energy_type: "Solar", question_header: defaultHeaders["Solar"], question_required: false, voltage: "", current: "", output_power: "", size: "" }
+  { id: uuidv4(), energy_type: "Solar", question_header: defaultHeaders["Solar"],  voltage: "", current: "", output_power: "", size: "" }
 ];
 
 function reducer(state, action) {
   switch (action.type) {
     case "ADD":
-      return [...state, { id: Date.now(), energy_type: "Solar", question_header: defaultHeaders["Solar"], question_required: false }];
+  return [...state, { id: uuidv4(), energy_type: "Solar", question_header: defaultHeaders["Solar"]}];
     case "REMOVE":
       return state.filter(q => q.id !== action.id);
     case "UPDATE":
@@ -46,7 +47,7 @@ export default function CollectionEditor() {
           id: question.id,
           energy_type: question.energy_type,
           question_header: question.question_header,
-          question_required: question.question_required,
+          // question_required: question.question_required,
           ...validFields,
         };
       });
@@ -82,8 +83,7 @@ export default function CollectionEditor() {
         {questions.map((q, index) => (
           <div key={q.id} className="p-4 border rounded-lg shadow-sm">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Question {index + 1}</h3>
-              <Button className="bg-red-500 text-white p-2" onClick={() => dispatch({ type: "REMOVE", id: q.id })}>
+               <Button className="bg-red-500 text-white p-2" onClick={() => dispatch({ type: "REMOVE", id: q.id })}>
                 <Trash className="w-4 h-4" />
               </Button>
             </div>
@@ -92,7 +92,7 @@ export default function CollectionEditor() {
               <SelectTrigger><SelectValue placeholder={q.energy_type} /></SelectTrigger>
               <SelectContent>{energyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
             </Select>
-            <label className="block mt-3">Question Header</label>
+            <label className="block mt-3">Devide Name</label>
             <Input value={q.question_header} onChange={e => dispatch({ type: "UPDATE", id: q.id, field: "question_header", value: e.target.value })} />
             <div className="mt-3 space-y-2">
               {energyFields[q.energy_type]?.map(field => (
@@ -101,10 +101,6 @@ export default function CollectionEditor() {
                   <Input value={q[field] || ""} onChange={e => dispatch({ type: "UPDATE", id: q.id, field, value: e.target.value })} />
                 </div>
               ))}
-            </div>
-            <div className="flex items-center mt-3">
-              <Checkbox checked={q.question_required} onCheckedChange={checked => dispatch({ type: "UPDATE", id: q.id, field: "question_required", value: checked })} />
-              <span className="ml-2">Required</span>
             </div>
           </div>
         ))}

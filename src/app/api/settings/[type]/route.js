@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 const ENERGY_PATHS = {
   solar: "energy/physic-info/solar",
@@ -10,8 +11,7 @@ const ENERGY_PATHS = {
 // Lấy danh sách hoặc phần tử theo ID
 export async function GET(req, context) {
   try {
-    const { type } = await context.params; // ✅ Đợi params
-
+    const { type } = await context.params;
     const energyPath = ENERGY_PATHS[type];
     if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
 
@@ -28,27 +28,30 @@ export async function GET(req, context) {
   }
 }
 
-// Thêm dữ liệu mới
+// Thêm dữ liệu mới với UUID
 export async function POST(req, context) {
   try {
-    const { type } = await context.params; // ✅ Đợi params
-
+    const { type } = await context.params;
     const energyPath = ENERGY_PATHS[type];
     if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
 
     const data = await req.json();
     if (
-      (type === "Solar" && (!data.voltage || !data.current || !data.power || !data.size)) ||
-      (type === "Wind" && (!data.voltage || !data.current || !data.rotation_speed || !data.shaft_diameter || !data.power)) ||
-      (type === "Water" && (!data.voltage || !data.current || !data.rpm || !data.power))
+      (type === "solar" && (!data.voltage || !data.current || !data.output_power || !data.size)) ||
+      (type === "wind" && (!data.voltage || !data.current || !data.rotation_speed)) ||
+      (type === "water" && (!data.shaft_diameter || !data.rpm))
     ) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+    
 
-    const newRef = db.ref(energyPath).push();
-    await newRef.set(data);
+    const uuid = uuidv4();
+    const newData = { ...data, id: uuid, uuid }; // Chỉ dùng UUID
+    
+    await db.ref(`${energyPath}/${uuid}`).set(newData);
+    
 
-    return NextResponse.json({ message: `${type} data added successfully`, id: newRef.key });
+    return NextResponse.json({ message: `${type} data added successfully`, id: uuid });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -57,8 +60,7 @@ export async function POST(req, context) {
 // Cập nhật dữ liệu
 export async function PUT(req, context) {
   try {
-    const { type } = await context.params; // ✅ Đợi params
-
+    const { type } = await context.params;
     const energyPath = ENERGY_PATHS[type];
     if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
 
@@ -76,8 +78,7 @@ export async function PUT(req, context) {
 // Xóa dữ liệu
 export async function DELETE(req, context) {
   try {
-    const { type } = await context.params; // ✅ Đợi params
-
+    const { type } = await context.params;
     const energyPath = ENERGY_PATHS[type];
     if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
 
