@@ -8,7 +8,11 @@ import { v4 as uuidv4 } from "uuid";
 
 const energyTypes = ["Solar", "Wind", "Water"];
 const defaultHeaders = { Solar: "Solar Panel", Wind: "Wind Turbine", Water: "Transformer" };
-const energyFields = { Solar: ["voltage", "current", "output_power", "size"], Wind: ["voltage", "current", "rotation_speed"], Water: ["shaft_diameter", "rpm"] };
+const energyFields = {
+  Solar: ["voltage", "current", "output_power"],
+  Wind: ["voltage", "current", "rotation_speed", "output_power"],
+  Water: ["voltage", "current", "shaft_diameter", "rpm", "output_power"]
+};
 
 const initialState = [
   { id: uuidv4(), energy_type: "Solar", question_header: defaultHeaders["Solar"],  voltage: "", current: "", output_power: "", size: "" }
@@ -22,12 +26,18 @@ function reducer(state, action) {
       return state.filter(q => q.id !== action.id);
     case "UPDATE":
       return state.map(q => (q.id === action.id ? { ...q, [action.field]: action.value } : q));
-    case "CHANGE_TYPE":
-      return state.map(q =>
-        q.id === action.id
-          ? { ...q, energy_type: action.value, question_header: defaultHeaders[action.value], ...Object.fromEntries(energyFields[action.value].map(f => [f, q[f] || ""])) }
-          : q
-      );
+      case "CHANGE_TYPE":
+        return state.map(q =>
+          q.id === action.id
+            ? { 
+                id: q.id, 
+                energy_type: action.value, 
+                question_header: defaultHeaders[action.value], 
+                ...Object.fromEntries(energyFields[action.value].map(f => [f, ""])) 
+              }
+            : q
+        );
+      
     default:
       return state;
   }
