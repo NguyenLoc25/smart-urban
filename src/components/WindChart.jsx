@@ -1,17 +1,32 @@
 import React from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import Plot from "react-plotly.js";
 
 const WindChart = ({ title, data }) => {
   return (
     <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
       <h2 className="text-lg font-semibold mb-2 text-black dark:text-white">{title}</h2>
-      <AreaChart width={250} height={200} data={data}>
-        <XAxis dataKey="time" stroke="currentColor" />
-        <YAxis stroke="currentColor" />
-        <Tooltip />
-        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.2} />
-        <Area type="monotone" dataKey="power" stroke="#82ca9d" fill="rgba(130, 202, 157, 0.5)" />
-      </AreaChart>
+      <Plot
+        data={[
+          {
+            x: data.map((item) => item.time),
+            y: data.map((item) => item.power),
+            type: "scatter",
+            mode: "lines+markers",
+            marker: { color: "#82ca9d" },
+            line: { width: 2, shape: "spline", smoothing: 1.3 },
+            fill: "tozeroy",
+          },
+        ]}
+        layout={{
+          title: title,
+          xaxis: { title: "Thời gian" },
+          yaxis: { title: "Công suất (MW)" },
+          paper_bgcolor: "transparent",
+          plot_bgcolor: "transparent",
+        }}
+        useResizeHandler
+        style={{ width: "100%", height: "300px" }}
+      />
     </div>
   );
 };

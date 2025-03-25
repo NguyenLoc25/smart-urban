@@ -8,37 +8,35 @@ import DetailButton from "./DetailButton";
 import { motion, AnimatePresence } from "framer-motion";
 import ResultChart from "./ResultChart";
 
-const windData = [
-  { time: "00:00", power: 50 },
-  { time: "06:00", power: 90 },
-  { time: "12:00", power: 120 },
-  { time: "18:00", power: 70 },
-  { time: "24:00", power: 50 }
-];
+const energyData = {
+  hourly: [
+    { time: "00:00", wind: 50, solar: 0, hydro: 60, cityNeed: 120 },
+    { time: "06:00", wind: 90, solar: 40, hydro: 70, cityNeed: 200 },
+    { time: "12:00", wind: 120, solar: 100, hydro: 100, cityNeed: 200 },
+    { time: "18:00", wind: 70, solar: 30, hydro: 80, cityNeed: 200 },
+    { time: "24:00", wind: 50, solar: 0, hydro: 90, cityNeed: 200 }
+  ],
+  daily: [
+    { day: "2024-03-01", wind: 1800, solar: 1500, hydro: 2200, cityNeed: 5500 },
+    { day: "2024-03-02", wind: 1700, solar: 1400, hydro: 2300, cityNeed: 5400 },
+    { day: "2024-03-03", wind: 1600, solar: 1300, hydro: 2100, cityNeed: 5300 }
+  ],
+  monthly: [
+    { month: "Jan", wind: 1500, solar: 1100, hydro: 2200, cityNeed: 5000 },
+    { month: "Feb", wind: 1400, solar: 1200, hydro: 2300, cityNeed: 4900 },
+    { month: "Mar", wind: 1600, solar: 1300, hydro: 2100, cityNeed: 5200 }
+  ],
+  yearly: [
+    { year: "2023", wind: 18000, solar: 15000, hydro: 25000, cityNeed: 60000 },
+    { year: "2024", wind: 19000, solar: 16000, hydro: 26000, cityNeed: 62000 }
+  ]
+};
 
-const solarData = [
-  { time: "00:00", power: 0 },
-  { time: "06:00", power: 40 },
-  { time: "12:00", power: 100 },
-  { time: "18:00", power: 30 },
-  { time: "24:00", power: 0 }
-];
-
-const hydroData = [
-  { time: "00:00", power: 60 },
-  { time: "06:00", power: 70 },
-  { time: "12:00", power: 100 },
-  { time: "18:00", power: 80 },
-  { time: "24:00", power: 90 }
-];
-
-const cityData = [
-  { time: "00:00", consumption: 120 },
-  { time: "06:00", consumption: 200 },
-  { time: "12:00", consumption: 200 },
-  { time: "18:00", consumption: 200 },
-  { time: "24:00", consumption: 200 }
-];
+// Tính tổng công suất từ dữ liệu
+const windData = energyData.hourly.map((d) => ({ time: d.time, power: d.wind }));
+const solarData = energyData.hourly.map((d) => ({ time: d.time, power: d.solar }));
+const hydroData = energyData.hourly.map((d) => ({ time: d.time, power: d.hydro }));
+const cityData = energyData.hourly.map((d) => ({ time: d.time, consumption: d.cityNeed }));
 
 export default function EnergyPage() {
   const totalEnergy = useMemo(
@@ -48,8 +46,9 @@ export default function EnergyPage() {
       solar: solarData[i].power,
       hydro: hydroData[i].power
     })),
-    []
+    [windData, solarData, hydroData]
   );
+  
 
   const dailyTotal = useMemo(
     () => totalEnergy.map((d, i) => ({
@@ -85,60 +84,62 @@ export default function EnergyPage() {
       <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
         <h2 className="text-lg font-semibold mb-2">Số lượng sản xuất</h2>
         <QuantityTable
-          title={
-            <span className="text-black dark:text-white">Tổng hợp sản lượng điện</span>
-          }
-          data={[
-            {
-              location: "Điện gió",
-              count: (
-                <span className="text-black dark:text-white">
-                  {windData.reduce((sum, item) => sum + item.power, 0)}
-                </span>
-              ),
-            },
-            {
-              location: "Điện mặt trời",
-              count: (
-                <span className="text-black dark:text-white">
-                  {solarData.reduce((sum, item) => sum + item.power, 0)}
-                </span>
-              ),
-            },
-            {
-              location: "Thủy điện",
-              count: (
-                <span className="text-black dark:text-white">
-                  {hydroData.reduce((sum, item) => sum + item.power, 0)}
-                </span>
-              ),
-            },
-          ]}
-        />
+  title={
+    <span className="text-black dark:text-white">Tổng hợp sản lượng điện</span>
+  }
+  data={[
+    {
+      location: "Điện gió",
+      count: (
+        <span className="text-black dark:text-white">
+          {energyData.daily.reduce((sum, item) => sum + item.wind, 0)}
+        </span>
+      ),
+    },
+    {
+      location: "Điện mặt trời",
+      count: (
+        <span className="text-black dark:text-white">
+          {energyData.daily.reduce((sum, item) => sum + item.solar, 0)}
+        </span>
+      ),
+    },
+    {
+      location: "Thủy điện",
+      count: (
+        <span className="text-black dark:text-white">
+          {energyData.daily.reduce((sum, item) => sum + item.hydro, 0)}
+        </span>
+      ),
+    },
+  ]}
+/>
+
+
+      
       </div>
 
       <div className="border rounded-lg p-4 md:p-6 bg-gray-50 dark:bg-gray-800 md:col-span-2">
         <h2 className="text-lg md:text-xl font-semibold mb-4 text-center">Tổng hợp sản lượng điện</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="p-4 bg-green-100 dark:bg-green-900 text-center rounded-lg">
-            <h3 className="font-semibold text-base md:text-lg">Điện gió</h3>
+            <h3 className="font-semibold text-base md:text-lg">🌬️ Điện gió</h3>
             <p className="text-lg md:text-xl font-bold">{totalEnergy.reduce((sum, d) => sum + d.wind, 0)} MW</p>
           </div>
 
           <div className="p-4 bg-yellow-100 dark:bg-yellow-900 text-center rounded-lg">
-            <h3 className="font-semibold text-base md:text-lg">Điện mặt trời</h3>
+            <h3 className="font-semibold text-base md:text-lg">☀️ Điện mặt trời</h3>
             <p className="text-lg md:text-xl font-bold">{totalEnergy.reduce((sum, d) => sum + d.solar, 0)} MW</p>
           </div>
 
           <div className="p-4 bg-blue-100 dark:bg-blue-900 text-center rounded-lg">
-            <h3 className="font-semibold text-base md:text-lg">Thủy điện</h3>
+            <h3 className="font-semibold text-base md:text-lg">💧 Thủy điện</h3>
             <p className="text-lg md:text-xl font-bold">{totalEnergy.reduce((sum, d) => sum + d.hydro, 0)} MW</p>
           </div>
         </div>
       </div>
 
       <div className="relative col-span-1 md:col-span-3 border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 dark:text-white">
-        <DetailButton onClick={() => setShowDetails(!showDetails)} isDetailVisible={showDetails} />
         <AnimatePresence mode="wait">
           {!showDetails && (
             <motion.div
@@ -147,23 +148,8 @@ export default function EnergyPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
             >
-              <TotalChart totalEnergy={totalEnergy} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              key="details"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"
-            >
-              <WindChart title="Sản lượng điện gió" data={windData} />
-              <SunChart title="Sản lượng điện mặt trời" data={solarData} />
-              <WaterChart title="Sản lượng thủy điện" data={hydroData} />
+              <TotalChart totalEnergy={totalEnergy} energyData={energyData} />
+
             </motion.div>
           )}
         </AnimatePresence>
