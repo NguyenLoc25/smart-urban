@@ -4,8 +4,8 @@ import crypto from "crypto";
 
 const csvUrls = {
     solar: "https://ourworldindata.org/grapher/solar-energy-consumption.csv?v=1",
-    hydro: "https://ourworldindata.org/grapher/hydro-energy-consumption.csv?v=1",
-    wind: "https://ourworldindata.org/grapher/wind-energy-consumption.csv?v=1",
+    hydro: "https://ourworldindata.org/grapher/hydropower-consumption.csv?v=1",
+    wind: "https://ourworldindata.org/grapher/wind-generation.csv?v=1",
 };
 
 export async function GET(req) {
