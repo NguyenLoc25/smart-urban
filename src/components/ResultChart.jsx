@@ -1,27 +1,27 @@
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from "recharts";
+import Plot from "react-plotly.js";
 
-const ResultChart = ({ data, colors, totalEnergy, cityData }) => {
+export default function ResultChart({ data, colors }) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-        <XAxis dataKey="time" />
-        <YAxis />
-        <Tooltip contentStyle={{ backgroundColor: "#333", color: "#fff" }} />
-        <Legend wrapperStyle={{ color: "#fff" }} />
-        {/* Thay đổi màu sắc của các cột */}
-        <Bar 
-          dataKey="deficit" 
-          fill={colors.deficit} 
-          name="Chênh lệch (MW)" 
-          stroke="#fff" 
-          strokeWidth={1.5} 
-          fillOpacity={0.7} // Thêm hiệu ứng mờ cho cột
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <Plot
+      data={[
+        {
+          x: data.map((d) => d.time), // Trục X là thời gian
+          y: data.map((d) => d.deficit), // Trục Y là mức chênh lệch
+          type: "bar",
+          marker: { color: colors.deficit, opacity: 0.7 }, // Màu + hiệu ứng mờ
+          name: "Chênh lệch (MW)",
+        },
+      ]}
+      layout={{
+        title: "Biểu đồ Chênh lệch Năng lượng",
+        xaxis: { title: "Thời gian" },
+        yaxis: { title: "Chênh lệch (MW)" },
+        plot_bgcolor: "#f5f5f5",
+        paper_bgcolor: "#ffffff",
+      }}
+      style={{ width: "100%", height: "300px" }}
+      config={{ responsive: true }}
+    />
   );
-};
-
-export default ResultChart;
+}

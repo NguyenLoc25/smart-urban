@@ -1,29 +1,23 @@
 import React from "react";
 
-export default function QuantityTable({ title, data }) {
+export default function QuantityTable({ data }) {
   return (
-    <div className="col-span-1 border rounded-lg p-4 dark:bg-gray-800">
-      <h2 className="text-lg font-semibold text-gray-200 mb-3">{title}</h2>
-      <table className="w-full border-collapse border">
+    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 mt-6">
+      <h2 className="text-lg font-semibold mb-4 text-center">Số lượng vị trí</h2>
+      <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
         <thead>
-          <tr className="bg-gray-200 dark:bg-gray-700">
-            <th className="p-2 border text-center text-gray-900 dark:text-gray-200">Nguồn điện</th>
-            <th className="p-2 border text-center text-gray-900 dark:text-gray-200">Sản lượng (MW)</th>
+          <tr className="bg-gray-200 dark:bg-gray-700 text-center">
+            <th className="border p-2 dark:border-gray-600">Tổng vị trí</th>
+            <th className="border p-2 dark:border-gray-600">Đã sử dụng</th>
+            <th className="border p-2 dark:border-gray-600">Còn trống</th>
           </tr>
         </thead>
         <tbody>
-          {data.length > 0 ? (
-            data.map((item, index) => (
-              <tr key={index} className="bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <td className="p-2 border text-center text-gray-900 dark:text-gray-200">{item.source}</td>
-                <td className="p-2 border text-center text-black dark:text-white">{item.count}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="2" className="p-2 border text-center text-gray-500">Không có dữ liệu</td>
-            </tr>
-          )}
+          <tr className="text-center bg-white dark:bg-gray-900">
+            <td className="border p-2 dark:border-gray-600 font-bold">{data.total}</td>
+            <td className="border p-2 dark:border-gray-600 text-red-500">{data.used}</td>
+            <td className="border p-2 dark:border-gray-600 text-green-500">{data.available}</td>
+          </tr>
         </tbody>
       </table>
     </div>
