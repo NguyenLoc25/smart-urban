@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 const ENERGY_PATHS = {
   solar: "energy/physic-info/solar",
   wind: "energy/physic-info/wind",
-  water: "energy/physic-info/water",
+  hydro: "energy/physic-info/hydro",
 };
 
 // Lấy danh sách hoặc phần tử theo ID
@@ -39,14 +39,14 @@ export async function POST(req, context) {
     if (
       (type === "solar" && (!data.voltage || !data.current || !data.output_power || !data.size)) ||
       (type === "wind" && (!data.voltage || !data.current || !data.rotation_speed)) ||
-      (type === "water" && (!data.shaft_diameter || !data.rpm))
+      (type === "hydro" && (!data.shaft_diameter || !data.rpm))
     ) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
     
 
     const uuid = uuidv4();
-    const newData = { ...data, id: uuid, uuid }; // Chỉ dùng UUID
+    const newData = { uuid, id: uuid, ...data }; // Đặt uuid lên đầu
     
     await db.ref(`${energyPath}/${uuid}`).set(newData);
     

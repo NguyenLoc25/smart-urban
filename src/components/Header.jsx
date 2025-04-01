@@ -192,7 +192,7 @@ const Header = () => {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="px-4 py-2 bg-primary dark:bg-primary-dark text-white font-medium rounded-md hover:bg-primary-dark dark:hover:bg-primary transition-colors">
+                  <button className="text-lg font-bold hover:text-primary dark:hover:text-primary-light transition-colors cursor-pointer">
                     Sign In
                   </button>
                 </DropdownMenuTrigger>
