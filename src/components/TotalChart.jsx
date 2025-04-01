@@ -1,10 +1,14 @@
+"use client"; // ⚠️ Bắt buộc để Next.js hiểu đây là component client-side
+
 import React, { useState } from "react";
-import Plot from "react-plotly.js";
+import dynamic from "next/dynamic";
+
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false }); // ⚠️ Không render trên server
 
 const TotalChart = ({ energyData }) => {
   const [viewMode, setViewMode] = useState("yearly"); // Chỉ hiển thị theo năm
 
-  const selectedData = energyData.yearly || [];
+  const selectedData = energyData?.yearly || [];
 
   return (
     <div className="border rounded-lg p-4 md:p-6 bg-white dark:bg-gray-800 text-black dark:text-white">
