@@ -1,17 +1,19 @@
 import { auth, googleProvider } from "@/lib/firebaseConfig";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
 
 // Đăng ký tài khoản
 export const registerUser = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+    localStorage.setItem("user", JSON.stringify(user)); // Lưu user vào localStorage
+    return user;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -21,7 +23,9 @@ export const registerUser = async (email, password) => {
 export const loginUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+    localStorage.setItem("user", JSON.stringify(user)); // Lưu user vào localStorage
+    return user;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -31,27 +35,31 @@ export const loginUser = async (email, password) => {
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    const user = result.user;
+    localStorage.setItem("user", JSON.stringify(user)); // Lưu user vào localStorage
+    return user;
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
-export const getUserInfo = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user")); // Lấy thông tin từ localStorage
-      return user || null;
-    } catch (error) {
-      console.error("Lỗi khi lấy thông tin người dùng:", error);
-      return null;
-    }
-  };
-  
+// Lấy thông tin người dùng từ localStorage
+export const getUserInfo = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    return user || null;
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin người dùng:", error);
+    return null;
+  }
+};
 
 // Đăng xuất
 export const logoutUser = async () => {
   try {
     await signOut(auth);
+    localStorage.removeItem("user"); // Xóa user khỏi localStorage
+    return true; // Trả về trạng thái đăng xuất thành công
   } catch (error) {
     throw new Error(error.message);
   }
@@ -59,5 +67,12 @@ export const logoutUser = async () => {
 
 // Lắng nghe thay đổi trạng thái đăng nhập
 export const listenForAuthChanges = (callback) => {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, (user) => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user)); // Lưu user khi đăng nhập
+    } else {
+      localStorage.removeItem("user"); // Xóa user khi đăng xuất
+    }
+    callback(user);
+  });
 };
