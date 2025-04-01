@@ -85,10 +85,10 @@ const Header = () => {
   ];
 
   const settingItems = [
-    { href: "/home", text: "Setting Home" },
-    { href: "/garden", text: "Setting Garden" },
-    { href: "/energy", text: "Setting Energy" },
-    { href: "/waste", text: "Setting Waste" }
+    { href: "/setting_home", text: "Setting Home" },
+    { href: "/setting_garden", text: "Setting Garden" },
+    { href: "/setting_energy", text: "Setting Energy" },
+    { href: "/setting_waste", text: "Setting Waste" }
   ];
 
   
