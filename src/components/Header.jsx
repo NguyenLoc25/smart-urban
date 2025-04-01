@@ -19,6 +19,7 @@ const Header = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
 
   const [isSettingsMenu, setIsSettingsMenu] = useState(false);
 
@@ -31,6 +32,9 @@ const handleSettingsClick = () => {
     router.push(href);
   };
 
+  const toggleSettingsMenu = () => {
+    setIsSettingsMenuOpen(!isSettingsMenuOpen);
+  };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -94,42 +98,81 @@ const handleSettingsClick = () => {
           </button>
           {user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Avatar>
-                  <AvatarImage src={user.photoURL || "/default-avatar.png"} />
-                  <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="mt-2 w-40">
-  <DropdownMenuItem className="text-center font-medium">{user.displayName || user.email}</DropdownMenuItem>
-  
-  <DropdownMenuItem onClick={() => router.push("/settings")}>
-  <span className="cursor-pointer">⚙️ Cài đặt</span>
-</DropdownMenuItem>
+  <DropdownMenuTrigger>
+    <Avatar>
+      <AvatarImage src={user.photoURL || "/default-avatar.png"} />
+      <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+    </Avatar>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="mt-2 w-40">
+    <DropdownMenuItem className="text-center font-medium">{user.displayName || user.email}</DropdownMenuItem>
 
-  <DropdownMenuItem onClick={() => signOut(auth)}>
-    <LogoutButton />
-  </DropdownMenuItem>
-</DropdownMenuContent>
+    <DropdownMenu open={isSettingsMenuOpen} onOpenChange={setIsSettingsMenuOpen}>
+      <DropdownMenuTrigger>
+        <button className="flex items-center">
+          ⚙️ Cài đặt
+        </button>
+      </DropdownMenuTrigger>
 
-            </DropdownMenu>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="px-4 py-2 bg-white dark:bg-gray-800 text-purple-600 font-bold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
-                Đăng nhập
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden">
-                <DropdownMenuItem>
-                  <Link href="/login">
-                    <span className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Đăng nhập với email</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LoginButton />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+      <DropdownMenuContent className="mt-2 w-40">
+        <DropdownMenuItem
+          onClick={() => {
+            // Điều hướng đến tùy chọn cài đặt
+            console.log("Tùy chọn 1");
+          }}
+        >
+          Tùy chọn 1
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            console.log("Tùy chọn 2");
+          }}
+        >
+          Tùy chọn 2
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            console.log("Tùy chọn 3");
+          }}
+        >
+          Tùy chọn 3
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            console.log("Tùy chọn 4");
+          }}
+        >
+          Tùy chọn 4
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+
+    {/* Đăng xuất */}
+    <DropdownMenuItem onClick={() => signOut(auth)}>
+      <LogoutButton />
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
+
+
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger className="px-4 py-2 bg-white dark:bg-gray-800 text-purple-600 font-bold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            Đăng nhập
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden">
+            <DropdownMenuItem>
+              <Link href="/login">
+                <span className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Đăng nhập với email</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <LoginButton />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
           
         </div>
       </div>
