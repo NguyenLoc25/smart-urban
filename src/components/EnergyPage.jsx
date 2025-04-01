@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import TotalChart from "./TotalChart"; 
+import TotalChart from "@/components/TotalChart"; 
 import QuantityTable from "./QuantityTable";
 import ResultChart from "./ResultChart"; 
 
