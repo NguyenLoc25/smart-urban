@@ -312,51 +312,53 @@ const SettingEnergy = () => {
 
       {/* Modal chỉnh sửa */}
       {editItem && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4"
-          onClick={(e) => e.target === e.currentTarget && setViewItem(null)}
+  <div 
+    className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-2 sm:p-4"
+    onClick={(e) => e.target === e.currentTarget && setEditItem(null)}
+  >
+    <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:max-w-lg max-h-[80vh] flex flex-col border border-gray-200">
+      <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200">
+        <h3 className="text-lg sm:text-2xl font-bold text-gray-800">Chỉnh sửa thông tin</h3>
+        <button 
+          onClick={() => setEditItem(null)} 
+          className="text-gray-500 hover:text-red-500 transition-colors p-1"
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-200">
-            <div className="flex items-center justify-between p-5 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-800">Chỉnh sửa thông tin</h3>
-              <button 
-                onClick={() => setEditItem(null)} 
-                className="text-gray-500 hover:text-red-500 transition-colors p-1"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-5">
-              {Object.entries(editData).map(([key, value]) => key !== "id" && key !== "type" && (
-                <div key={key} className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 capitalize">
-                    {key.replace(/_/g, ' ')}:
-                  </label>
-                  <input
-                    type="text"
-                    value={typeof value === 'object' ? JSON.stringify(value) : value}
-                    onChange={(e) => setEditData((prev) => ({ ...prev, [key]: e.target.value }))}
-                    className="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="p-5 border-t border-gray-200 flex justify-end gap-4">
-              <button 
-                onClick={() => setEditItem(null)} 
-                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button 
-                onClick={handleSave} 
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-              >
-                Lưu thay đổi
-              </button>
-            </div>
+          <FaTimes className="text-lg sm:text-xl" />
+        </button>
+      </div>
+      <div className="p-4 sm:p-6 overflow-y-auto flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        {Object.entries(editData).map(([key, value]) => key !== "id" && key !== "type" && (
+          <div key={key} className="space-y-1 sm:space-y-2">
+            <label className="block text-sm font-medium text-gray-700 capitalize">
+              {key.replace(/_/g, ' ')}:
+            </label>
+            <input
+              type="text"
+              value={typeof value === 'object' ? JSON.stringify(value) : value}
+              onChange={(e) => setEditData((prev) => ({ ...prev, [key]: e.target.value }))}
+              className="mt-1 block w-full p-2 sm:p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 text-sm sm:text-base"
+            />
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+      <div className="p-4 sm:p-5 border-t border-gray-200 flex justify-end gap-3 sm:gap-4">
+        <button 
+          onClick={() => setEditItem(null)} 
+          className="px-4 sm:px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors font-medium"
+        >
+          Hủy
+        </button>
+        <button 
+          onClick={handleSave} 
+          className="px-4 sm:px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+        >
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
