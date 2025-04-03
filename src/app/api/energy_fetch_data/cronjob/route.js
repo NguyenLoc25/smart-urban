@@ -14,7 +14,7 @@ const API_BASE_URL = process.env.VERCEL_URL
         for (const type of energyTypes) {
             console.log(`📥 Lấy dữ liệu ${type}...`);
 
-            const fetchDataResponse = await fetch(`${API_BASE_URL}/api/energy_fecth_data/year/${type}`);
+            const fetchDataResponse = await fetch(`${API_BASE_URL}/api/energy_fetch_data/year/${type}`);
             if (!fetchDataResponse.ok) throw new Error(`Không thể lấy dữ liệu ${type}`);
 
             const fetchData = await fetchDataResponse.json();

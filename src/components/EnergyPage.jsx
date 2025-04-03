@@ -31,56 +31,68 @@ export default function EnergyPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 🛠 Gọi API song song
-        const [solarRes, windRes, hydroRes] = await Promise.all([
+        const [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes] = await Promise.all([
           fetch("/api/energy_use_data/year/solar"),
           fetch("/api/energy_use_data/year/wind"),
           fetch("/api/energy_use_data/year/hydro"),
+          fetch("/api/energy_use_data/month/solar"),
+          fetch("/api/energy_use_data/month/wind"),
+          fetch("/api/energy_use_data/month/hydro"),
         ]);
-
-        if (!solarRes.ok || !windRes.ok || !hydroRes.ok) {
+  
+        // Kiểm tra nếu có bất kỳ API nào trả về mã lỗi
+        const allRes = [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes];
+        const failedRes = allRes.filter(res => !res.ok); // Tìm tất cả các API không thành công
+  
+        if (failedRes.length > 0) {
+          // In ra lỗi chi tiết từ API không thành công
+          failedRes.forEach((res) => {
+            console.error(`❌ Lỗi từ API: ${res.url} - Mã trạng thái: ${res.status}`);
+          });
           throw new Error("Lỗi khi tải dữ liệu từ server");
         }
-
-        // ⏳ Chuyển đổi dữ liệu JSON
-        const [solar, wind, hydro] = await Promise.all([
-          solarRes.json(),
-          windRes.json(),
-          hydroRes.json(),
+  
+        const [solarYear, windYear, hydroYear, solarMonth, windMonth, hydroMonth] = await Promise.all([
+          solarYearRes.json(),
+          windYearRes.json(),
+          hydroYearRes.json(),
+          solarMonthRes.json(),
+          windMonthRes.json(),
+          hydroMonthRes.json(),
         ]);
-
-        console.log("🔥 Solar Data:", solar);
-        console.log("🔥 Wind Data:", wind);
-        console.log("🔥 Hydro Data:", hydro);
-
-        // ✅ Chuẩn hóa dữ liệu
-        const normalizeData = (data, type) =>
-          data
-            .map((d) => {
-              let year = parseInt(d.year, 10);
-              if (isNaN(year)) return null; // Lọc dữ liệu không hợp lệ
-              return { ...d, year };
-            })
-            .filter(Boolean);
-
-        const solarData = normalizeData(solar, "Solar");
-        const windData = normalizeData(wind, "Wind");
-        const hydroData = normalizeData(hydro, "Hydro");
-
-        // 🎯 Lấy danh sách tất cả các năm có dữ liệu
-        const allYears = [...solarData, ...windData, ...hydroData].map((d) => d.year);
-        const uniqueYears = [...new Set(allYears)].sort((a, b) => a - b);
-
-        // 📊 Tạo danh sách dữ liệu cho biểu đồ
-        const formattedData = uniqueYears.map((year) => ({
+  
+        const normalizeData = (data, key) =>
+          data.map((d) => ({
+            [key]: d[key],
+            energy: parseInt(d.energy, 10) || 0
+          })).filter(d => d.energy > 0);
+  
+        const solarYearData = normalizeData(solarYear, "year");
+        const windYearData = normalizeData(windYear, "year");
+        const hydroYearData = normalizeData(hydroYear, "year");
+  
+        const solarMonthData = normalizeData(solarMonth, "month");
+        const windMonthData = normalizeData(windMonth, "month");
+        const hydroMonthData = normalizeData(hydroMonth, "month");
+  
+        const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
+        const uniqueMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  
+        const formattedYearlyData = uniqueYears.map(year => ({
           year,
-          solar: solarData.find((d) => d.year === year)?.energy ?? 0,
-          wind: windData.find((d) => d.year === year)?.energy ?? 0,
-          hydro: hydroData.find((d) => d.year === year)?.energy ?? 0,
+          solar: solarYearData.find(d => d.year === year)?.energy ?? 0,
+          wind: windYearData.find(d => d.year === year)?.energy ?? 0,
+          hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
         }));
-
-        console.log("📊 Processed Data:", formattedData);
-        setData({ yearly: formattedData });
+  
+        const formattedMonthlyData = uniqueMonths.map(month => ({
+          month,
+          solar: solarMonthData.find(d => d.month === month)?.energy ?? 0,
+          wind: windMonthData.find(d => d.month === month)?.energy ?? 0,
+          hydro: hydroMonthData.find(d => d.month === month)?.energy ?? 0,
+        }));
+  
+        setData({ yearly: formattedYearlyData, monthly: formattedMonthlyData });
       } catch (err) {
         console.error("❌ Lỗi:", err);
         setError(err.message);
@@ -88,9 +100,10 @@ export default function EnergyPage() {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   // 🛠 Hiển thị thông báo khi đang tải hoặc có lỗi
   if (loading) return <div className="text-blue-500">⏳ Đang tải dữ liệu...</div>;
