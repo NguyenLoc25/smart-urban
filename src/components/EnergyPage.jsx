@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getDatabase, ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebaseConfig";
 import TotalChart from "@/components/TotalChart"; 
 import QuantityTable from "./QuantityTable";
 import ResultChart from "./ResultChart"; 
+import { useEnergyProduction } from "./EnergyProductionCalculator";
 
 export default function EnergyPage() {
-  // 🔹 Dữ liệu ban đầu
   const [cityConsumptionData, setCityConsumptionData] = useState([
     { time: "00:00", deficit: 100 },
     { time: "06:00", deficit: 150 },
@@ -13,21 +16,33 @@ export default function EnergyPage() {
     { time: "24:00", deficit: 180 },
   ]);
 
+  
+  const [energyDevices, setEnergyDevices] = useState([]);
   const [data, setData] = useState({ yearly: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const quantityData = {
-    total: 500,    
-    used: 320,     
-    available: 180,
-  };
+  const [quantityData, setQuantityData] = useState({
+    total: 0,
+    used: 0,
+    available: 0,
+    solar: 0,
+    hydro: 0,
+    wind: 0
+  });
 
   const colors = {
-    deficit: "#FF5733", // 🔹 Màu sắc của cột "Chênh lệch"
+    deficit: "#FF5733",
   };
 
-  // 🔥 Hàm gọi API & xử lý dữ liệu
+  const energyTypes = {
+    all: "Tất cả",
+    Solar: "Năng lượng mặt trời",
+    Wind: "Năng lượng gió",
+    Hydro: "Năng lượng thủy điện"
+  };
+
+  const energyProduction = useEnergyProduction(energyDevices, energyTypes);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,15 +118,111 @@ export default function EnergyPage() {
   
     fetchData();
   }, []);
-  
 
-  // 🛠 Hiển thị thông báo khi đang tải hoặc có lỗi
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadData();
+      } else {
+        setError("User not authenticated");
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  const loadData = () => {
+    try {
+      const database = getDatabase();
+      const physicInfoRef = ref(database, 'energy/physic-info');
+
+      const unsubscribe = onValue(physicInfoRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const devices = [];
+          
+          if (data.solar) {
+            Object.entries(data.solar).forEach(([id, device]) => {
+              devices.push({
+                id,
+                type: 'Solar',
+                info: {
+                  power: device.power || '0 kW',
+                  efficiency: device.efficiency || '0'
+                }
+              });
+            });
+          }
+          
+          if (data.hydro) {
+            Object.entries(data.hydro).forEach(([id, device]) => {
+              devices.push({
+                id,
+                type: 'Hydro',
+                info: {
+                  power: device.power || '0 MW',
+                  efficiency: device.efficiency || '80',
+                  flow_rate: device.flowRate || '0'
+                }
+              });
+            });
+          }
+          
+          if (data.wind) {
+            Object.entries(data.wind).forEach(([id, device]) => {
+              devices.push({
+                id,
+                type: 'Wind',
+                info: {
+                  power: device.power || '0 MW',
+                  efficiency: device.efficiency || '0'
+                }
+              });
+            });
+          }
+          
+          setEnergyDevices(devices);
+
+          const solarCount = data.solar ? Object.keys(data.solar).length : 0;
+          const hydroCount = data.hydro ? Object.keys(data.hydro).length : 0;
+          const windCount = data.wind ? Object.keys(data.wind).length : 0;
+          const total = solarCount + hydroCount + windCount;
+          
+          setQuantityData({
+            total,
+            used: total,
+            available: total * 2,
+            solar: solarCount,
+            hydro: hydroCount,
+            wind: windCount
+          });
+
+          setLoading(false);
+        } else {
+          setError("No data available");
+          setLoading(false);
+        }
+      }, (error) => {
+        console.error("Error listening to data:", error);
+        setError(error.message);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Error loading data:", err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   if (loading) return <div className="text-blue-500">⏳ Đang tải dữ liệu...</div>;
   if (error) return <div className="text-red-500">❌ Lỗi: {error}</div>;
 
   return (
     <div className="p-4">
-      {/* 📌 Hiển thị bảng dữ liệu tổng hợp */}
       <QuantityTable data={quantityData} />
 
       <h2 className="text-lg font-semibold mb-4">Sản lượng điện theo năm</h2>
@@ -120,7 +231,17 @@ export default function EnergyPage() {
       <h2 className="text-lg font-semibold mt-6">Tiêu thụ điện theo thành phố</h2>
       <ResultChart data={cityConsumptionData} colors={colors} />
 
-      {/* 📝 Bảng dữ liệu chi tiết */}
+      <h2 className="text-lg font-semibold mt-6">Sản lượng điện từ các nguồn</h2>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        {Object.entries(energyProduction).map(([type, values]) => (
+          <div key={type} className="bg-white p-4 rounded-lg shadow">
+            <h3 className="font-medium text-gray-700">{energyTypes[type] || type}</h3>
+            <p className="text-2xl font-bold mt-2">{values.production} kWh</p>
+            <p className="text-sm text-gray-500">{values.percentage}% tổng sản lượng</p>
+          </div>
+        ))}
+      </div>
+
       <table className="w-full border-collapse border border-gray-300 mt-6">
         <thead>
           <tr className="bg-gray-200">

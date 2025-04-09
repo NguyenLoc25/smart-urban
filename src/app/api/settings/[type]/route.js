@@ -2,93 +2,128 @@ import { db } from "@/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
-const ENERGY_PATHS = {
-  solar: "energy/physic-info/solar",
-  wind: "energy/physic-info/wind",
-  hydro: "energy/physic-info/hydro",
+const ENERGY_CONFIG = {
+  solar: {
+    path: "energy/physic-info/solar",
+    requiredFields: ["power", "weight", "efficiency", "size", "origin", "status"]
+  },
+  wind: {
+    path: "energy/physic-info/wind",
+    requiredFields: ["power", "weight", "efficiency", "size", "origin", "status"]
+  },
+  hydro: {
+    path: "energy/physic-info/hydro",
+    requiredFields: ["power", "turbine_type", "efficiency", "head_height", "flow_rate", "origin", "status"]
+  }
 };
 
-// Lấy danh sách hoặc phần tử theo ID
-export async function GET(req, context) {
+const validateRequest = (type, data, requireId = false) => {
+  if (!ENERGY_CONFIG[type]) {
+    return { error: "Invalid energy type" };
+  }
+
+  if (requireId && !data.id) {
+    return { error: "Missing ID" };
+  }
+
+  const config = ENERGY_CONFIG[type];
+  const missingFields = config.requiredFields.filter(field => !data[field]);
+  
+  if (missingFields.length > 0) {
+    return { error: `Missing required fields: ${missingFields.join(", ")}` };
+  }
+
+  return null;
+};
+
+const handleError = (error) => {
+  console.error(error);
+  return NextResponse.json({ error: error.message }, { status: 500 });
+};
+
+export async function GET(req, { params }) {
   try {
-    const { type } = await context.params;
-    const energyPath = ENERGY_PATHS[type];
-    if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
+    const { type } = params;
+    const config = ENERGY_CONFIG[type];
+    if (!config) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    const snapshot = id
-      ? await db.ref(`${energyPath}/${id}`).once("value")
-      : await db.ref(energyPath).once("value");
+    const ref = id ? db.ref(`${config.path}/${id}`) : db.ref(config.path);
+    const snapshot = await ref.once("value");
 
     return NextResponse.json({ data: snapshot.val() || {} });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleError(error);
   }
 }
 
-// Thêm dữ liệu mới với UUID
-export async function POST(req, context) {
+export async function POST(req, { params }) {
   try {
-    const { type } = await context.params;
-    const energyPath = ENERGY_PATHS[type];
-    if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
-
+    const { type } = params;
     const data = await req.json();
-    if (
-      (type === "solar" && (!data.voltage || !data.current || !data.output_power || !data.size)) ||
-      (type === "wind" && (!data.voltage || !data.current || !data.rotation_speed)) ||
-      (type === "hydro" && (!data.shaft_diameter || !data.rpm))
-    ) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
     
+    const validation = validateRequest(type, data);
+    if (validation) return NextResponse.json(validation, { status: 400 });
 
+    const config = ENERGY_CONFIG[type];
     const uuid = uuidv4();
-    const newData = { uuid, id: uuid, ...data }; // Đặt uuid lên đầu
+    const newData = { 
+      uuid,
+      id: uuid,
+      energy_type: type,
+      created_at: new Date().toISOString(),
+      ...data
+    };
     
-    await db.ref(`${energyPath}/${uuid}`).set(newData);
+    await db.ref(`${config.path}/${uuid}`).set(newData);
     
-
-    return NextResponse.json({ message: `${type} data added successfully`, id: uuid });
+    return NextResponse.json({ 
+      message: `${type} data added successfully`, 
+      id: uuid 
+    });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleError(error);
   }
 }
 
-// Cập nhật dữ liệu
-export async function PUT(req, context) {
+export async function PUT(req, { params }) {
   try {
-    const { type } = await context.params;
-    const energyPath = ENERGY_PATHS[type];
-    if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
-
+    const { type } = params;
     const data = await req.json();
-    if (!data.id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    
+    const validation = validateRequest(type, data, true);
+    if (validation) return NextResponse.json(validation, { status: 400 });
 
-    await db.ref(`${energyPath}/${data.id}`).update(data);
+    const config = ENERGY_CONFIG[type];
+    const updatedData = {
+      ...data,
+      updated_at: new Date().toISOString()
+    };
+
+    await db.ref(`${config.path}/${data.id}`).update(updatedData);
 
     return NextResponse.json({ message: `${type} data updated successfully` });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleError(error);
   }
 }
 
-// Xóa dữ liệu
-export async function DELETE(req, context) {
+export async function DELETE(req, { params }) {
   try {
-    const { type } = await context.params;
-    const energyPath = ENERGY_PATHS[type];
-    if (!energyPath) return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
-
+    const { type } = params;
     const { id } = await req.json();
+    
+    if (!ENERGY_CONFIG[type]) {
+      return NextResponse.json({ error: "Invalid energy type" }, { status: 400 });
+    }
     if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
-    await db.ref(`${energyPath}/${id}`).remove();
+    await db.ref(`${ENERGY_CONFIG[type].path}/${id}`).remove();
 
     return NextResponse.json({ message: `${type} data deleted successfully` });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleError(error);
   }
 }
