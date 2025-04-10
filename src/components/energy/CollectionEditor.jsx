@@ -1,8 +1,8 @@
 import React, { useReducer, useCallback, useMemo } from "react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { Plus, Trash, Save } from "lucide-react";
-import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { v4 as uuidv4 } from "uuid";
 import { ErrorBoundary } from "react-error-boundary";
 

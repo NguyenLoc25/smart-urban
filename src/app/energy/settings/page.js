@@ -1,5 +1,5 @@
 "use client";
-import CollectionEditor from "@/components/CollectionEditor";
+import CollectionEditor from "@/components/energy/CollectionEditor";
 
 export default async function EditCollection({ params }) {
   const { id } = await params;

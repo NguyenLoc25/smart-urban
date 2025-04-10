@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import SettingEnergy from "@/components/SettingEnergy";
+import SettingEnergy from "@/components/energy/SettingEnergy";
 
 const Page = () => {
   return (

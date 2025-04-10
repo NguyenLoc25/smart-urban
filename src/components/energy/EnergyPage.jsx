@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-import TotalChart from "@/components/TotalChart"; 
-import QuantityTable from "./QuantityTable";
-import ResultChart from "./ResultChart"; 
-import { useEnergyProduction } from "./EnergyProductionCalculator";
+import TotalChart from "@/components/energy/TotalChart"; 
+import QuantityTable from "@/components/energy/QuantityTable";
+import ResultChart from "@/components/energy/ResultChart"; 
+import { useEnergyProduction } from "@/components/energy/EnergyProductionCalculator";
 
 export default function EnergyPage() {
   const [cityConsumptionData, setCityConsumptionData] = useState([

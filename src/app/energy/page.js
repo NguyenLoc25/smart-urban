@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import EnergyPage from "@/components/EnergyPage";
+import EnergyPage from "@/components/energy/EnergyPage";
 import LoginButton from "@/components/LoginButton";
 
 const Page = () => {
