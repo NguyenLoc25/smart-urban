@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-import TotalChart from "@/components/energy/TotalChart"; 
-import QuantityTable from "@/components/energy/QuantityTable";
-import ResultChart from "@/components/energy/ResultChart"; 
+import TotalChart from "@/components/energy/chart/TotalChart"; 
+import QuantityTable from "@/components/energy/chart/QuantityTable";
+import ResultChart from "@/components/energy/chart/ResultChart"; 
 import { useEnergyProduction } from "@/components/energy/ProductCalculator";
 
 export default function EnergyPage() {
