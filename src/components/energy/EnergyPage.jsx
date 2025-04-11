@@ -5,7 +5,7 @@ import { db } from "@/lib/firebaseConfig";
 import TotalChart from "@/components/energy/TotalChart"; 
 import QuantityTable from "@/components/energy/QuantityTable";
 import ResultChart from "@/components/energy/ResultChart"; 
-import { useEnergyProduction } from "@/components/energy/EnergyProductionCalculator";
+import { useEnergyProduction } from "@/components/energy/ProductCalculator";
 
 export default function EnergyPage() {
   const [cityConsumptionData, setCityConsumptionData] = useState([
@@ -191,14 +191,13 @@ export default function EnergyPage() {
           const total = solarCount + hydroCount + windCount;
           
           setQuantityData({
-            total,
+            total: total * 3,
             used: total,
             available: total * 2,
             solar: solarCount,
             hydro: hydroCount,
             wind: windCount
           });
-
           setLoading(false);
         } else {
           setError("No data available");

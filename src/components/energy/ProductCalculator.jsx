@@ -144,7 +144,7 @@ export const useEnergyProduction = (data, energyTypes) => {
   return useMemo(() => {
     // Validate input
     if (!Array.isArray(data) || data.length === 0) {
-      console.error('Invalid data: expected non-empty array', data);
+      // console.error('Invalid data: expected non-empty array', data);
       return {
         all: { production: 0, percentage: '0.0' },
         ...Object.fromEntries(

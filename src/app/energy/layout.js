@@ -3,7 +3,7 @@ export default function EnergyLayout({ children }) {
     return (
         <div className="w-full min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Nội dung chính */}
-            <main className="flex-1 p-6 container mx-auto">
+            <main className="w-full flex-1 p-6 container mx-auto">
                 {children}
             </main>
 

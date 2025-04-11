@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, get, remove, update } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-import GridLayout from "@/components/energy/GridLayout";
+import GridLayout from "@/components/energy/setting/GridLayout";
 import { MaterialReactTable } from "material-react-table";
 import { Box, Button, IconButton, Tooltip, CircularProgress, Grid, Select, Typography, MenuItem, useMediaQuery } from "@mui/material";
 import { FaEdit, FaTrash, FaTimes, FaEye } from "react-icons/fa";
-import CreateCollectionButton from "@/components/energy/CreateCollectionButton";
+import CreateCollectionButton from "@/components/energy/setting/CreateCollectionButton";
 
 const systemEmails = JSON.parse(process.env.NEXT_PUBLIC_EMAILS || "{}");
 
