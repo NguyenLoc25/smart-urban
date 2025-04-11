@@ -1,3 +1,4 @@
+// app/energy/layout.js
 export default function EnergyLayout({ children }) {
     return (
         <div className="w-full min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -11,10 +12,10 @@ export default function EnergyLayout({ children }) {
                 <div className="max-w-4xl mx-auto">
                     {/* Dòng thông tin */}
                     <div className="flex flex-wrap justify-center gap-6 mb-4 text-sm">
-                        <a href="#" className="hover:underline">About Us</a>
-                        <a href="#" className="hover:underline">Privacy Policy</a>
-                        <a href="#" className="hover:underline">Contact</a>
-                        <a href="#" className="hover:underline">Support</a>
+                        <a href="/energy/about" className="hover:underline">About Us</a>
+                        <a href="/energy/privacy" className="hover:underline">Privacy Policy</a>
+                        <a href="/energy/contact" className="hover:underline">Contact</a>
+                        <a href="/energy/support" className="hover:underline">Support</a>
                     </div>
 
                     {/* Biểu tượng mạng xã hội */}
