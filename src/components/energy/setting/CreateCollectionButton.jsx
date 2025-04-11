@@ -10,19 +10,7 @@ const CreateCollectionButton = () => {
   const theme = useTheme(); // Lấy thông tin theme
 
   const handleCreate = async () => {
-    const response = await fetch("/api/collection/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ label: "New Collection" }),
-    });
-
-    if (response.ok) {
-      router.push(`/energy/settings`);
-    } else {
-      console.error("Failed to create collection");
-    }
+    router.push(`/energy/settings`);
   };
 
   return (
