@@ -47,12 +47,12 @@ export default function EnergyPage() {
     const fetchData = async () => {
       try {
         const [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes] = await Promise.all([
-          fetch("/api/energy_use_data/year/solar"),
-          fetch("/api/energy_use_data/year/wind"),
-          fetch("/api/energy_use_data/year/hydro"),
-          fetch("/api/energy_use_data/month/solar"),
-          fetch("/api/energy_use_data/month/wind"),
-          fetch("/api/energy_use_data/month/hydro"),
+          fetch("/api/energy/useData/year/solar"),
+          fetch("/api/energy/useData/year/wind"),
+          fetch("/api/energy/useData/year/hydro"),
+          fetch("/api/energy/useData/month/solar"),
+          fetch("/api/energy/useData/month/wind"),
+          fetch("/api/energy/useData/month/hydro"),
         ]);
   
         // Kiểm tra nếu có bất kỳ API nào trả về mã lỗi

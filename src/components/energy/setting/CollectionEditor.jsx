@@ -254,7 +254,7 @@ export default function CollectionEditor() {
         )
       };
 
-      const response = await fetch(`/api/settings/${formattedQuestion.energy_type.toLowerCase()}`, {
+      const response = await fetch(`/api/energy/settings/${formattedQuestion.energy_type.toLowerCase()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formattedQuestion)
