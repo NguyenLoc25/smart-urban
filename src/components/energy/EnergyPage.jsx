@@ -12,6 +12,17 @@ export default function EnergyPage() {
   const [data, setData] = useState({ yearly: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Kiểm tra kích thước màn hình
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+
   const [quantityData, setQuantityData] = useState({
     total: 0,
     used: 0,
@@ -208,19 +219,64 @@ export default function EnergyPage() {
   if (loading) return <div className="text-blue-500">⏳ Đang tải dữ liệu...</div>;
   if (error) return <div className="text-red-500">❌ Lỗi: {error}</div>;
 
-  return (
+  const renderMobileView = () => (
+    <div >
+      {/* Quantity Table - Full width on mobile */}
+      <h2 className="text-lg font-semibold text-gray-800 dark:text-white px-2">Thống kê vị trí</h2>
+      <div className="overflow-x-auto">
+        <QuantityTable data={quantityData} />
+      </div>
+  
+      {/* Total Chart - Full width */}
+      <TotalChart energyData={data} />
+  
+      {/* Result Chart - Full width */}
+      <ResultChart />
+  
+      {/* Energy Sources - Grid 2 columns for small mobile */}
+      <h2 className="text-lg font-semibold text-gray-800 dark:text-white px-2">Sản lượng điện từ các nguồn</h2>
+      <div className="grid grid-cols-2 gap-2">
+        {Object.entries(energyProduction).map(([type, values]) => (
+          <div 
+            key={type} 
+            className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 dark:border-gray-700"
+          >
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+              {energyTypes[type] || type}
+            </h3>
+            <p className="text-lg font-bold mt-1 text-gray-800 dark:text-white">
+              {values.production} kWh
+            </p>
+            <div className="flex items-center mt-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-1.5 rounded-full" 
+                  style={{ width: `${values.percentage}%` }}
+                ></div>
+              </div>
+              <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                {values.percentage}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  
+  const renderDesktopView = () => (
     <div className="p-6 space-y-6">
       {/* Quantity Table */}
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Thống kê vị trí</h2>
       <QuantityTable data={quantityData} />
-  
+    
       {/* Total Chart */}
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện theo năm</h2>
       <TotalChart energyData={data} />
-  
+    
       {/* Result Chart */}
       <ResultChart />
-  
+    
       {/* Energy Sources Grid */}
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện từ các nguồn</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -245,5 +301,7 @@ export default function EnergyPage() {
       </div>
     </div>
   );
+
+  return isMobile ? renderMobileView() : renderDesktopView();
   
 }
