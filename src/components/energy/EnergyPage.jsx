@@ -7,16 +7,7 @@ import QuantityTable from "@/components/energy/chart/QuantityTable";
 import ResultChart from "@/components/energy/chart/ResultChart"; 
 import { useEnergyProduction } from "@/components/energy/ProductCalculator";
 
-export default function EnergyPage() {
-  const [cityConsumptionData, setCityConsumptionData] = useState([
-    { time: "00:00", deficit: 100 },
-    { time: "06:00", deficit: 150 },
-    { time: "12:00", deficit: 200 },
-    { time: "18:00", deficit: 250 },
-    { time: "24:00", deficit: 180 },
-  ]);
-
-  
+export default function EnergyPage() {  
   const [energyDevices, setEnergyDevices] = useState([]);
   const [data, setData] = useState({ yearly: [] });
   const [loading, setLoading] = useState(true);
@@ -30,9 +21,6 @@ export default function EnergyPage() {
     wind: 0
   });
 
-  const colors = {
-    deficit: "#FF5733",
-  };
 
   const energyTypes = {
     all: "Tất cả",
@@ -221,84 +209,41 @@ export default function EnergyPage() {
   if (error) return <div className="text-red-500">❌ Lỗi: {error}</div>;
 
   return (
-    <div className="p-6 space-y-8">
-      {/* Quantity Table Section */}
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Thống kê vị trí</h2>
-        <QuantityTable data={quantityData} />
-      </div>
+    <div className="p-6 space-y-6">
+      {/* Quantity Table */}
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Thống kê vị trí</h2>
+      <QuantityTable data={quantityData} />
   
-      {/* Energy Production Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện theo năm</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <TotalChart energyData={data} />
-          </div>
-        </div>
+      {/* Total Chart */}
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện theo năm</h2>
+      <TotalChart energyData={data} />
   
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Tiêu thụ điện theo thành phố</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <ResultChart data={cityConsumptionData} colors={colors} />
-          </div>
-        </div>
-      </div>
+      {/* Result Chart */}
+      <ResultChart />
   
       {/* Energy Sources Grid */}
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện từ các nguồn</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(energyProduction).map(([type, values]) => (
-            <div 
-              key={type} 
-              className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-            >
-              <h3 className="font-medium text-gray-700 dark:text-gray-300">{energyTypes[type] || type}</h3>
-              <p className="text-2xl font-bold mt-2 text-gray-800 dark:text-white">{values.production} kWh</p>
-              <div className="flex items-center mt-3">
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2 rounded-full" 
-                    style={{ width: `${values.percentage}%` }}
-                  ></div>
-                </div>
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{values.percentage}%</span>
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện từ các nguồn</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Object.entries(energyProduction).map(([type, values]) => (
+          <div 
+            key={type} 
+            className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+          >
+            <h3 className="font-medium text-gray-700 dark:text-gray-300">{energyTypes[type] || type}</h3>
+            <p className="text-2xl font-bold mt-2 text-gray-800 dark:text-white">{values.production} kWh</p>
+            <div className="flex items-center mt-3">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2 rounded-full" 
+                  style={{ width: `${values.percentage}%` }}
+                ></div>
               </div>
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{values.percentage}%</span>
             </div>
-          ))}
-        </div>
-      </div>
-  
-      {/* Consumption Table */}
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Chênh lệch công suất theo giờ</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full rounded-lg overflow-hidden border-collapse">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-700 text-left">
-                <th className="p-3 font-medium text-gray-700 dark:text-gray-300">Thời gian</th>
-                <th className="p-3 font-medium text-gray-700 dark:text-gray-300">Chênh lệch (MW)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {cityConsumptionData.map((row, index) => (
-                <tr 
-                  key={index} 
-                  className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-                >
-                  <td className="p-3 text-gray-600 dark:text-gray-300">{row.time}</td>
-                  <td className={`p-3 font-medium ${
-                    row.deficit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {row.deficit >= 0 ? '+' : ''}{row.deficit} MW
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
+  
 }
