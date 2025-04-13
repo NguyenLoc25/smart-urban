@@ -154,135 +154,6 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
     </div>
   );
 
-  const renderDailyChart = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">Biểu đồ sản lượng theo ngày</h3>
-        <div className="text-sm text-gray-500">
-          Tổng {chartData.dailyData.length} ngày có dữ liệu
-        </div>
-      </div>
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <Plot
-          data={[{
-            x: chartData.dailyData.map(entry => 
-              `${entry.day.toString().padStart(2, '0')}/${entry.month.toString().padStart(2, '0')}`
-            ),
-            y: chartData.dailyData.map(entry => entry.production),
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#3b82f6', width: 2, shape: 'spline' },
-            marker: { size: 8, color: '#3b82f6' },
-            hovertemplate: '<b>%{x}</b><br>Sản lượng: %{y:,.0f} kWh<extra></extra>',
-            fill: 'tozeroy',
-            fillcolor: 'rgba(59, 130, 246, 0.1)',
-            name: 'Sản lượng điện'
-          }]}
-          layout={{
-            margin: { t: 30, b: 60, l: 60, r: 30 }, // Tăng margin để tránh bị cắt
-            xaxis: { 
-              title: 'Ngày/Tháng', // Thêm tiêu đề trục x
-              gridcolor: '#f3f4f6',
-              linecolor: '#e5e7eb',
-              tickangle: -45,
-              titlefont: { size: 12 }
-            },
-            yaxis: { 
-              title: 'Sản lượng (kWh)', // Thêm tiêu đề trục y
-              gridcolor: '#f3f4f6',
-              linecolor: '#e5e7eb',
-              tickformat: ',.0f',
-              titlefont: { size: 12 },
-              automargin: true // Tự động điều chỉnh margin
-            },
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            hoverlabel: {
-              bgcolor: '#1e3a8a',
-              font: { color: 'white' }
-            },
-            legend: {
-              orientation: 'h',
-              y: -0.2, // Đặt chú thích bên dưới biểu đồ
-              x: 0.5,
-              xanchor: 'center'
-            },
-            showlegend: true // Hiển thị chú thích
-          }}
-          config={{ 
-            responsive: true, 
-            displayModeBar: false,
-            scrollZoom: true
-          }}
-          style={{ width: '100%', height: '400px' }} // Tăng chiều cao
-        />
-      </div>
-    </div>
-  );
-  
-  const renderMonthlyChart = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">Biểu đồ sản lượng trung bình theo tháng</h3>
-        <div className="text-sm text-gray-500">
-          {chartData.monthlyAverages.length} tháng có dữ liệu
-        </div>
-      </div>
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <Plot
-          data={[{
-            x: chartData.monthlyAverages.map(item => `Tháng ${item.month}`),
-            y: chartData.monthlyAverages.map(item => item.average),
-            type: 'bar',
-            marker: { 
-              color: '#10b981',
-              line: { width: 1, color: '#047857' }
-            },
-            hovertemplate: '<b>%{x}</b><br>Trung bình: %{y:,.0f} kWh<extra></extra>',
-            name: 'Sản lượng TB' // Thêm chú thích
-          }]}
-          layout={{
-            margin: { t: 30, b: 60, l: 60, r: 30 }, // Tăng margin
-            xaxis: { 
-              title: 'Tháng', // Thêm tiêu đề trục x
-              gridcolor: '#f3f4f6',
-              linecolor: '#e5e7eb',
-              titlefont: { size: 12 }
-            },
-            yaxis: { 
-              title: 'Sản lượng trung bình (kWh)', // Thêm tiêu đề trục y
-              gridcolor: '#f3f4f6',
-              linecolor: '#e5e7eb',
-              tickformat: ',.0f',
-              titlefont: { size: 12 },
-              automargin: true
-            },
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            hoverlabel: {
-              bgcolor: '#065f46',
-              font: { color: 'white' }
-            },
-            legend: {
-              orientation: 'h',
-              y: -0.2,
-              x: 0.5,
-              xanchor: 'center'
-            },
-            showlegend: true,
-            barmode: 'group'
-          }}
-          config={{ 
-            responsive: true, 
-            displayModeBar: false,
-            scrollZoom: true
-          }}
-          style={{ width: '100%', height: '480px' }} // Tăng chiều cao
-        />
-      </div>
-    </div>
-  );
-
   const renderMobileView = () => (
     <div className="px-4 py-4">
       {/* Enhanced header with better spacing */}
@@ -612,139 +483,139 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
           
           {/* Chart container with responsive height */}
           <div className="relative" style={{ height: '400px' }}>
-            {activeTab === 'daily' ? (
-              <Plot
-                data={[{
-                  x: chartData.dailyData.map(entry => `${entry.day}/${entry.month}`),
-                  y: chartData.dailyData.map(entry => entry.production),
-                  type: 'scatter',
-                  mode: 'lines+markers',
-                  line: { color: '#3b82f6', width: 3, shape: 'spline' },
-                  marker: { size: 8, color: '#3b82f6' },
-                  hovertemplate: '<b>Ngày %{x}</b><br>%{y:,.0f} kWh<extra></extra>',
-                  fill: 'tozeroy',
-                  fillcolor: 'rgba(59, 130, 246, 0.1)'
-                }]}
-                layout={{
-                  margin: { t: 20, b: 80, l: 60, r: 40 },
-                  xaxis: { 
-                    tickangle: -45,
-                    tickfont: { size: 11 },
-                    automargin: true,
-                    gridcolor: '#f3f4f6',
-                    title: {
-                      text: 'Ngày',
-                      font: { size: 12 }
-                    }
-                  },
-                  yaxis: { 
-                    tickformat: ',.0f',
-                    tickfont: { size: 11 },
-                    gridcolor: '#f3f4f6',
-                    title: {
-                      text: 'Sản lượng (kWh)',
-                      font: { size: 12 }
-                    }
-                  },
-                  plot_bgcolor: 'rgba(0,0,0,0)',
-                  paper_bgcolor: 'rgba(0,0,0,0)',
-                  hoverlabel: {
-                    bgcolor: 'rgba(255,255,255,0.95)',
-                    bordercolor: '#e5e7eb',
-                    font: { size: 12 }
-                  }
-                }}
-                config={{ 
-                  responsive: true,
-                  displayModeBar: true,
-                  displaylogo: false,
-                  modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
-                  modeBarButtonsToAdd: [{ 
-                    name: 'Tải xuống',
-                    icon: { 
-                      'width': 500,
-                      'height': 500,
-                      'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
-                      'transform': 'matrix(1 0 0 -1 0 500)'
-                    },
-                    click: function(gd) { 
-                      Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-tieu-thu-dien'});
-                    }
-                  }]
-                }}
-                style={{ width: '100%', height: '100%' }}
-              />
-            ) : (
-              <Plot
-                data={[{
-                  x: chartData.monthlyAverages.map(item => item.month),
-                  y: chartData.monthlyAverages.map(item => item.average),
-                  type: 'bar',
-                  marker: { 
-                    color: chartData.monthlyAverages.map(item => 
-                      item.average > 1000 ? '#10b981' : '#f59e0b'
-                    ),
-                    line: { width: 1, color: 'rgba(0,0,0,0.1)' }
-                  },
-                  hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.0f} kWh<extra></extra>',
-                  text: chartData.monthlyAverages.map(item => item.average.toLocaleString()),
-                  textposition: 'auto'
-                }]}
-                layout={{
-                  margin: { t: 20, b: 80, l: 60, r: 40 },
-                  xaxis: { 
-                    tickangle: -45,
-                    tickfont: { size: 11 },
-                    automargin: true,
-                    gridcolor: '#f3f4f6',
-                    title: {
-                      text: 'Tháng',
-                      font: { size: 12 }
-                    }
-                  },
-                  yaxis: { 
-                    tickformat: ',.0f',
-                    tickfont: { size: 11 },
-                    gridcolor: '#f3f4f6',
-                    title: {
-                      text: 'Sản lượng trung bình (kWh)',
-                      font: { size: 12 }
-                    }
-                  },
-                  plot_bgcolor: 'rgba(0,0,0,0)',
-                  paper_bgcolor: 'rgba(0,0,0,0)',
-                  hoverlabel: {
-                    bgcolor: 'rgba(255,255,255,0.95)',
-                    bordercolor: '#e5e7eb',
-                    font: { size: 12 }
-                  },
-                  uniformtext: {
-                    minsize: 10,
-                    mode: 'hide'
-                  }
-                }}
-                config={{ 
-                  responsive: true,
-                  displayModeBar: true,
-                  displaylogo: false,
-                  modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
-                  modeBarButtonsToAdd: [{ 
-                    name: 'Tải xuống',
-                    icon: { 
-                      'width': 500,
-                      'height': 500,
-                      'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
-                      'transform': 'matrix(1 0 0 -1 0 500)'
-                    },
-                    click: function(gd) { 
-                      Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-tieu-thu-dien'});
-                    }
-                  }]
-                }}
-                style={{ width: '100%', height: '100%' }}
-              />
-            )}
-          </div>
+  {activeTab === 'daily' ? (
+    <Plot
+      data={[{
+        x: chartData.dailyData.map(entry => `${entry.day}/${entry.month}`),
+        y: chartData.dailyData.map(entry => entry.production / 1000000), // Chuyển từ kWh sang GWh
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { color: '#3b82f6', width: 3, shape: 'spline' },
+        marker: { size: 8, color: '#3b82f6' },
+        hovertemplate: '<b>Ngày %{x}</b><br>%{y:,.3f} GWh<extra></extra>', // Hiển thị 3 số thập phân
+        fill: 'tozeroy',
+        fillcolor: 'rgba(59, 130, 246, 0.1)'
+      }]}
+      layout={{
+        margin: { t: 20, b: 80, l: 60, r: 40 },
+        xaxis: { 
+          tickangle: -45,
+          tickfont: { size: 11 },
+          automargin: true,
+          gridcolor: '#f3f4f6',
+          title: {
+            text: 'Ngày',
+            font: { size: 12 }
+          }
+        },
+        yaxis: { 
+          // tickformat: ',.2f', // Hiển thị 2 số thập phân
+          tickfont: { size: 11 },
+          gridcolor: '#f3f4f6',
+          title: {
+            text: 'Sản lượng (GWh)', // Đổi đơn vị
+            font: { size: 12 }
+          },
+          // ticksuffix: " GWh" // Thêm đơn vị vào trục
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        hoverlabel: {
+          bgcolor: 'rgba(255,255,255,0.95)',
+          bordercolor: '#e5e7eb',
+          font: { size: 12 }
+        }
+      }}
+      config={{ 
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
+        modeBarButtonsToAdd: [{ 
+          name: 'Tải xuống',
+          icon: { 
+            'width': 500,
+            'height': 500,
+            'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
+            'transform': 'matrix(1 0 0 -1 0 500)'
+          },
+          click: function(gd) { 
+            Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
+          }
+        }]
+      }}
+      style={{ width: '100%', height: '100%' }}
+    />
+  ) : (
+    <Plot
+      data={[{
+        x: chartData.monthlyAverages.map(item => item.month),
+        y: chartData.monthlyAverages.map(item => item.average / 1000000), // Chuyển sang GWh
+        type: 'bar',
+        marker: { 
+          color: chartData.monthlyAverages.map(item => 
+            item.average > 1000000 ? '#10b981' : '#f59e0b' // Điều chỉnh ngưỡng màu
+          ),
+          line: { width: 1, color: 'rgba(0,0,0,0.1)' }
+        },
+        hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>', // Đổi đơn vị
+        text: chartData.monthlyAverages.map(item => (item.average/1000000).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' GWh'), // Hiển thị đơn vị
+        textposition: 'auto'
+      }]}
+      layout={{
+        margin: { t: 20, b: 80, l: 60, r: 40 },
+        xaxis: { 
+          tickangle: -45,
+          tickfont: { size: 11 },
+          automargin: true,
+          gridcolor: '#f3f4f6',
+          title: {
+            text: 'Tháng',
+            font: { size: 12 }
+          }
+        },
+        yaxis: { 
+          tickfont: { size: 11 },
+          gridcolor: '#f3f4f6',
+          title: {
+            text: 'Sản lượng trung bình (GWh)', // Đổi đơn vị
+            font: { size: 12 }
+          },
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        hoverlabel: {
+          bgcolor: 'rgba(255,255,255,0.95)',
+          bordercolor: '#e5e7eb',
+          font: { size: 12 }
+        },
+        uniformtext: {
+          minsize: 10,
+          mode: 'hide'
+        }
+      }}
+      config={{ 
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
+        modeBarButtonsToAdd: [{ 
+          name: 'Tải xuống',
+          icon: { 
+            'width': 500,
+            'height': 500,
+            'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
+            'transform': 'matrix(1 0 0 -1 0 500)'
+          },
+          click: function(gd) { 
+            Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
+          }
+        }]
+      }}
+      style={{ width: '100%', height: '100%' }}
+    />
+  )}
+</div>
         </div>
   
         {/* Stats panel with improved visual hierarchy */}
