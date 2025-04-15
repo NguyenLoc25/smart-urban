@@ -22,17 +22,6 @@ export default function EnergyPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-
-  const [quantityData, setQuantityData] = useState({
-    total: 0,
-    used: 0,
-    available: 0,
-    solar: 0,
-    hydro: 0,
-    wind: 0
-  });
-
-
   const energyTypes = {
     all: "Tất cả",
     Solar: "Năng lượng mặt trời",
@@ -132,18 +121,94 @@ export default function EnergyPage() {
     return () => unsubscribeAuth();
   }, []);
 
-  const loadData = () => {
+  const [quantityData, setEnergyData] = useState({
+    hydroCount: 0,
+    windCount: 0,
+    solarCount: 0,
+    hydroUsed: 0,
+    windUsed: 0,
+    solarUsed: 0,
+    updatedAt: null,
+    question_header: {
+      hydro_models: [],
+      wind_models: [],
+      solar_models: []
+    }
+});
+
+const loadData = () => {
     try {
       const database = getDatabase();
       const physicInfoRef = ref(database, 'energy/physic-info');
 
       const unsubscribe = onValue(physicInfoRef, (snapshot) => {
+        // dùng cho số lượng thiết bị
         const data = snapshot.val();
         if (data) {
+          // Khởi tạo đối tượng để lưu các model và số lượng
+          const models = {
+            hydro: {},
+            wind: {},
+            solar: {}
+          };
+
+          // Hàm xử lý chung cho từng loại năng lượng
+          const processEnergyType = (type) => {
+            if (!data[type]) return { count: 0, used: 0 };
+            
+            const devices = Object.values(data[type]);
+            devices.forEach(d => {
+              if (d.question_header) {
+                // Đếm số lượng từng model
+                models[type][d.question_header] = (models[type][d.question_header] || 0) + 1;
+              }
+            });
+            
+            return {
+              count: devices.length,
+              used: devices.filter(d => d.status === 'Active').length
+            };
+          };
+
+          // Xử lý từng loại năng lượng
+          const hydro = processEnergyType('hydro');
+          const wind = processEnergyType('wind');
+          const solar = processEnergyType('solar');
+
+          setEnergyData({
+            hydroCount: hydro.count,
+            windCount: wind.count,
+            solarCount: solar.count,
+            hydroUsed: hydro.used,
+            windUsed: wind.used,
+            solarUsed: solar.used,
+            updatedAt: new Date().toISOString(),
+            question_header: {
+              // Chuyển object thành mảng các model (lặp lại theo số lượng)
+              hydro_models: Object.entries(models.hydro).flatMap(([model, count]) => 
+                Array(count).fill(model)
+              ),
+              wind_models: Object.entries(models.wind).flatMap(([model, count]) => 
+                Array(count).fill(model)
+              ),
+              solar_models: Object.entries(models.solar).flatMap(([model, count]) => 
+                Array(count).fill(model)
+              )
+            }
+          });
+          
+          setLoading(false);
+        } else {
+          setError("No data available");
+          setLoading(false);
+        }
+        // dùng cho Sản lượng điện từ các nguồn
+        const datas = snapshot.val();
+        if (datas) {
           const devices = [];
           
-          if (data.solar) {
-            Object.entries(data.solar).forEach(([id, device]) => {
+          if (datas.solar) {
+            Object.entries(datas.solar).forEach(([id, device]) => {
               devices.push({
                 id,
                 type: 'Solar',
@@ -155,8 +220,8 @@ export default function EnergyPage() {
             });
           }
           
-          if (data.hydro) {
-            Object.entries(data.hydro).forEach(([id, device]) => {
+          if (datas.hydro) {
+            Object.entries(datas.hydro).forEach(([id, device]) => {
               devices.push({
                 id,
                 type: 'Hydro',
@@ -169,8 +234,8 @@ export default function EnergyPage() {
             });
           }
           
-          if (data.wind) {
-            Object.entries(data.wind).forEach(([id, device]) => {
+          if (datas.wind) {
+            Object.entries(datas.wind).forEach(([id, device]) => {
               devices.push({
                 id,
                 type: 'Wind',
@@ -183,24 +248,6 @@ export default function EnergyPage() {
           }
           
           setEnergyDevices(devices);
-
-          const solarCount = data.solar ? Object.keys(data.solar).length : 0;
-          const hydroCount = data.hydro ? Object.keys(data.hydro).length : 0;
-          const windCount = data.wind ? Object.keys(data.wind).length : 0;
-          const total = solarCount + hydroCount + windCount;
-          
-          setQuantityData({
-            total: total * 3,
-            used: total,
-            available: total * 2,
-            solar: solarCount,
-            hydro: hydroCount,
-            wind: windCount
-          });
-          setLoading(false);
-        } else {
-          setError("No data available");
-          setLoading(false);
         }
       }, (error) => {
         console.error("Error listening to data:", error);
@@ -208,13 +255,15 @@ export default function EnergyPage() {
         setLoading(false);
       });
 
+      
+
       return () => unsubscribe();
     } catch (err) {
       console.error("Error loading data:", err);
       setError(err.message);
       setLoading(false);
     }
-  };
+};
 
   if (loading) return <div className="text-blue-500">⏳ Đang tải dữ liệu...</div>;
   if (error) return <div className="text-red-500">❌ Lỗi: {error}</div>;
@@ -222,7 +271,6 @@ export default function EnergyPage() {
   const renderMobileView = () => (
     <div >
       {/* Quantity Table - Full width on mobile */}
-      <h2 className="text-lg font-semibold text-gray-800 dark:text-white px-2">Thống kê vị trí</h2>
       <div className="overflow-x-auto">
         <QuantityTable data={quantityData} />
       </div>
@@ -267,11 +315,9 @@ export default function EnergyPage() {
   const renderDesktopView = () => (
     <div className="p-6 space-y-6">
       {/* Quantity Table */}
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Thống kê vị trí</h2>
       <QuantityTable data={quantityData} />
     
       {/* Total Chart */}
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện theo năm</h2>
       <TotalChart energyData={data} />
     
       {/* Result Chart */}

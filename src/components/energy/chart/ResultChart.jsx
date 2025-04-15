@@ -155,7 +155,7 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
   );
 
   const renderMobileView = () => (
-    <div className="px-4 py-4">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mx-2 my-3 px-4 py-4">
       {/* Enhanced header with better spacing */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-xl p-5 text-white mb-6 shadow-lg">
         <div className="flex items-center justify-between">
@@ -416,7 +416,8 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
   );
 
   const renderDesktopView = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    //bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Enhanced header with better spacing and icon */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-8">
         <div className="p-8 text-white">
