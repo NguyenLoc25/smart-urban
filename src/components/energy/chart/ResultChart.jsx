@@ -155,7 +155,8 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
   );
 
   const renderMobileView = () => (
-    <div className="bg-white min-h-screen px-4 py-6">
+    // border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg min-h-screen px-4 py-6">
       {/* Compact header for mobile */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-xl shadow-md mb-6 p-5">
         <div className="flex justify-between items-start">
@@ -211,97 +212,132 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
       </div>
   
       {/* Chart container with responsive height */}
-      <div className="bg-white rounded-xl shadow-md p-4 mb-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          {activeTab === 'daily' ? 'Tiêu thụ theo ngày' : 'Trung bình tháng'}
-        </h2>
-        <div className="relative" style={{ height: '300px' }}>
-          {activeTab === 'daily' ? (
-            <Plot
+<div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6 border border-gray-200 dark:border-gray-700">
+  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+    {activeTab === 'daily' ? 'Tiêu thụ theo ngày' : 'Trung bình tháng'}
+  </h2>
+  <div className="relative" style={{ height: '300px' }}>
+    {activeTab === 'daily' ? (
+              <Plot
               data={[{
                 x: chartData.dailyData.map(entry => `${entry.day}/${entry.month}`),
                 y: chartData.dailyData.map(entry => entry.production / 1000000),
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#ef4444', width: 2, shape: 'spline' },
-                marker: { size: 6, color: '#ef4444' },
+                line: { color: '#ef4444', width: 3, shape: 'spline' },
+                marker: { size: 8, color: '#ef4444' },
                 hovertemplate: '<b>Ngày %{x}</b><br>%{y:,.3f} GWh<extra></extra>',
                 fill: 'tozeroy',
                 fillcolor: 'rgba(239, 68, 68, 0.1)'
               }]}
               layout={{
-                margin: { t: 10, b: 60, l: 50, r: 20 },
+                margin: { t: 20, b: 80, l: 60, r: 40 },
                 xaxis: { 
                   tickangle: 0,
-                  tickfont: { size: 10 },
+                  tickfont: { size: 11, color: '#6b7280' },
                   automargin: true,
-                  gridcolor: '#f3f4f6'
+                  gridcolor: '#f3f4f6',
+                  title: {
+                    text: 'Ngày',
+                    font: { size: 12 }
+                  },
+                  range: [chartData.dailyData.length - 4.5, chartData.dailyData.length - 0.5], // Thay đổi từ 7.5 thành 4.5
+                  autorange: false,
+                  fixedrange: false
                 },
                 yaxis: { 
-                  tickfont: { size: 10 },
-                  gridcolor: '#f3f4f6'
+                  tickfont: { size: 11, color: '#6b7280' },
+                  gridcolor: '#f3f4f6',
+                  title: {
+                    text: 'Sản lượng (GWh)',
+                    font: { size: 12 }
+                  }
                 },
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 hoverlabel: {
                   bgcolor: '#000000',
                   font: { 
-                    size: 11,
+                    size: 12,
                     color: '#ffffff'
-                  }
+                  },
+                  bordercolor: '#000000'
                 }
               }}
               config={{ 
                 responsive: true,
-                displayModeBar: false
-              }}
-              style={{ width: '100%', height: '100%' }}
-            />
-          ) : (
-            <Plot
-              data={[{
-                x: chartData.monthlySum.map(item => item.month),
-                y: chartData.monthlySum.map(item => item.sum / 1000000),
-                type: 'bar',
-                marker: { 
-                  color: chartData.monthlySum.map(item => 
-                    item.sum > 1000000 ? '#ef4444' : '#f97316'
-                  ),
-                  line: { width: 1, color: 'rgba(0,0,0,0.1)' }
-                },
-                hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>'
-              }]}
-              layout={{
-                margin: { t: 10, b: 60, l: 50, r: 20 },
-                xaxis: { 
-                  tickangle: 0,
-                  tickfont: { size: 10 },
-                  automargin: true,
-                  gridcolor: '#f3f4f6'
-                },
-                yaxis: { 
-                  tickfont: { size: 10 },
-                  gridcolor: '#f3f4f6'
-                },
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                hoverlabel: {
-                  bgcolor: '#000000',
-                  font: { 
-                    size: 11,
-                    color: '#ffffff'
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
+                modeBarButtonsToAdd: [{ 
+                  name: 'Tải xuống',
+                  icon: { 
+                    'width': 500,
+                    'height': 500,
+                    'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
+                    'transform': 'matrix(1 0 0 -1 0 500)'
+                  },
+                  click: function(gd) { 
+                    Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
                   }
-                }
-              }}
-              config={{ 
-                responsive: true,
-                displayModeBar: false
+                }]
               }}
               style={{ width: '100%', height: '100%' }}
             />
-          )}
-        </div>
-      </div>
+    ) : (
+      <Plot
+        data={[{
+          x: chartData.monthlySum.map(item => item.month),
+          y: chartData.monthlySum.map(item => item.sum / 1000000),
+          type: 'bar',
+          marker: { 
+            color: chartData.monthlySum.map(item => 
+              item.sum > 1000000 ? '#ef4444' : '#f97316'
+            ),
+            line: { width: 1, color: 'rgba(0,0,0,0.1)' }
+          },
+          hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>'
+        }]}
+        layout={{
+          margin: { t: 10, b: 60, l: 50, r: 20 },
+          xaxis: { 
+            tickangle: 0,
+            tickfont: { size: 10, color: '#6b7280' },
+            automargin: true,
+            gridcolor: '#f3f4f6',
+            color: '#9ca3af',
+            linecolor: '#374151',
+            zerolinecolor: '#374151'
+          },
+          yaxis: { 
+            tickfont: { size: 10, color: '#6b7280' },
+            gridcolor: '#f3f4f6',
+            color: '#9ca3af',
+            linecolor: '#374151',
+            zerolinecolor: '#374151'
+          },
+          plot_bgcolor: 'rgba(0,0,0,0)',
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          hoverlabel: {
+            bgcolor: '#000000',
+            font: { 
+              size: 11,
+              color: '#ffffff'
+            }
+          },
+          font: {
+            color: '#9ca3af' // Default text color for dark mode
+          }
+        }}
+        config={{ 
+          responsive: true,
+          displayModeBar: false
+        }}
+        style={{ width: '100%', height: '100%' }}
+      />
+    )}
+  </div>
+</div>
   
       {/* Stats cards in vertical layout */}
       <div className="space-y-4">
@@ -322,73 +358,84 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
         </div>
   
         {/* System overview card */}
-        <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-          <h3 className="font-medium text-base text-gray-800 mb-4 flex items-center">
-            <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
+      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+        <svg className="w-6 h-6 mr-3 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Tổng quan hệ thống
+      </h3>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Tổng quan hệ thống
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">
-                Số ngày có dữ liệu
-              </span>
-              <span className="font-medium text-gray-900">
-                {chartData.dailyData.length}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">
-                Tháng gần nhất
-              </span>
-              <span className="font-medium text-gray-900">
-                {chartData.monthlySum[chartData.monthlySum.length - 1]?.month || 'N/A'}
-              </span>
-            </div>
+            Số ngày có dữ liệu
+          </span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">
+            {chartData.dailyData.length}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-3">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Tháng gần nhất
+          </span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">
+            {chartData.monthlySum[chartData.monthlySum.length - 1]?.month || 'N/A'}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
+      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+        <svg className="w-6 h-6 mr-3 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        Thống kê tiêu thụ
+      </h3>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            Sản lượng cao nhất
+          </span>
+          <div className="flex items-center">
+            <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
+              {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
           </div>
         </div>
-  
-        {/* Consumption stats card */}
-        <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-          <h3 className="font-medium text-base text-gray-800 mb-4 flex items-center">
-            <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        <div className="flex justify-between items-center py-3">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
-            Thống kê tiêu thụ
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-600">
-                Cao nhất
-              </span>
-              <div className="flex items-center">
-                <span className="font-medium text-green-600 mr-1">
-                  {(Math.max(...chartData.dailyData.map(d => d.production)) / 1000)}
-                </span>
-                <span className="text-xs text-gray-500">kWh</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">
-                Thấp nhất
-              </span>
-              <div className="flex items-center">
-                <span className="font-medium text-red-600 mr-1">
-                  {(Math.min(...chartData.dailyData.map(d => d.production)) / 1000)}
-                </span>
-                <span className="text-xs text-gray-500">kWh</span>
-              </div>
-            </div>
+            Sản lượng thấp nhất
+          </span>
+          <div className="flex items-center">
+            <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
+              {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
           </div>
         </div>
+      </div>
+    </div>
       </div>
     </div>
   );
 
   const renderDesktopView = () => (
-    //bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    // border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Enhanced header with better spacing and icon */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-8">
         <div className="p-8 text-white">
@@ -417,286 +464,280 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
   
       {/* Main content grid with better spacing */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chart panel - wider on desktop */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {activeTab === 'daily' ? 'Biểu đồ tiêu thụ theo ngày' : 'Biểu đồ trung bình tháng'}
-            </h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setActiveTab('daily')}
-                className={`px-4 py-2 rounded-lg font-medium flex items-center transition-all ${
-                  activeTab === 'daily' 
-                    ? 'bg-blue-50 text-blue-600 shadow-inner border border-blue-100' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Ngày
-              </button>
-              <button
-                onClick={() => setActiveTab('monthly')}
-                className={`px-4 py-2 rounded-lg font-medium flex items-center transition-all ${
-                  activeTab === 'monthly' 
-                    ? 'bg-blue-50 text-blue-600 shadow-inner border border-blue-100' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-                Tháng
-              </button>
-            </div>
-          </div>
-          
-          {/* Chart container with responsive height */}
-          <div className="relative" style={{ height: '500px' }}>
-  {activeTab === 'daily' ? (
-    <Plot
-      data={[{
-        // Giữ nguyên toàn bộ dữ liệu nhưng chỉ hiển thị 7 ngày cuối
-        x: chartData.dailyData.map(entry => `${entry.day}/${entry.month}`),
-        y: chartData.dailyData.map(entry => entry.production / 1000000),
-        type: 'scatter',
-        mode: 'lines+markers',
-        line: { color: '#ef4444', width: 3, shape: 'spline' },
-        marker: { size: 8, color: '#ef4444' },
-        hovertemplate: '<b>Ngày %{x}</b><br>%{y:,.3f} GWh<extra></extra>',
-        fill: 'tozeroy',
-        fillcolor: 'rgba(239, 68, 68, 0.1)'
-      }]}
-      layout={{
-        margin: { t: 20, b: 80, l: 60, r: 40 },
-        xaxis: { 
-          tickangle: 0,
-          tickfont: { size: 11 },
-          automargin: true,
-          gridcolor: '#f3f4f6',
-          title: {
-            text: 'Ngày',
-            font: { size: 12 }
-          },
-          // Chỉ hiển thị 7 ngày cuối cùng
-          range: [chartData.dailyData.length - 7.5, chartData.dailyData.length - 0.5],
-          // Nhưng vẫn giữ toàn bộ dữ liệu để có thể hover xem
-          autorange: false,
-          fixedrange: false
-        },
-        yaxis: { 
-          tickfont: { size: 11 },
-          gridcolor: '#f3f4f6',
-          title: {
-            text: 'Sản lượng (GWh)',
-            font: { size: 12 }
-          }
-        },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        hoverlabel: {
-          bgcolor: '#000000',
-          font: { 
-            size: 12,
-            color: '#ffffff'
-          },
-          bordercolor: '#000000'
-        }
-      }}
-      config={{ 
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
-        modeBarButtonsToAdd: [{ 
-          name: 'Tải xuống',
-          icon: { 
-            'width': 500,
-            'height': 500,
-            'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
-            'transform': 'matrix(1 0 0 -1 0 500)'
-          },
-          click: function(gd) { 
-            Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
-          }
-        }]
-      }}
-      style={{ width: '100%', height: '100%' }}
-    />
-  ) : (
-    <Plot
-      data={[{
-        x: chartData.monthlySum.map(item => item.month),
-        y: chartData.monthlySum.map(item => item.sum / 1000000),
-        type: 'bar',
-        marker: { 
-          color: chartData.monthlySum.map(item => 
-            item.sum > 1000000 ? '#ef4444' : '#f97316'
-          ),
-          line: { width: 1, color: 'rgba(0,0,0,0.1)' }
-        },
-        hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>',
-        text: chartData.monthlySum.map(item => (item.sum/1000000).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' GWh'),
-        textposition: 'auto'
-      }]}
-      layout={{
-        margin: { t: 20, b: 80, l: 60, r: 40 },
-        xaxis: { 
-          tickangle: 0,
-          tickfont: { size: 11 },
-          automargin: true,
-          gridcolor: '#f3f4f6',
-          title: {
-            text: 'Tháng',
-            font: { size: 12 }
-          }
-        },
-        yaxis: { 
-          tickfont: { size: 11 },
-          gridcolor: '#f3f4f6',
-          title: {
-            text: 'Sản lượng trung bình (GWh)',
-            font: { size: 12 }
-          },
-        },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        hoverlabel: {
-          bgcolor: '#000000',
-          font: { 
-            size: 12,
-            color: '#ffffff'
-          },
-          bordercolor: '#000000'
-        },
-        uniformtext: {
-          minsize: 10,
-          mode: 'hide'
-        }
-      }}
-      config={{ 
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
-        modeBarButtonsToAdd: [{ 
-          name: 'Tải xuống',
-          icon: { 
-            'width': 500,
-            'height': 500,
-            'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
-            'transform': 'matrix(1 0 0 -1 0 500)'
-          },
-          click: function(gd) { 
-            Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
-          }
-        }]
-      }}
-      style={{ width: '100%', height: '100%' }}
-    />
-  )}
-</div>
-        </div>
-  
-        {/* Stats panel with improved visual hierarchy */}
-        <div className="space-y-6">
+  {/* Chart panel - wider on desktop */}
+  <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2 dark:border-gray-700 dark:bg-gray-900/90">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+        {activeTab === 'daily' ? 'Biểu đồ tiêu thụ theo ngày' : 'Biểu đồ trung bình tháng'}
+      </h2>
+      <div className="flex space-x-2">
+        <button
+          onClick={() => setActiveTab('daily')}
+          className={`px-4 py-2 rounded-lg font-medium flex items-center transition-all ${
+            activeTab === 'daily' 
+              ? 'bg-blue-50 text-blue-600 shadow-inner border border-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800' 
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 dark:border-gray-700'
+          }`}
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Ngày
+        </button>
+        <button
+          onClick={() => setActiveTab('monthly')}
+          className={`px-4 py-2 rounded-lg font-medium flex items-center transition-all ${
+            activeTab === 'monthly' 
+              ? 'bg-blue-50 text-blue-600 shadow-inner border border-blue-100 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-800' 
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 dark:border-gray-700'
+          }`}
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          Tháng
+        </button>
+      </div>
+    </div>
+    
+    {/* Chart container with responsive height */}
+    <div className="relative" style={{ height: '500px' }}>
+      {activeTab === 'daily' ? (
+        <Plot
+          data={[{
+            x: chartData.dailyData.map(entry => `${entry.day}/${entry.month}`),
+            y: chartData.dailyData.map(entry => entry.production / 1000000),
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#ef4444', width: 3, shape: 'spline' },
+            marker: { size: 8, color: '#ef4444' },
+            hovertemplate: '<b>Ngày %{x}</b><br>%{y:,.3f} GWh<extra></extra>',
+            fill: 'tozeroy',
+            fillcolor: 'rgba(239, 68, 68, 0.1)'
+          }]}
+          layout={{
+            margin: { t: 20, b: 80, l: 60, r: 40 },
+            xaxis: { 
+              tickangle: 0,
+              tickfont: { size: 11, color: '#6b7280' },
+              automargin: true,
+              gridcolor: '#f3f4f6',
+              title: {
+                text: 'Ngày',
+                font: { size: 12 }
+              },
+              range: [chartData.dailyData.length - 7.5, chartData.dailyData.length - 0.5],
+              autorange: false,
+              fixedrange: false
+            },
+            yaxis: { 
+              tickfont: { size: 11, color: '#6b7280' },
+              gridcolor: '#f3f4f6',
+              title: {
+                text: 'Sản lượng (GWh)',
+                font: { size: 12 }
+              }
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            hoverlabel: {
+              bgcolor: '#000000',
+              font: { 
+                size: 12,
+                color: '#ffffff'
+              },
+              bordercolor: '#000000'
+            }
+          }}
+          config={{ 
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
+            modeBarButtonsToAdd: [{ 
+              name: 'Tải xuống',
+              icon: { 
+                'width': 500,
+                'height': 500,
+                'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
+                'transform': 'matrix(1 0 0 -1 0 500)'
+              },
+              click: function(gd) { 
+                Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
+              }
+            }]
+          }}
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <Plot
+          data={[{
+            x: chartData.monthlySum.map(item => item.month),
+            y: chartData.monthlySum.map(item => item.sum / 1000000),
+            type: 'bar',
+            marker: { 
+              color: chartData.monthlySum.map(item => 
+                item.sum > 1000000 ? '#ef4444' : '#f97316'
+              ),
+              line: { width: 1, color: 'rgba(0,0,0,0.1)' }
+            },
+            hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>',
+            text: chartData.monthlySum.map(item => (item.sum/1000000).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' GWh'),
+            textposition: 'auto'
+          }]}
+          layout={{
+            margin: { t: 20, b: 80, l: 60, r: 40 },
+            xaxis: { 
+              tickangle: 0,
+              tickfont: { size: 11, color: '#6b7280' },
+              automargin: true,
+              gridcolor: '#f3f4f6',
+              title: {
+                text: 'Tháng',
+                font: { size: 12 }
+              }
+            },
+            yaxis: { 
+              tickfont: { size: 11, color: '#6b7280' },
+              gridcolor: '#f3f4f6',
+              title: {
+                text: 'Sản lượng trung bình (GWh)',
+                font: { size: 12 }
+              },
+            },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            hoverlabel: {
+              bgcolor: '#000000',
+              font: { 
+                size: 12,
+                color: '#ffffff'
+              },
+              bordercolor: '#000000'
+            },
+            uniformtext: {
+              minsize: 10,
+              mode: 'hide'
+            }
+          }}
+          config={{ 
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
+            modeBarButtonsToAdd: [{ 
+              name: 'Tải xuống',
+              icon: { 
+                'width': 500,
+                'height': 500,
+                'path': 'M450 0H50C22.4 0 0 22.4 0 50v400c0 27.6 22.4 50 50 50h400c27.6 0 50-22.4 50-50V50c0-27.6-22.4-50-50-50zM238.4 409.6c0 11.2-9.6 20.8-20.8 20.8s-20.8-9.6-20.8-20.8V256l-68.8 68.8c-4 4-9.6 6.4-14.4 6.4s-10.4-2.4-14.4-6.4c-8.8-8.8-8.8-22.4 0-31.2l96-96c8.8-8.8 22.4-8.8 31.2 0l96 96c8.8 8.8 8.8 22.4 0 31.2-8.8 8.8-22.4 8.8-31.2 0l-68.8-68.8v153.6z',
+                'transform': 'matrix(1 0 0 -1 0 500)'
+              },
+              click: function(gd) { 
+                Plotly.downloadImage(gd, {format: 'png', width: 800, height: 600, filename: 'bieu-do-san-luong-dien'});
+              }
+            }]
+          }}
+          style={{ width: '100%', height: '100%' }}
+        />
+      )}
+    </div>
+  </div>
 
-          {/* Additional summary card */}
-          <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl shadow-lg p-6 text-white">
-            <h3 className="font-semibold text-lg mb-4 flex items-center">
-              <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Tổng sản lượng
-            </h3>
-            <div className="text-3xl font-bold mb-2">
-              {chartData.dailyData.reduce((sum, day) => sum + day.production, 0).toLocaleString()} kWh
-            </div>
-            <div className="flex items-center text-sm">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span>Tương đương {calculateEquivalent()} hộ gia đình</span>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <h3 className="font-semibold text-lg text-gray-800 mb-5 flex items-center">
-              <svg className="w-6 h-6 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Tổng quan hệ thống
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 flex items-center">
-                  <svg className="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Số ngày có dữ liệu
-                </span>
-                <span className="font-medium text-gray-900 text-lg">
-                  {chartData.dailyData.length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-3">
-                <span className="text-gray-600 flex items-center">
-                  <svg className="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Tháng gần nhất
-                </span>
-                <span className="font-medium text-gray-900 text-lg">
-                  {chartData.monthlySum[chartData.monthlySum.length - 1]?.month || 'N/A'}
-                </span>
-              </div>
-            </div>
-          </div>
-  
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <h3 className="font-semibold text-lg text-gray-800 mb-5 flex items-center">
-              <svg className="w-6 h-6 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              Thống kê tiêu thụ
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 flex items-center">
-                  <svg className="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
-                  Sản lượng cao nhất
-                </span>
-                <div className="flex items-center">
-                  <span className="font-medium text-green-600 text-lg mr-2">
-                    {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-                  </span>
-                  <span className="text-sm text-gray-500">kWh</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-3">
-                <span className="text-gray-600 flex items-center">
-                  <svg className="w-5 h-5 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                  Sản lượng thấp nhất
-                </span>
-                <div className="flex items-center">
-                  <span className="font-medium text-red-600 text-lg mr-2">
-                    {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-                  </span>
-                  <span className="text-sm text-gray-500">kWh</span>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-          
+  {/* Stats panel with improved visual hierarchy */}
+  <div className="space-y-6">
+    {/* Additional summary card */}
+    <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl shadow-lg p-6 text-white dark:from-red-600 dark:to-orange-600">
+      <h3 className="font-semibold text-lg mb-4 flex items-center">
+        <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Tổng sản lượng
+      </h3>
+      <div className="text-3xl font-bold mb-2">
+        {chartData.dailyData.reduce((sum, day) => sum + day.production, 0).toLocaleString()} kWh
+      </div>
+      <div className="flex items-center text-sm">
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        <span>Tương đương {calculateEquivalent()} hộ gia đình</span>
+      </div>
+    </div>
+    
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
+      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+        <svg className="w-6 h-6 mr-3 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Tổng quan hệ thống
+      </h3>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Số ngày có dữ liệu
+          </span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">
+            {chartData.dailyData.length}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-3">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Tháng gần nhất
+          </span>
+          <span className="font-medium text-gray-900 dark:text-gray-100 text-lg">
+            {chartData.monthlySum[chartData.monthlySum.length - 1]?.month || 'N/A'}
+          </span>
         </div>
       </div>
+    </div>
+
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
+      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+        <svg className="w-6 h-6 mr-3 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        Thống kê tiêu thụ
+      </h3>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            Sản lượng cao nhất
+          </span>
+          <div className="flex items-center">
+            <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
+              {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center py-3">
+          <span className="text-gray-600 dark:text-gray-300 flex items-center">
+            <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            Sản lượng thấp nhất
+          </span>
+          <div className="flex items-center">
+            <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
+              {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
   );
   

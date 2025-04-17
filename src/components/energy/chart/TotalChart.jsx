@@ -29,7 +29,7 @@ const TotalChart = ({ energyData }) => {
   }, [viewMode, energyData]);
 
   const renderDesktopView = () => (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg">
       <div className="p-6">
   {/* Gradient Header */}
   <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 text-white mb-6">
@@ -97,25 +97,23 @@ const TotalChart = ({ energyData }) => {
 </div>
 
   {/* Content Section with Contrast Colors */}
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-      
-      {/* Mode selector with new color scheme */}
-      <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200 shadow-inner">
+
+      {/* Mode selector with dark mode support */}
+      <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-200 shadow-inner dark:bg-gray-800 dark:border-gray-700">
         {["yearly", "monthly", "hourly"].map((mode) => (
           <button
             key={mode}
             onClick={() => setViewMode(mode)}
             className={`px-4 py-2 text-sm rounded-md transition-all duration-200 ${
               viewMode === mode
-                ? 'bg-indigo-100 text-indigo-700 font-semibold shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-indigo-100 text-indigo-700 font-semibold shadow-sm dark:bg-indigo-900 dark:text-indigo-200'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           >
             {mode === "yearly" ? "Năm" : mode === "monthly" ? "Tháng" : "Giờ"}
           </button>
         ))}
       </div>
-    </div>
     </div>
         {/* Chart container with improved layout */}
         {selectedData.length > 0 ? (
@@ -236,8 +234,9 @@ const TotalChart = ({ energyData }) => {
       </div>
   );
 
+  // border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg
   const renderMobileView = () => (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mx-2 my-3">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg mx-2 my-3">
       <div className="p-4">
         {/* Gradient Header - Responsive */}
         <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 text-white mb-4 md:mb-6">
