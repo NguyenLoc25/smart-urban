@@ -282,7 +282,7 @@ const loadData = () => {
       <ResultChart />
   
       {/* Energy Sources - Grid 2 columns for small mobile */}
-      <h2 className="text-lg font-semibold text-gray-800 dark:text-white px-2">Sản lượng điện từ các nguồn</h2>
+      {/* <h2 className="text-lg font-semibold text-gray-800 dark:text-white px-2">Sản lượng điện từ các nguồn</h2>
       <div className="grid grid-cols-2 gap-2">
         {Object.entries(energyProduction).map(([type, values]) => (
           <div 
@@ -308,7 +308,7 @@ const loadData = () => {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
   
