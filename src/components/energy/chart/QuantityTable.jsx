@@ -99,6 +99,18 @@ export default function QuantityTable({ data = [] }) {
 
   const quantityData = calculateQuantityData(data);
 
+  const countModels = (models) => {
+    if (!models || !Array.isArray(models)) return {};
+    
+    const countMap = {};
+    models.forEach((model) => {
+      if (model) {
+        countMap[model] = (countMap[model] || 0) + 1;
+      }
+    });
+    return countMap;
+  };
+
   const energyTypes = {
     hydro: {
       name: "Thủy điện",
@@ -138,17 +150,6 @@ export default function QuantityTable({ data = [] }) {
     }
   };
 
-  const countModels = (models) => {
-    if (!models || !Array.isArray(models)) return {};
-    
-    const countMap = {};
-    models.forEach((model) => {
-      if (model) {
-        countMap[model] = (countMap[model] || 0) + 1;
-      }
-    });
-    return countMap;
-  };
 
   const openModal = (energyType) => {
     setSelectedEnergyType(energyType);

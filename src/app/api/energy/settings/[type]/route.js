@@ -66,8 +66,11 @@ export async function GET(req, { params }) {
 
 export async function POST(req, { params }) {
   try {
-    const { type } = params;
+    // First await the request.json() if needed
     const data = await req.json();
+    
+    // Then access params
+    const { type } = params; // This is fine because params is already resolved by Next.js
     
     // Set default quantity if not provided
     if (!data.quantity) {
@@ -84,7 +87,7 @@ export async function POST(req, { params }) {
       id: uuid,
       energy_type: type,
       created_at: new Date().toISOString(),
-      quantity: data.quantity, // Include quantity
+      quantity: data.quantity,
       ...data
     };
     
