@@ -19,11 +19,10 @@ export async function GET(req) {
     const formattedData = Object.values(data)
       .map((item) => ({
         hour: Number(item.Hour) || 0, // Đảm bảo hour là số (0-23)
-        energy: Number(item[`Electricity from ${energyType} - MWh`]) || 0, // Đơn vị có thể là MWh thay vì TWh
-        date: item.Date || "", // Ngày tương ứng
+        energy: Number(item[`Electricity from ${energyType} - TWh`]) || 0, // Đơn vị có thể là MWh thay vì TWh
         month: Number(item.Month) || 0, // Tháng nếu có
         year: Number(item.Year) || 0, // Năm nếu có
-        code: item.Code || "", // Mã nếu có
+        code: item.code || "VNM", // Mã nếu có
         entity: item.Entity || "", // Entity nếu có
       }))
       // Lọc các mục có hour hợp lệ và energy > 0

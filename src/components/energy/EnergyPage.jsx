@@ -26,7 +26,7 @@ export default function EnergyPage() {
       energyField: "Electricity from wind - TWh"
     },
     Hydro: {
-      effectiveHours: Array.from({length: 24}, (_, i) => i),
+      effectiveHours:  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
       energyField: "Electricity from hydro - TWh"
     }
   }), []);
@@ -78,80 +78,6 @@ export default function EnergyPage() {
     return () => window.removeEventListener('resize', resizeHandler);
   }, []);
 
-  // Fetch dữ liệu từ API
-  const fetchData = useCallback(async () => {
-    try {
-      const [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes] = await Promise.all([
-        fetch("/api/energy/useData/year/solar"),
-        fetch("/api/energy/useData/year/wind"),
-        fetch("/api/energy/useData/year/hydro"),
-        fetch("/api/energy/useData/month/solar"),
-        fetch("/api/energy/useData/month/wind"),
-        fetch("/api/energy/useData/month/hydro"),
-      ]);
-
-      const allRes = [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes];
-      const failedRes = allRes.filter(res => !res.ok);
-
-      if (failedRes.length > 0) {
-        failedRes.forEach((res) => {
-          console.error(`❌ Lỗi từ API: ${res.url} - Mã trạng thái: ${res.status}`);
-        });
-        throw new Error("Lỗi khi tải dữ liệu từ server");
-      }
-
-      const [solarYear, windYear, hydroYear, solarMonth, windMonth, hydroMonth] = await Promise.all([
-        solarYearRes.json(),
-        windYearRes.json(),
-        hydroYearRes.json(),
-        solarMonthRes.json(),
-        windMonthRes.json(),
-        hydroMonthRes.json(),
-      ]);
-
-      const normalizeData = (data, key) =>
-        data.map((d) => ({
-          [key]: d[key],
-          energy: parseInt(d.energy, 10) || 0
-        })).filter(d => d.energy > 0);
-
-      const solarYearData = normalizeData(solarYear, "year");
-      const windYearData = normalizeData(windYear, "year");
-      const hydroYearData = normalizeData(hydroYear, "year");
-
-      const solarMonthData = normalizeData(solarMonth, "month");
-      const windMonthData = normalizeData(windMonth, "month");
-      const hydroMonthData = normalizeData(hydroMonth, "month");
-
-      const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
-      const uniqueMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-
-      const formattedYearlyData = uniqueYears.map(year => ({
-        year,
-        solar: solarYearData.find(d => d.year === year)?.energy ?? 0,
-        wind: windYearData.find(d => d.year === year)?.energy ?? 0,
-        hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
-      }));
-
-      const formattedMonthlyData = uniqueMonths.map(month => ({
-        month,
-        solar: solarMonthData.find(d => d.month === month)?.energy ?? 0,
-        wind: windMonthData.find(d => d.month === month)?.energy ?? 0,
-        hydro: hydroMonthData.find(d => d.month === month)?.energy ?? 0,
-      }));
-
-      setData({ yearly: formattedYearlyData, monthly: formattedMonthlyData });
-    } catch (err) {
-      console.error("❌ Lỗi:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   // Post dữ liệu lên server - chỉ chạy khi energyProduction thay đổi và chưa post trước đó
   const postAllData = useCallback(async () => {
@@ -213,6 +139,81 @@ export default function EnergyPage() {
   useEffect(() => {
     postAllData();
   }, [postAllData]);
+
+    // Fetch dữ liệu từ API
+    const fetchData = useCallback(async () => {
+      try {
+        const [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes] = await Promise.all([
+          fetch("/api/energy/useData/year/solar"),
+          fetch("/api/energy/useData/year/wind"),
+          fetch("/api/energy/useData/year/hydro"),
+          fetch("/api/energy/useData/month/solar"),
+          fetch("/api/energy/useData/month/wind"),
+          fetch("/api/energy/useData/month/hydro"),
+        ]);
+  
+        const allRes = [solarYearRes, windYearRes, hydroYearRes, solarMonthRes, windMonthRes, hydroMonthRes];
+        const failedRes = allRes.filter(res => !res.ok);
+  
+        if (failedRes.length > 0) {
+          failedRes.forEach((res) => {
+            console.error(`❌ Lỗi từ API: ${res.url} - Mã trạng thái: ${res.status}`);
+          });
+          throw new Error("Lỗi khi tải dữ liệu từ server");
+        }
+  
+        const [solarYear, windYear, hydroYear, solarMonth, windMonth, hydroMonth] = await Promise.all([
+          solarYearRes.json(),
+          windYearRes.json(),
+          hydroYearRes.json(),
+          solarMonthRes.json(),
+          windMonthRes.json(),
+          hydroMonthRes.json(),
+        ]);
+  
+        const normalizeData = (data, key) =>
+          data.map((d) => ({
+            [key]: d[key],
+            energy: parseInt(d.energy, 10) || 0
+          })).filter(d => d.energy > 0);
+  
+        const solarYearData = normalizeData(solarYear, "year");
+        const windYearData = normalizeData(windYear, "year");
+        const hydroYearData = normalizeData(hydroYear, "year");
+  
+        const solarMonthData = normalizeData(solarMonth, "month");
+        const windMonthData = normalizeData(windMonth, "month");
+        const hydroMonthData = normalizeData(hydroMonth, "month");
+  
+        const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
+        const uniqueMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  
+        const formattedYearlyData = uniqueYears.map(year => ({
+          year,
+          solar: solarYearData.find(d => d.year === year)?.energy ?? 0,
+          wind: windYearData.find(d => d.year === year)?.energy ?? 0,
+          hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
+        }));
+  
+        const formattedMonthlyData = uniqueMonths.map(month => ({
+          month,
+          solar: solarMonthData.find(d => d.month === month)?.energy ?? 0,
+          wind: windMonthData.find(d => d.month === month)?.energy ?? 0,
+          hydro: hydroMonthData.find(d => d.month === month)?.energy ?? 0,
+        }));
+  
+        setData({ yearly: formattedYearlyData, monthly: formattedMonthlyData });
+      } catch (err) {
+        console.error("❌ Lỗi:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+  
+    useEffect(() => {
+      fetchData();
+    }, [fetchData]);
 
   // Kiểm tra auth và load data
   const loadData = useCallback(() => {
