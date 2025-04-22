@@ -13,6 +13,23 @@ export default function EnergyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [energyData, setEnergyData] = useState([]);
+
+  useEffect(() => {
+    const database = getDatabase();
+    const physicInfoRef = ref(database, 'energy/physic-info');
+    
+    const unsubscribe = onValue(physicInfoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Chuyển đổi object thành mảng
+        const dataArray = Object.values(data);
+        setEnergyData(dataArray);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Kiểm tra kích thước màn hình
@@ -121,7 +138,7 @@ export default function EnergyPage() {
     return () => unsubscribeAuth();
   }, []);
 
-  const [quantityData, setEnergyData] = useState({
+  const [quantityData, setQuantityData] = useState({
     hydroCount: 0,
     windCount: 0,
     solarCount: 0,
@@ -137,132 +154,90 @@ export default function EnergyPage() {
 });
 
 const loadData = () => {
-    try {
-      const database = getDatabase();
-      const physicInfoRef = ref(database, 'energy/physic-info');
+  try {
+    const database = getDatabase();
+    const physicInfoRef = ref(database, 'energy/physic-info');
 
-      const unsubscribe = onValue(physicInfoRef, (snapshot) => {
-        // dùng cho số lượng thiết bị
-        const data = snapshot.val();
-        if (data) {
-          // Khởi tạo đối tượng để lưu các model và số lượng
-          const models = {
-            hydro: {},
-            wind: {},
-            solar: {}
-          };
+    const unsubscribe = onValue(physicInfoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setLoading(false);
 
-          // Hàm xử lý chung cho từng loại năng lượng
-          const processEnergyType = (type) => {
-            if (!data[type]) return { count: 0, used: 0 };
-            
-            const devices = Object.values(data[type]);
-            devices.forEach(d => {
-              if (d.question_header) {
-                // Đếm số lượng từng model
-                models[type][d.question_header] = (models[type][d.question_header] || 0) + 1;
+        // Process energy devices data
+        const devices = [];
+        
+        if (data.solar) {
+          Object.entries(data.solar).forEach(([id, device]) => {
+            devices.push({
+              id,
+              type: 'Solar',
+              energy_type: 'Solar', // Added for compatibility with calculateQuantityData
+              model: device.question_header || 'default',
+              quantity: device.quantity || 0,
+              info: {
+                power: device.power || '0 kW',
+                efficiency: device.efficiency || '0',
+                quantity: device.quantity,
+                model: device.question_header || 'default',
               }
             });
-            
-            return {
-              count: devices.length,
-              used: devices.filter(d => d.status === 'Active').length
-            };
-          };
-
-          // Xử lý từng loại năng lượng
-          const hydro = processEnergyType('hydro');
-          const wind = processEnergyType('wind');
-          const solar = processEnergyType('solar');
-
-          setEnergyData({
-            hydroCount: hydro.count,
-            windCount: wind.count,
-            solarCount: solar.count,
-            hydroUsed: hydro.used,
-            windUsed: wind.used,
-            solarUsed: solar.used,
-            updatedAt: new Date().toISOString(),
-            question_header: {
-              // Chuyển object thành mảng các model (lặp lại theo số lượng)
-              hydro_models: Object.entries(models.hydro).flatMap(([model, count]) => 
-                Array(count).fill(model)
-              ),
-              wind_models: Object.entries(models.wind).flatMap(([model, count]) => 
-                Array(count).fill(model)
-              ),
-              solar_models: Object.entries(models.solar).flatMap(([model, count]) => 
-                Array(count).fill(model)
-              )
-            }
           });
-          
-          setLoading(false);
-        } else {
-          setError("No data available");
-          setLoading(false);
         }
-        // dùng cho Sản lượng điện từ các nguồn
-        const datas = snapshot.val();
-        if (datas) {
-          const devices = [];
-          
-          if (datas.solar) {
-            Object.entries(datas.solar).forEach(([id, device]) => {
-              devices.push({
-                id,
-                type: 'Solar',
-                info: {
-                  power: device.power || '0 kW',
-                  efficiency: device.efficiency || '0'
-                }
-              });
+        
+        if (data.hydro) {
+          Object.entries(data.hydro).forEach(([id, device]) => {
+            devices.push({
+              id,
+              type: 'Hydro',
+              energy_type: 'Hydro', // Added for compatibility with calculateQuantityData
+              model: device.question_header || 'default',
+              quantity: device.quantity || 0,
+              info: {
+                power: device.power || '0 MW',
+                efficiency: device.efficiency || '80',
+                flow_rate: device.flowRate || '0',
+                quantity: device.quantity,
+                model: device.question_header || 'default',
+              }
             });
-          }
-          
-          if (datas.hydro) {
-            Object.entries(datas.hydro).forEach(([id, device]) => {
-              devices.push({
-                id,
-                type: 'Hydro',
-                info: {
-                  power: device.power || '0 MW',
-                  efficiency: device.efficiency || '80',
-                  flow_rate: device.flowRate || '0'
-                }
-              });
-            });
-          }
-          
-          if (datas.wind) {
-            Object.entries(datas.wind).forEach(([id, device]) => {
-              devices.push({
-                id,
-                type: 'Wind',
-                info: {
-                  power: device.power || '0 MW',
-                  efficiency: device.efficiency || '0'
-                }
-              });
-            });
-          }
-          
-          setEnergyDevices(devices);
+          });
         }
-      }, (error) => {
-        console.error("Error listening to data:", error);
-        setError(error.message);
+        
+        if (data.wind) {
+          Object.entries(data.wind).forEach(([id, device]) => {
+            devices.push({
+              id,
+              type: 'Wind',
+              energy_type: 'Wind', // Added for compatibility with calculateQuantityData
+              model: device.question_header || 'default',
+              quantity: device.quantity || 0,
+              info: {
+                power: device.power || '0 MW',
+                efficiency: device.efficiency || '0',
+                quantity: device.quantity,
+                model: device.question_header || 'default',
+              }
+            });
+          });
+        }
+        
+        setEnergyDevices(devices);
+        
+        // Calculate and log quantity data
+        const quantityData = calculateQuantityData(devices);
+        console.log('Quantity Data:', quantityData);
+      } else {
+        setError("No data available");
         setLoading(false);
-      });
+      }
+    });
 
-      
-
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Error loading data:", err);
-      setError(err.message);
-      setLoading(false);
-    }
+    return () => unsubscribe();
+  } catch (err) {
+    console.error("Error loading data:", err);
+    setError(err.message);
+    setLoading(false);
+  }
 };
 
   if (loading) return <div className="text-blue-500">⏳ Đang tải dữ liệu...</div>;
@@ -272,7 +247,7 @@ const loadData = () => {
     <div >
       {/* Quantity Table - Full width on mobile */}
       <div className="overflow-x-auto">
-        <QuantityTable data={quantityData} />
+      <QuantityTable data={energyData} />
       </div>
   
       {/* Total Chart - Full width */}
@@ -315,7 +290,7 @@ const loadData = () => {
   const renderDesktopView = () => (
     <div className="p-6 space-y-6">
       {/* Quantity Table */}
-      <QuantityTable data={quantityData} />
+      <QuantityTable data={energyData} />
     
       {/* Total Chart */}
       <TotalChart energyData={data} />

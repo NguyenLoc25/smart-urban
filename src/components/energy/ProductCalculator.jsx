@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 // Hàm parse giá trị số từ các định dạng Firebase
 const parseFirebaseNumber = (value, defaultValue = 0) => {
   if (typeof value === 'number') return value;
-  if (!value) return defaultValue;
+  if (value === null || value === undefined) return defaultValue;
   
   try {
     // Xử lý các trường hợp: "85%", "1,500", "1,200 MW"
@@ -26,6 +26,8 @@ export const calculateEnergyProduction = (data, energyTypes) => {
   let totalProduction = 0;
 
   const parsePower = (value, type) => {
+    if (value === null || value === undefined) return 0;
+    
     const numValue = parseFirebaseNumber(value);
     
     switch (type) {
@@ -41,36 +43,40 @@ export const calculateEnergyProduction = (data, energyTypes) => {
   };
 
   const calculateEnergy = (power, type, itemInfo) => {
-    if (!itemInfo) {
-      console.error(`Missing itemInfo for type ${type}`);
+    if (!itemInfo || typeof itemInfo !== 'object') {
+      console.error(`Invalid itemInfo for type ${type}`, itemInfo);
       return 0;
     }
+    // console.log('Full itemInfo:', itemInfo); // Thêm dòng này để debug
+
+    const quantity = Math.max(parseFirebaseNumber(itemInfo.quantity), 1);
+    // console.log(parseFirebaseNumber(itemInfo.quantity));
+    const efficiency = parseFirebaseNumber(itemInfo.efficiency) / 100;
+    // console.log(parseFirebaseNumber(itemInfo.efficiency));
 
     switch (type) {
       case 'Solar': {
-        const efficiency = parseFirebaseNumber(itemInfo.efficiency) / 100;
+        // console.log(parseFirebaseNumber(itemInfo.quantity))
         if (efficiency <= 0) {
           console.warn(`Invalid solar efficiency:`, itemInfo.efficiency);
           return 0;
         }
-        return power * efficiency * 5; // 5 giờ nắng hiệu quả/ngày
+        return power * efficiency * 5 * quantity; // 5 effective sun hours/day
       }
 
       case 'Wind': {
-        const efficiency = parseFirebaseNumber(itemInfo.efficiency) / 100;
         if (efficiency <= 0) {
           console.warn(`Invalid wind efficiency:`, itemInfo.efficiency);
           return 0;
         }
-        return power * efficiency * 12; // 12 giờ gió hiệu quả/ngày
+        return power * efficiency * 12 * quantity; // 12 effective wind hours/day
       }
 
       case 'Hydro': {
-        const efficiency = parseFirebaseNumber(itemInfo.efficiency) / 100;
         const flowRate = parseFirebaseNumber(itemInfo.flow_rate);
         const headHeight = parseFirebaseNumber(itemInfo.head_height);
         
-        // Validation dữ liệu
+        // Validation
         const errors = [];
         if (efficiency <= 0) errors.push('efficiency');
         if (flowRate <= 0) errors.push('flow_rate');
@@ -79,19 +85,19 @@ export const calculateEnergyProduction = (data, energyTypes) => {
         if (errors.length > 0) {
           console.warn(`Invalid hydro parameters (${errors.join(', ')}):`, itemInfo);
           
-          // Fallback: sử dụng công suất danh định nếu có
-          if (itemInfo.power) {
+          // Fallback: use rated power if available
+          if (itemInfo.power !== null && itemInfo.power !== undefined) {
             console.warn('Using rated power as fallback');
-            return parsePower(itemInfo.power, 'Hydro') * 24;
+            return parsePower(itemInfo.power, 'Hydro') * 24 * quantity;
           }
           return 0;
         }
 
-        // Tính toán công suất thủy điện (kW)
+        // Calculate hydro power (kW)
         const powerKW = efficiency * 1000 * 9.81 * flowRate * headHeight / 1000;
         
-        // Sản lượng hàng ngày (kWh)
-        return powerKW * 24;
+        // Daily production (kWh)
+        return powerKW * 24 * quantity;
       }
 
       default:
@@ -101,19 +107,18 @@ export const calculateEnergyProduction = (data, energyTypes) => {
   };
 
   // Tính toán cho từng loại năng lượng
-  Object.keys(energyTypes).forEach((type) => {
+  Object.keys(energyTypes || {}).forEach((type) => {
     if (type === "all") return;
 
-    const items = data.filter((d) => d.type === type);
+    const items = (data || []).filter((d) => d?.type === type);
     if (!items.length) {
-      console.warn(`No items found for energy type: ${type}`);
       result[type] = { production: 0, percentage: '0.0' };
       return;
     }
 
     const production = items.reduce((sum, item) => {
       const itemPower = parsePower(item.info?.power, type);
-      return sum + calculateEnergy(itemPower, type, item.info);
+      return sum + calculateEnergy(itemPower, type, item.info || {});
     }, 0);
 
     result[type] = { production };
@@ -144,7 +149,6 @@ export const useEnergyProduction = (data, energyTypes) => {
   return useMemo(() => {
     // Validate input
     if (!Array.isArray(data) || data.length === 0) {
-      // console.error('Invalid data: expected non-empty array', data);
       return {
         all: { production: 0, percentage: '0.0' },
         ...Object.fromEntries(
@@ -153,8 +157,8 @@ export const useEnergyProduction = (data, energyTypes) => {
       };
     }
 
-    if (!energyTypes || typeof energyTypes !== 'object') {
-      console.error('Invalid energyTypes: expected object', energyTypes);
+    if (!energyTypes || typeof energyTypes !== 'object' || Object.keys(energyTypes).length === 0) {
+      console.error('Invalid energyTypes: expected non-empty object', energyTypes);
       return {
         all: { production: 0, percentage: '0.0' },
         Solar: { production: 0, percentage: '0.0' },

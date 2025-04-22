@@ -50,7 +50,8 @@ const FIELD_LABELS = {
   status: "Status",
   turbine_type: "Turbine Type",
   head_height: "Head Height (m)",
-  flow_rate: "Flow Rate (m³/s)"
+  flow_rate: "Flow Rate (m³/s)",
+  quantity: "Quantity",
 };
 
 // Helper functions
@@ -60,6 +61,7 @@ const getInitialDevice = (type = "Solar") => {
     id: uuidv4(),
     energy_type: type,
     question_header: firstDevice.name,
+    quantity: "1", // Add default quantity
   };
 
   ENERGY_FIELDS[type].forEach(field => {
@@ -159,6 +161,7 @@ const DeviceCard = React.memo(({ device, dispatch }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Existing energy type select */}
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Energy Type
@@ -178,6 +181,21 @@ const DeviceCard = React.memo(({ device, dispatch }) => {
           </Select>
         </div>
 
+        {/* Add Quantity field */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Quantity
+          </label>
+          <Input 
+            type="number"
+            min="1"
+            value={device.quantity || "1"} 
+            onChange={(e) => handleFieldChange('quantity', e.target.value)}
+            placeholder="Enter quantity"
+          />
+        </div>
+
+        {/* Rest of the existing fields */}
         {devices.length > 0 && (
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -244,22 +262,24 @@ export default function CollectionEditor() {
         id: questions[0].id,
         energy_type: questions[0].energy_type,
         question_header: questions[0].question_header,
+        quantity: questions[0].quantity || "1", // Include quantity
         ...Object.fromEntries(
           Object.entries(questions[0])
             .filter(([key, value]) => 
-              !['id', 'energy_type', 'question_header'].includes(key) && 
+              !['id', 'energy_type', 'question_header', 'quantity'].includes(key) && 
               value && 
               value !== ""
             )
         )
       };
-
+  
+      // Rest of the save logic remains the same
       const response = await fetch(`/api/energy/settings/${formattedQuestion.energy_type.toLowerCase()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formattedQuestion)
       });
-
+  
       if (!response.ok) throw new Error(await response.text());
       alert("Data saved successfully!");
     } catch (error) {

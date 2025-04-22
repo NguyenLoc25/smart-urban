@@ -392,43 +392,43 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
     </div>
 
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
-      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
-        <svg className="w-6 h-6 mr-3 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+    <svg className="w-6 h-6 mr-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+    Thống kê tiêu thụ
+  </h3>
+  <div className="space-y-4">
+    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+      <span className="text-gray-600 dark:text-gray-300 flex items-center">
+        <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
-        Thống kê tiêu thụ
-      </h3>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
-          <span className="text-gray-600 dark:text-gray-300 flex items-center">
-            <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-            Sản lượng cao nhất
-          </span>
-          <div className="flex items-center">
-            <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
-              {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
-          </div>
-        </div>
-        <div className="flex justify-between items-center py-3">
-          <span className="text-gray-600 dark:text-gray-300 flex items-center">
-            <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-            Sản lượng thấp nhất
-          </span>
-          <div className="flex items-center">
-            <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
-              {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
-          </div>
-        </div>
+        Sản lượng cao nhất
+      </span>
+      <div className="flex items-center">
+        <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
+          {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
       </div>
     </div>
+    <div className="flex justify-between items-center py-3">
+      <span className="text-gray-600 dark:text-gray-300 flex items-center">
+        <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+        Sản lượng thấp nhất
+      </span>
+      <div className="flex items-center">
+        <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
+          {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   );
@@ -437,30 +437,30 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
     // border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg
     <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Enhanced header with better spacing and icon */}
-      <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-8">
-        <div className="p-8 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center">
-                <svg className="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Phân tích tiêu thụ điện
-              </h1>
-              <p className="mt-2 text-lg opacity-90 flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Thành phố {cityName}
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-lg px-4 py-2 text-sm">
-              Cập nhật: {new Date().toLocaleDateString('vi-VN')}
-            </div>
-          </div>
-        </div>
+      <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-6">
+  <div className="p-6 md:p-8 text-white">
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center">
+          <svg className="w-6 h-6 md:w-7 md:h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Phân tích tiêu thụ điện
+        </h1>
+        <p className="mt-2 text-base md:text-lg opacity-90 flex items-center">
+          <svg className="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Thành phố {cityName}
+        </p>
       </div>
+      <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm md:text-base">
+        Cập nhật: {new Date().toLocaleDateString('vi-VN')}
+      </div>
+    </div>
+  </div>
+</div>
   
       {/* Main content grid with better spacing */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -699,43 +699,43 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
     </div>
 
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
-      <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
-        <svg className="w-6 h-6 mr-3 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
+    <svg className="w-6 h-6 mr-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+    Thống kê tiêu thụ
+  </h3>
+  <div className="space-y-4">
+    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
+      <span className="text-gray-600 dark:text-gray-300 flex items-center">
+        <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
-        Thống kê tiêu thụ
-      </h3>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-700">
-          <span className="text-gray-600 dark:text-gray-300 flex items-center">
-            <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-            Sản lượng cao nhất
-          </span>
-          <div className="flex items-center">
-            <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
-              {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
-          </div>
-        </div>
-        <div className="flex justify-between items-center py-3">
-          <span className="text-gray-600 dark:text-gray-300 flex items-center">
-            <svg className="w-5 h-5 mr-3 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-            Sản lượng thấp nhất
-          </span>
-          <div className="flex items-center">
-            <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
-              {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
-          </div>
-        </div>
+        Sản lượng cao nhất
+      </span>
+      <div className="flex items-center">
+        <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
+          {Math.max(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
       </div>
     </div>
+    <div className="flex justify-between items-center py-3">
+      <span className="text-gray-600 dark:text-gray-300 flex items-center">
+        <svg className="w-5 h-5 mr-3 text-green-400 dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+        Sản lượng thấp nhất
+      </span>
+      <div className="flex items-center">
+        <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
+          {Math.min(...chartData.dailyData.map(d => d.production)).toLocaleString()}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </div>
     </div>
