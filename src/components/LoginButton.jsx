@@ -24,7 +24,7 @@ export default function LoginButton() {
 
 
       // Chuyển hướng sau khi đăng nhập thành công
-      router.push("/");
+      // router.push("/");
     } catch (err) {
       setError(err.message);
       console.error("Lỗi đăng nhập Google:", err);

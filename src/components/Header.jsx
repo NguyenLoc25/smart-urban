@@ -100,11 +100,15 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo and Desktop Navigation */}
           <div className="flex items-center space-x-8">
-            <Link href="/" passHref>
-              <h1 className="text-xl font-bold tracking-tight cursor-pointer hover:opacity-80 transition-opacity">
-                Smart Urban
-              </h1>
-            </Link>
+          <Link href="/" passHref>
+          <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity">
+            <img src="/logo.png" alt="Smart Urban Logo" className="w-8 h-8" />
+            <h1 className="text-xl font-bold tracking-tight">
+              Smart Urban
+            </h1>
+          </div>
+        </Link>
+
             
             <nav className="hidden md:flex space-x-6">
               {navItems.map(({ href, text }) => (

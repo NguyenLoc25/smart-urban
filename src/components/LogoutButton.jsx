@@ -10,7 +10,7 @@ export default function LogoutButton() {
     try {
       await logoutUser(); // Đăng xuất Firebase nếu có
       await signOut(); // Đăng xuất NextAuth nếu có
-      router.push("/login"); // Chuyển về trang đăng nhập
+      // router.push("/login"); // Chuyển về trang đăng nhập
     } catch (err) {
       console.error("Lỗi khi đăng xuất:", err);
     }

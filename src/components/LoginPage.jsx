@@ -88,22 +88,75 @@ export default function LoginPage() {
     <div className="w-full flex items-center justify-center min-h-[calc(100vh-80px)] bg-gray-100 dark:bg-gray-900 px-4">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-sm text-center">
         {user ? (
-          <div className="flex flex-col items-center gap-4">
-            <img
-              src={user.photoURL || "/default-avatar.png"}
-              alt="Avatar"
-              className="w-20 h-20 rounded-full border-2 border-gray-300 dark:border-gray-600"
+          <>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Đăng nhập</h1>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+          <form onSubmit={handleLogin} className="flex flex-col gap-4 mt-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={validateEmail} // Validate on blur
+              className={`border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 ${
+                emailError ? "border-red-500" : "border-gray-300"
+              }`}
+              required
             />
-            <p className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              {user.displayName || user.email}
-            </p>
+            {emailError && (
+              <p className="text-red-500 text-sm flex items-center gap-2">
+                <span>⚠️</span> {/* Error icon */}
+                {emailError}
+              </p>
+            )}
+
+            <input
+              type="password"
+              placeholder="Mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={validatePassword} // Validate on blur
+              className={`border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 ${
+                passwordError ? "border-red-500" : "border-gray-300"
+              }`}
+              required
+            />
+            {passwordError && (
+              <p className="text-red-500 text-sm flex items-center gap-2">
+                <span>⚠️</span> {/* Error icon */}
+                {passwordError}
+              </p>
+            )}
+
             <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-all"
+              type="submit"
+              className={`bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-all ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={loading}
             >
-              Đăng xuất
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            </button>
+          </form>
+
+          <div className="mt-4">
+            <button
+              onClick={handleGoogleLogin}
+              className={`flex items-center justify-center gap-2 w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-all ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={loading}
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                alt="Google"
+                className="w-5 h-5"
+              />
+              {loading ? "Đang xử lý..." : "Đăng nhập với Google"}
             </button>
           </div>
+        </>
         ) : (
           <>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Đăng nhập</h1>

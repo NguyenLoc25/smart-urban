@@ -42,9 +42,6 @@ export default function PrivacyLayout({ children }) {
           </p>
         </header>
 
-        <div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-lg rounded-[2rem] shadow-sm p-8 md:p-12 border border-gray-200/70 dark:border-gray-700/50 hover:shadow-md transition-shadow duration-300">
-          {children}
-        </div>
 
         {/* Key points summary */}
         <div className="mt-16 grid md:grid-cols-2 gap-6">

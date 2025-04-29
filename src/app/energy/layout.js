@@ -18,21 +18,6 @@ export default function EnergyLayout({ children }) {
                         <a href="/energy/support" className="hover:underline px-2 py-1 md:py-0">Support</a>
                     </div>
 
-                    {/* Social icons */}
-                    <div className="flex justify-center gap-3 md:gap-4 text-lg md:text-xl mb-3 md:mb-4">
-                        <a href="#" aria-label="Facebook" className="hover:text-blue-600 p-1 md:p-0">
-                            <i className="fab fa-facebook"></i>
-                        </a>
-                        <a href="#" aria-label="Twitter" className="hover:text-blue-400 p-1 md:p-0">
-                            <i className="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" aria-label="Instagram" className="hover:text-pink-500 p-1 md:p-0">
-                            <i className="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" aria-label="YouTube" className="hover:text-red-500 p-1 md:p-0">
-                            <i className="fab fa-youtube"></i>
-                        </a>
-                    </div>
 
                     {/* Copyright */}
                     <p className="text-xs md:text-xs">&copy; {new Date().getFullYear()} Smart Urban - Energy. All Rights Reserved.</p>
