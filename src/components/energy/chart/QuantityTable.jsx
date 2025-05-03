@@ -50,7 +50,7 @@ export default function QuantityTable({ data = [] }) {
 
           const model = device.model || 
                      device.info?.model || 
-                     device.question_header || 
+                     device.device_name || 
                      'Unknown model';
 
           const quantity = parseFirebaseNumber(device.quantity || device.used || 0);

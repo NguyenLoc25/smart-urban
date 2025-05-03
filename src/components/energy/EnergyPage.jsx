@@ -179,6 +179,14 @@ export default function EnergyPage() {
         });
         throw new Error("Lỗi khi tải dữ liệu từ server");
       }
+
+      const processMonthlyData = (data) => {
+        return data.map(d => ({
+          month: parseInt(d.month, 10),
+          year: parseInt(d.year, 10),
+          energy: parseInt(d.energy, 10) || 0
+        })).filter(d => d.energy > 0);
+      };
   
       const [
         solarYear, windYear, hydroYear,
@@ -193,7 +201,8 @@ export default function EnergyPage() {
       const normalizeData = (data, key) =>
         data.map((d) => ({
           [key]: d[key],
-          energy: parseInt(d.energy, 10) || 0
+          energy: parseInt(d.energy, 10) || 0,
+          ...(d.year && { year: parseInt(d.year, 10) }) // Thêm năm nếu có
         })).filter(d => d.energy > 0);
   
       const solarYearData = normalizeData(solarYear, "year");
@@ -203,6 +212,13 @@ export default function EnergyPage() {
       const solarMonthData = normalizeData(solarMonth, "month");
       const windMonthData = normalizeData(windMonth, "month");
       const hydroMonthData = normalizeData(hydroMonth, "month");
+
+      // Tạo dữ liệu tháng theo năm
+      const allYears = [...new Set([
+        ...solarMonthData.filter(d => d.year).map(d => d.year),
+        ...windMonthData.filter(d => d.year).map(d => d.year),
+        ...hydroMonthData.filter(d => d.year).map(d => d.year)
+      ])].sort();
   
       const solarHourData = normalizeData(solarHour, "hour");
       const windHourData = normalizeData(windHour, "hour");
@@ -219,12 +235,17 @@ export default function EnergyPage() {
         hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
       }));
   
-      const formattedMonthlyData = uniqueMonths.map(month => ({
-        month,
-        solar: solarMonthData.find(d => d.month === month)?.energy ?? 0,
-        wind: windMonthData.find(d => d.month === month)?.energy ?? 0,
-        hydro: hydroMonthData.find(d => d.month === month)?.energy ?? 0,
-      }));
+      const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+
+      const formattedMonthlyData = allYears.flatMap(year => 
+        allMonths.map(month => ({
+          year,
+          month,
+          solar: solarMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+          wind: windMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+          hydro: hydroMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+        }))
+      );
   
       const formattedHourlyData = uniqueHours.map(hour => ({
         hour,

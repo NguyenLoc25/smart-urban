@@ -60,7 +60,7 @@ const getInitialDevice = (type = "Solar") => {
   const device = {
     id: uuidv4(),
     energy_type: type,
-    question_header: firstDevice.name,
+    device_name: firstDevice.name,
     quantity: "1", // Add default quantity
   };
 
@@ -108,7 +108,7 @@ function reducer(state, action) {
         
         const updatedDevice = {
           ...q,
-          question_header: selectedDevice.name,
+          device_name: selectedDevice.name,
         };
         
         ENERGY_FIELDS[q.energy_type].forEach(field => {
@@ -202,7 +202,7 @@ const DeviceCard = React.memo(({ device, dispatch }) => {
               {device.energy_type} Device Model
             </label>
             <Select 
-              value={device.question_header} 
+              value={device.device_name} 
               onValueChange={handleDeviceChange}
             >
               <SelectTrigger className="w-full">
@@ -261,12 +261,12 @@ export default function CollectionEditor() {
       const formattedQuestion = {
         id: questions[0].id,
         energy_type: questions[0].energy_type,
-        question_header: questions[0].question_header,
+        device_name: questions[0].device_name,
         quantity: questions[0].quantity || "1", // Include quantity
         ...Object.fromEntries(
           Object.entries(questions[0])
             .filter(([key, value]) => 
-              !['id', 'energy_type', 'question_header', 'quantity'].includes(key) && 
+              !['id', 'energy_type', 'device_name', 'quantity'].includes(key) && 
               value && 
               value !== ""
             )
