@@ -165,7 +165,7 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Phân tích điện
+              Tiêu thụ điện
             </h1>
             <p className="mt-1 text-sm text-white opacity-90 flex items-center">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,7 +353,7 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
             {(chartData.dailyData.reduce((sum, day) => sum + day.production, 0) / 1000000).toFixed(2)} GWh
           </div>
           <div className="text-xs opacity-90">
-            Tương đương {calculateEquivalent()} hộ gia đình
+            Tương đương {calculateEquivalent().toLocaleString()} hộ gia đình
           </div>
         </div>
   
@@ -661,7 +661,7 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        <span>Tương đương {calculateEquivalent()} hộ gia đình</span>
+        <span>Tương đương {calculateEquivalent().toLocaleString()} hộ gia đình</span>
       </div>
     </div>
     
