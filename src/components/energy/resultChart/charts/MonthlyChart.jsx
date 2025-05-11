@@ -8,46 +8,55 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const MonthlyChart = ({ data }) => {
   if (!data || !data.length) return null;
 
+  // Chỉ lấy 12 tháng gần nhất để đơn giản
+  const recentData = data.slice(-12);
+  const months = recentData.map(item => `T${item.month}`);
+  const values = recentData.map(item => (item.sum / 1000000).toFixed(1));
+
   return (
-    <Plot
-      data={[{
-        x: data.map(item => item.month),
-        y: data.map(item => item.sum / 1000000),
-        type: 'bar',
-        marker: { 
-          color: data.map(item => 
-            item.sum > 1000000 ? '#ef4444' : '#f97316'
-          ),
-          line: { width: 1, color: 'rgba(0,0,0,0.1)' }
-        },
-        hovertemplate: '<b>Tháng %{x}</b><br>TB: %{y:,.3f} GWh<extra></extra>',
-        text: data.map(item => (item.sum/1000000).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' GWh'),
-        textposition: 'auto'
-      }]}
-      layout={{
-        ...chartLayout,
-        xaxis: { 
-          ...chartLayout.xaxis,
-          title: {
-            text: 'Tháng',
-            font: { size: 12 }
-          }
-        },
-        yaxis: { 
-          ...chartLayout.yaxis,
-          title: {
-            text: 'Sản lượng trung bình (GWh)',
-            font: { size: 12 }
-          }
-        },
-        uniformtext: {
-          minsize: 10,
-          mode: 'hide'
-        }
-      }}
-      config={chartConfig}
-      style={{ width: '100%', height: '100%' }}
-    />
+    <div className="overflow-x-auto">
+      <Plot
+        data={[{
+          x: months,
+          y: values,
+          type: 'bar',
+          marker: { 
+            color: data.map(item => 
+              item.sum > 1000000 ? '#ef4444' : '#f97316'
+            ),
+            line: { width: 0 } // Bỏ viền cột
+          },
+          text: values.map(v => `${v}GWh`),
+          textposition: 'auto',
+          textfont: { size: 10, color: '#fff' }
+        }]}
+        layout={{
+          ...chartLayout,
+          xaxis: {
+            ...chartLayout.xaxis,
+            fixedrange: false, // Cho phép cuộn ngang
+            tickangle: -45 // Nghiêng nhãn trục x cho dễ đọc
+          },
+          yaxis: {
+            ...chartLayout.yaxis,
+            fixedrange: true, // Cố định trục y
+            title: { text: 'GWh' }
+          },
+          margin: { l: 50, r: 20, b: 80, t: 20 }, // Điều chỉnh lề
+          bargap: 0.2 // Khoảng cách giữa các cột
+        }}
+        config={{
+          ...chartConfig,
+          displayModeBar: false, // Ẩn thanh công cụ
+          responsive: true
+        }}
+        style={{ 
+          width: `${months.length * 50}px`, // Chiều rộng dựa trên số lượng cột
+          minWidth: '100%',
+          height: '300px'
+        }}
+      />
+    </div>
   );
 };
 

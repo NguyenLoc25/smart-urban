@@ -8,10 +8,14 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const DailyChart = ({ data }) => {
   if (!data || !data.length) return null;
 
+  // Số lượng điểm dữ liệu hiển thị ban đầu
+  const initialDisplayCount = 3;
+  const allDates = data.map(entry => `${entry.day}/${entry.month}`);
+  
   return (
     <Plot
       data={[{
-        x: data.map(entry => `${entry.day}/${entry.month}`),
+        x: allDates,
         y: data.map(entry => entry.production / 1000000),
         type: 'scatter',
         mode: 'lines+markers',
@@ -25,22 +29,28 @@ const DailyChart = ({ data }) => {
         ...chartLayout,
         xaxis: { 
           ...chartLayout.xaxis,
-          range: [data.length - 7.5, data.length - 0.5],
-          title: {
-            text: 'Ngày',
-            font: { size: 12 }
-          },
+          range: [allDates.length - initialDisplayCount, allDates.length - 1], 
+          autorange: false,
+          title: { text: 'Ngày', font: { size: 12 } },
         },
         yaxis: { 
           ...chartLayout.yaxis,
-          title: {
-            text: 'Sản lượng (GWh)',
-            font: { size: 12 }
-          }
-        }
+          title: { text: 'Sản lượng (GWh)', font: { size: 12 } }
+        },
+        margin: { l: 50, r: 20, b: 60, t: 30, pad: 5 },
       }}
-      config={chartConfig}
-      style={{ width: '100%', height: '100%' }}
+      config={{
+        ...chartConfig,
+        responsive: true,
+        scrollZoom: true
+      }}
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        minHeight: '300px',
+        overflowX: 'scroll' // Cho phép cuộn ngang
+      }}
+      useResizeHandler={true}
     />
   );
 };

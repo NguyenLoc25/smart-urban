@@ -1,4 +1,3 @@
-
 import ViewModeControl from '../controls/view-mode-control'
 import YearSelector from '../controls/year-selector'
 import YearlyChart from '../chart-display/yearly-chart'
@@ -67,7 +66,8 @@ const MobileView = ({
             {viewMode === 'yearly' && <YearlyChart data={energyData.yearly} mobile />}
             {viewMode === 'monthly' && (
               <MonthlyChart 
-                data={energyData.monthly.filter(item => item.year === selectedYear)} 
+                data={energyData.monthly} 
+                selectedYear={selectedYear}
                 mobile
               />
             )}
