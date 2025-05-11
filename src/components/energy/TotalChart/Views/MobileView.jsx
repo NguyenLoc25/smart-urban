@@ -1,5 +1,5 @@
-import ViewModeSelector from '../Controls/ViewModeSelector';
-import YearSelector from '../Controls/YearSelector';
+import ViewModeSelector from '../controls/ViewModeSelector';
+import YearSelector from '../controls/YearSelector';
 import LoadingState from '@/components/energy/States/LoadingState';
 import EmptyState from '@/components/energy/States/EmptyState';
 
