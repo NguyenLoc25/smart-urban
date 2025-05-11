@@ -25,8 +25,7 @@ export const calculateMonthlySum = (entries) => {
     }));
   };
   
-  export const calculateEquivalent = (dailyData, monthCount) => {
+  export const calculateEquivalent = (dailyData, monthlySum) => {
     const totalConsumption = dailyData.reduce((sum, day) => sum + day.production, 0);
-    // Average household consumption of 300 kWh/month
-    return Math.round(totalConsumption / (300 * (monthCount || 1)));
+    return Math.round(totalConsumption / (300 * (monthlySum.length || 1)));
   };

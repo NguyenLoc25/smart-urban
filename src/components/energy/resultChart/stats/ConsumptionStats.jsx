@@ -1,7 +1,13 @@
-const ConsumptionStatsCard = ({ dailyData }) => (
+"use client";
+
+const ConsumptionStats = ({ dailyData, mobile = false }) => {
+  const maxProduction = Math.max(...dailyData.map(d => d.production));
+  const minProduction = Math.min(...dailyData.map(d => d.production));
+
+  return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700">
       <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-5 flex items-center">
-        <svg className="w-6 h-6 mr-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-6 h-6 mr-3 text-red-500 dark:text-red-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
         Thống kê tiêu thụ
@@ -16,7 +22,7 @@ const ConsumptionStatsCard = ({ dailyData }) => (
           </span>
           <div className="flex items-center">
             <span className="font-medium text-red-600 dark:text-red-400 text-lg mr-2">
-              {Math.max(...dailyData.map(d => d.production)).toLocaleString()}
+              {maxProduction.toLocaleString()}
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
           </div>
@@ -30,7 +36,7 @@ const ConsumptionStatsCard = ({ dailyData }) => (
           </span>
           <div className="flex items-center">
             <span className="font-medium text-green-600 dark:text-green-400 text-lg mr-2">
-              {Math.min(...dailyData.map(d => d.production)).toLocaleString()}
+              {minProduction.toLocaleString()}
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">kWh</span>
           </div>
@@ -38,5 +44,6 @@ const ConsumptionStatsCard = ({ dailyData }) => (
       </div>
     </div>
   );
-  
-  export default ConsumptionStatsCard;
+};
+
+export default ConsumptionStats;

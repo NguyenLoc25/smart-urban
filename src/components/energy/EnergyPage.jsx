@@ -8,7 +8,8 @@ import { db } from "@/lib/firebaseConfig";
 import TotalChart from "@/components/energy/total-chart"; 
 import QuantityTable from "@/components/energy/chart/QuantityTable";
 // import QuantityTable from "@/components/energy/tableDevide/index";
-import ResultChart from "@/components/energy/chart/ResultChart"; 
+import ResultChart from "@/components/energy/resultChart"; 
+// import ConsumpChart from "@/components/energy/consumpChart";
 // import ResultChart from "@/components/energy/consumpChart/index"; 
 import { calculateEnergyProduction } from "@/components/energy/ProductCalculator";
 
