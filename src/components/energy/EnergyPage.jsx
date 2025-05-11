@@ -4,8 +4,8 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-// import TotalChart from "@/components/energy/chart/TotalChart"; 
-import TotalChart from "@/components/energy/totalChart/index"; 
+import TotalChart from "@/components/energy/chart/TotalChart"; 
+// import TotalChart from "@/components/energy/totalChart/index"; 
 // import QuantityTable from "@/components/energy/chart/QuantityTable";
 import QuantityTable from "@/components/energy/tableDevide/index";
 // import ResultChart from "@/components/energy/chart/ResultChart"; 
