@@ -1,8 +1,8 @@
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
-import DesktopView from '@components/energy/totalChart/views/DesktopView';
-import MobileView from '@components/energy/totalChart/views/MobileView';
-import { useChartData } from '@components/energy/totalChart/ChartDisplay/ChartHelpers';
+import DesktopView from './views/DesktopView';
+import MobileView from './views/MobileView';
+import { useChartData } from './chartDisplay/ChartHelpers';
 
 // Dynamic import for Plotly with SSR disabled
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
