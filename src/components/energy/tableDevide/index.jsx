@@ -1,10 +1,19 @@
+'use client'; // Add this at the top to ensure this is a client component
+
 import React, { useState } from "react";
+import dynamic from 'next/dynamic';
 import { parseFirebaseNumber } from "@/components/energy/tableDevide/utils/parsers";
 import DesktopView from "@/components/energy/tableDevide/Views/DesktopView";
 import MobileView from "@/components/energy/tableDevide/Views/MobileView";
 import ModalState from "@/components/energy/States/ModalState";
 import SummaryCard from "@/components/energy/tableDevide/components/SummaryCard";
 import { energyTypes } from "@/components/energy/tableDevide/types";
+
+// Dynamically import Plotly with SSR disabled
+const Plot = dynamic(() => import('react-plotly.js'), { 
+  ssr: false,
+  loading: () => <div>Loading chart...</div>
+});
 
 export default function QuantityTable({ data = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,9 +28,9 @@ export default function QuantityTable({ data = [] }) {
       hydroCount: 0,
       windCount: 0,
       solarCount: 0,
-      hydroModels: [], // Initialize as empty array
-      windModels: [],  // Initialize as empty array
-      solarModels: []  // Initialize as empty array
+      hydroModels: [],
+      windModels: [],
+      solarModels: []
     };
   
     if (devices && Array.isArray(devices)) {
@@ -45,17 +54,17 @@ export default function QuantityTable({ data = [] }) {
             case "Hydro":
               quantityData.hydro += quantity;
               quantityData.hydroCount += 1;
-              if (model) quantityData.hydroModels.push(model); // Add model to array
+              if (model) quantityData.hydroModels.push(model);
               break;
             case "Wind":
               quantityData.wind += quantity;
               quantityData.windCount += 1;
-              if (model) quantityData.windModels.push(model); // Add model to array
+              if (model) quantityData.windModels.push(model);
               break;
             case "Solar":
               quantityData.solar += quantity;
               quantityData.solarCount += 1;
-              if (model) quantityData.solarModels.push(model); // Add model to array
+              if (model) quantityData.solarModels.push(model);
               break;
             default:
               break;
@@ -232,26 +241,26 @@ export default function QuantityTable({ data = [] }) {
         />
       </div>
 
-{isModalOpen && selectedEnergyType && (
-  <ModalState 
-    energyTypes={{
-      hydro: {
-        ...energyTypes.hydro,
-        models: quantityData.hydroModels
-      },
-      wind: {
-        ...energyTypes.wind,
-        models: quantityData.windModels
-      },
-      solar: {
-        ...energyTypes.solar,
-        models: quantityData.solarModels
-      }
-    }} 
-    selectedEnergyType={selectedEnergyType} 
-    closeModal={closeModal} 
-  />
-)}
+      {isModalOpen && selectedEnergyType && (
+        <ModalState 
+          energyTypes={{
+            hydro: {
+              ...energyTypes.hydro,
+              models: quantityData.hydroModels
+            },
+            wind: {
+              ...energyTypes.wind,
+              models: quantityData.windModels
+            },
+            solar: {
+              ...energyTypes.solar,
+              models: quantityData.solarModels
+            }
+          }} 
+          selectedEnergyType={selectedEnergyType} 
+          closeModal={closeModal} 
+        />
+      )}
     </div>
   );
 }
