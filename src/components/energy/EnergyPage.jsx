@@ -1,4 +1,5 @@
 
+'use client';
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
