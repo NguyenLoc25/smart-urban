@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import  SummaryCard  from '../stats/SummaryCard';
-import SystemOverview  from '../stats/SystemOverview';
-import  ConsumptionStats from '../stats/ConsumptionStats';
+import SummaryCard from '../stats/SummaryCard';
+import SystemOverview from '../stats/SystemOverview';
+import ConsumptionStats from '../stats/ConsumptionStats';
 
 import TabControl from '../controls/TabControl';
+import { calculateMonthlySum } from '../utils/dataUtils';
 import { useState } from 'react';
 
 const DailyChart = dynamic(() => import('../charts/DailyChart'), { 
@@ -20,6 +21,15 @@ const MonthlyChart = dynamic(() => import('../charts/MonthlyChart'), {
 
 const DesktopView = ({ chartData, cityName }) => {
   const [activeTab, setActiveTab] = useState('daily');
+
+  // Tính toán dữ liệu tháng
+  const monthlyData = calculateMonthlySum(chartData.dailyData);
+
+  // Đảo ngược thứ tự tháng: từ tháng xa nhất đến gần nhất
+  const monthlyChartData = [...monthlyData].reverse().map(item => ({
+    month: item.monthName,
+    sum: item.sum
+  }));
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -65,7 +75,7 @@ const DesktopView = ({ chartData, cityName }) => {
             {activeTab === 'daily' ? (
               <DailyChart data={chartData.dailyData} />
             ) : (
-              <MonthlyChart data={chartData.monthlySum} />
+              <MonthlyChart data={monthlyChartData} />
             )}
           </div>
         </div>
@@ -74,11 +84,11 @@ const DesktopView = ({ chartData, cityName }) => {
         <div className="space-y-6">
           <SummaryCard 
             dailyData={chartData.dailyData} 
-            monthlySum={chartData.monthlySum}
+            monthlyData={monthlyData}
           />
           <SystemOverview 
             dailyData={chartData.dailyData} 
-            monthlySum={chartData.monthlySum}
+            monthlyData={monthlyData}
           />
           <ConsumptionStats 
             dailyData={chartData.dailyData}

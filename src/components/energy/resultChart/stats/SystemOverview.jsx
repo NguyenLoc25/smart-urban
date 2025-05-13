@@ -1,6 +1,6 @@
 "use client";
 
-const SystemOverview = ({ dailyData, monthlySum, mobile = false }) => {
+const SystemOverview = ({ dailyData, monthlyData, mobile = false }) => {
   return (
     <div className={`bg-white rounded-xl shadow-lg p-4 ${mobile ? '' : 'md:p-6'} border border-gray-200 dark:bg-gray-900/90 dark:border-gray-700`}>
       <h3 className={`font-semibold ${mobile ? 'text-base' : 'text-lg'} text-gray-800 dark:text-gray-100 mb-3 ${mobile ? '' : 'md:mb-5'} flex items-center`}>
@@ -26,10 +26,10 @@ const SystemOverview = ({ dailyData, monthlySum, mobile = false }) => {
             <svg className={`${mobile ? 'w-4 h-4 mr-2' : 'w-5 h-5 md:mr-3'} text-gray-400 dark:text-gray-500`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Tháng gần nhất
+            Số tháng có dữ liệu
           </span>
           <span className={`font-medium text-gray-900 dark:text-gray-100 ${mobile ? 'text-base' : 'text-lg'}`}>
-            {monthlySum[monthlySum.length - 1]?.month || 'N/A'}
+            {monthlyData[monthlyData.length - 1]?.month || 'N/A'}
           </span>
         </div>
       </div>
