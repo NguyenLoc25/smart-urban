@@ -1,10 +1,10 @@
 // src/components/DayNightHeader.js
 import { useState, useEffect } from 'react';
-import { db, ref, set } from '../lib/firebaseConfig';
-import { getCurrentDayNightStatus, updateDayNightStatus } from '../services/dayNightService';
+import { db, ref, set, get, onValue } from '../lib/firebaseConfig';
+import { getCurrentDayNightStatus, updateDayNightStatus, startAutoUpdateListener } from '../services/dayNightService';
 import styles from './DayNightHeader.module.css';
 
-const DAY_NIGHT_CYCLE_DURATION = 24 * 60 * 1000; // 24 phút
+const DAY_NIGHT_CYCLE_DURATION = 6 * 60 * 1000; // 24 phút
 const DAY_DURATION = DAY_NIGHT_CYCLE_DURATION / 2; // 12 phút
 
 export default function DayNightHeader() {
@@ -20,14 +20,31 @@ export default function DayNightHeader() {
       updateTimeLeft();
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Thêm listener tự động cập nhật
+    const unsubscribe = startAutoUpdateListener((newStatus) => {
+      setStatus(newStatus);
+      updateTimeLeft();
+    });
+
+    return () => {
+      clearInterval(timer);
+      unsubscribe();
+    };
   }, [status]);
 
   const fetchStatus = async () => {
     setIsLoading(true);
     try {
-      const currentStatus = await getCurrentDayNightStatus();
-      setStatus(currentStatus);
+      const snapshot = await get(ref(db, 'dayNight/currentStatus'));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setStatus(data.status);
+        setIsManual(!!data.isManual);
+      } else {
+        const currentStatus = await updateDayNightStatus();
+        setStatus(currentStatus);
+        setIsManual(false);
+      }
       updateTimeLeft();
     } catch (error) {
       console.error("Error fetching status:", error);
@@ -45,12 +62,11 @@ export default function DayNightHeader() {
     if (status === 'isDay') {
       setTimeLeft(Math.max(0, DAY_DURATION - currentCycleTime));
     } else {
-      if (currentCycleTime < DAY_DURATION) {
-        setTimeLeft(Math.max(0, DAY_DURATION - currentCycleTime));
-      } else {
-        setTimeLeft(Math.max(0, DAY_NIGHT_CYCLE_DURATION - currentCycleTime));
-      }
+      setTimeLeft(Math.max(0, DAY_NIGHT_CYCLE_DURATION - currentCycleTime));
     }
+    
+    // Debug log
+    console.log(`Status: ${status}, Cycle: ${currentCycleTime}, TimeLeft: ${timeLeft}`);
   };
 
   const toggleStatus = async () => {
@@ -96,6 +112,7 @@ export default function DayNightHeader() {
 
   return (
     <div className={`${styles.container} ${status === 'isDay' ? styles.isDay : styles.isNight}`}>
+      
       <div className={styles.statusInfo}>
         <span className={styles.name}>
           {status === 'isDay' ? 'Day' : 'Night'}
@@ -131,4 +148,5 @@ export default function DayNightHeader() {
         </button>
       )}
     </div>
-  )}
+  );
+}

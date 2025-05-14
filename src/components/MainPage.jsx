@@ -69,34 +69,8 @@ const MainPage = () => {
               <span className="mr-2">🏙️</span> Smart-Urban
             </h1>
           </div>
-          <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Giải pháp đô thị thông minh toàn diện, kết nối mọi khía cạnh của cuộc sống đô thị 
-            vào một nền tảng duy nhất với công nghệ tiên tiến và giao diện trực quan.
-          </p>
         </header>
 
-        {/* Tab Navigation */}
-        <div className="flex overflow-x-auto mb-8 scrollbar-hide">
-          <div className="flex space-x-2">
-            {[
-              { id: 'home', icon: <FiHome />, label: 'Tổng quan' },
-              { id: 'energy', icon: <FiZap />, label: 'Năng lượng' },
-              { id: 'garden', icon: <FiZap />, label: 'Cảnh quan' },
-              { id: 'waste', icon: <FiTrash2 />, label: 'Chất thải' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-md' 
-                  : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -126,9 +100,6 @@ const MainPage = () => {
                   </div>
                 </div>
               </div>
-              <button className="w-full flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors">
-                <FiExternalLink className="mr-2" /> Xem chi tiết báo cáo
-              </button>
             </div>
           </FeatureCard>
 
@@ -186,34 +157,6 @@ const MainPage = () => {
               </div>
             </div>
 
-            {/* Interactive Chart Placeholder */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium text-gray-800">Biểu đồ sản lượng năng lượng</h3>
-                <select className="bg-white border border-gray-300 rounded-md px-3 py-1 text-sm">
-                  <option>Theo năm</option>
-                  <option>Theo tháng</option>
-                  <option>Theo ngày</option>
-                </select>
-              </div>
-              <div className="h-64 bg-white rounded-md flex items-center justify-center text-gray-400">
-                [Biểu đồ tương tác sẽ hiển thị tại đây]
-              </div>
-              <div className="flex justify-center space-x-6 mt-4">
-                {['Solar', 'Wind', 'Hydro'].map((type, index) => (
-                  <div key={type} className="flex items-center">
-                    <div 
-                      className={`w-3 h-3 rounded-full mr-2 ${[
-                        'bg-yellow-400',
-                        'bg-blue-400',
-                        'bg-green-400'
-                      ][index]}`}
-                    ></div>
-                    <span className="text-sm text-gray-600">{type}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Installation Suggestions */}
             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs">
@@ -233,9 +176,6 @@ const MainPage = () => {
                       <div className="font-medium">{item.location}</div>
                       <div className="text-sm text-gray-600">{item.type} - Tiềm năng: {item.potential}</div>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                      Xem chi tiết
-                    </button>
                   </div>
                 ))}
               </div>
@@ -289,17 +229,6 @@ const MainPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="mt-12 text-center text-gray-600 text-sm">
-          <div className="flex justify-center space-x-6 mb-4">
-            <a href="#" className="hover:text-blue-600 transition-colors">Giới thiệu</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Tính năng</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Báo giá</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Liên hệ</a>
-          </div>
-          <p>© 2023 Smart-Urban. All rights reserved.</p>
-        </footer>
       </div>
     </div>
   );

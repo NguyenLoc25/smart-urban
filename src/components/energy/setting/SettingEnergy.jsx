@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, get, remove, update } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-import GridLayout from "@/components/energy/setting/GridLayout";
 import { MaterialReactTable } from "material-react-table";
 import {
   Box,
@@ -319,16 +318,6 @@ const EnergyDataTable = ({ data, columns, isMobile, isSystemUser, onView, onEdit
   </div>
 );
 
-const GridVisualization = () => (
-  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xs p-6">
-    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
-      Grid Layout
-    </h3>
-    <div className="aspect-square">
-      <GridLayout />
-    </div>
-  </div>
-);
 
 // Main Component
 const SettingEnergy = () => {
@@ -564,7 +553,7 @@ const SettingEnergy = () => {
               onChange={setSelectedCategory}
             />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ">
               {selectedCategory === "all" ? (
                 <EnergyOverview 
                   summary={summary} 
@@ -581,7 +570,6 @@ const SettingEnergy = () => {
                     onEdit={setEditItem}
                     onDelete={handleDelete}
                   />
-                  <GridVisualization />
                 </>
               )}
             </div>

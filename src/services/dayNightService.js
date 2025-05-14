@@ -1,22 +1,28 @@
 // src/services/dayNightService.js
-import { db, ref, set, get } from "../lib/firebaseConfig";
+import { db, ref, set, get, onValue } from "../lib/firebaseConfig";
 
-const DAY_NIGHT_CYCLE_DURATION = 24 * 60 * 1000; // 24 phút (đổi sang mili giây)
+const DAY_NIGHT_CYCLE_DURATION = 6 * 60 * 1000; // 24 phút (đổi sang mili giây)
 const DAY_DURATION = DAY_NIGHT_CYCLE_DURATION / 2; // 12 phút cho ngày
 
 // Hàm kiểm tra trạng thái ngày/đêm hiện tại
 function calculateDayNightStatus() {
   const now = Date.now();
   const currentCycleTime = now % DAY_NIGHT_CYCLE_DURATION;
-  return currentCycleTime < DAY_DURATION ? 'isDay' : 'isNight';
+  const isDay = currentCycleTime < DAY_DURATION;
+  
+  console.log(`Calculating status: 
+    Now: ${now}
+    CycleTime: ${currentCycleTime}
+    DayDuration: ${DAY_DURATION}
+    IsDay: ${isDay}`);
+  
+  return isDay ? 'isDay' : 'isNight';
 }
 
 // Hàm lưu trạng thái ngày/đêm vào Firebase
-// Trong dayNightService.js
 async function updateDayNightStatus() {
   const status = calculateDayNightStatus();
   try {
-    // Sử dụng set với reference đầy đủ
     await set(ref(db, 'dayNight/currentStatus'), {
       status: status,
       lastUpdated: Date.now()
@@ -32,7 +38,6 @@ async function updateDayNightStatus() {
 // Hàm lấy trạng thái hiện tại (từ cache hoặc tính toán mới)
 async function getCurrentDayNightStatus() {
   try {
-    // Kiểm tra xem có dữ liệu trong DB không
     const snapshot = await get(ref(db, 'dayNight/currentStatus'));
     
     if (snapshot.exists()) {
@@ -54,4 +59,45 @@ async function getCurrentDayNightStatus() {
   }
 }
 
-export { updateDayNightStatus, getCurrentDayNightStatus };
+function startAutoUpdateListener(callback) {
+  const statusRef = ref(db, 'dayNight/currentStatus');
+  
+  // Hàm kiểm tra và cập nhật
+  const checkAndUpdate = async (data) => {
+    if (!data || data.isManual) return;
+    
+    const now = Date.now();
+    const currentCycleTime = now % DAY_NIGHT_CYCLE_DURATION;
+    const shouldBeDay = currentCycleTime < DAY_DURATION;
+    const currentShouldBeDay = data.status === 'isDay';
+    
+    if (shouldBeDay !== currentShouldBeDay) {
+      console.log('Auto-updating day/night status');
+      await updateDayNightStatus();
+      callback(shouldBeDay ? 'isDay' : 'isNight');
+    }
+  };
+
+  // Lắng nghe thay đổi từ Firebase
+  const unsubscribe = onValue(statusRef, (snapshot) => {
+    if (snapshot.exists()) {
+      checkAndUpdate(snapshot.val());
+    }
+  });
+
+  // Kiểm tra mỗi giây để đảm bảo không bỏ lỡ
+  const intervalId = setInterval(() => {
+    get(ref(db, 'dayNight/currentStatus')).then((snapshot) => {
+      if (snapshot.exists()) {
+        checkAndUpdate(snapshot.val());
+      }
+    });
+  }, 1000);
+
+  return () => {
+    unsubscribe();
+    clearInterval(intervalId);
+  };
+}
+
+export { updateDayNightStatus, getCurrentDayNightStatus, startAutoUpdateListener };
