@@ -1,67 +1,96 @@
-'use client'
+'use client';
 
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { EChartsOverview } from "@/components/waste/charts/EChartsOverview"
-
-import { Truck, ActivitySquare, Trash2, Settings2 } from "lucide-react"
-import Image from "next/image"
+import { useEffect, useState } from "react";
+import { getDatabase, ref, onValue } from "firebase/database";
+import { Card } from "@/components/ui/card";
+import Image from "next/image";
+import { EChartsOverview } from "@/components/waste/charts/EChartsOverview";
+import { Truck, ActivitySquare, Trash2, Settings2 } from "lucide-react";
 
 export default function DashboardPage() {
+  const [data, setData] = useState({
+    vehicles: 1,
+    conveyors: 3,
+    trashToday: 560,
+    energy: 3.2,
+    conveyorsStatus: {
+      garden: true,
+      energy: false,
+      store: true,
+    },
+  });
+
+  useEffect(() => {
+    const db = getDatabase();
+    const vehiclesRef = ref(db, "waste/vehicles/count");
+    onValue(vehiclesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setData((prev) => ({ ...prev, vehicles: snapshot.val() }));
+      }
+    });
+  }, []);
+
   return (
     <div className="space-y-10">
-      {/* Header đẹp */}
+      {/* Header */}
       <div className="flex items-center gap-4">
         <Image src="/icons/dashboard.svg" alt="Dashboard Icon" width={50} height={50} />
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Smart Waste Monitoring
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Smart Waste Dashboard
           </h1>
-          <p className="text-gray-500 text-sm">Tối ưu thu gom – phân loại – tái chế</p>
+          <p className="text-gray-500 dark:text-gray-300">
+            Theo dõi hệ thống xử lý rác thông minh
+          </p>
         </div>
       </div>
 
-      {/* Cards thống kê */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="p-6 rounded-xl shadow-lg bg-gradient-to-br from-green-100 to-white flex gap-4 items-center">
-          <Truck className="text-green-600" size={40} />
+      {/* Tổng quan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Ô 1: Xe */}
+        <Card className="p-4 flex items-center gap-4 bg-green-100 dark:bg-green-900 shadow-md rounded-xl">
+          <Truck size={32} className="text-green-600 dark:text-green-300" />
           <div>
-            <p className="text-sm text-gray-600">Xe đang chạy</p>
-            <h2 className="text-4xl font-bold text-green-800">2</h2>
-            <Badge className="bg-green-200 text-green-800 mt-1">Hoạt động</Badge>
+            <p className="text-sm text-gray-700 dark:text-gray-200">Xe</p>
+            <p className="text-xl font-bold text-green-800 dark:text-green-100">{data.vehicles}</p>
           </div>
         </Card>
-        <Card className="p-6 rounded-xl shadow-lg bg-gradient-to-br from-blue-100 to-white flex gap-4 items-center">
-          <ActivitySquare className="text-blue-600" size={40} />
+
+        {/* Ô 2: Băng chuyền */}
+        <Card className="p-4 flex items-center gap-4 bg-blue-100 dark:bg-blue-900 shadow-md rounded-xl">
+          <ActivitySquare size={32} className="text-blue-600 dark:text-blue-300" />
           <div>
-            <p className="text-sm text-gray-600">Băng chuyền hoạt động</p>
-            <h2 className="text-4xl font-bold text-blue-800">3</h2>
-            <Badge className="bg-blue-200 text-blue-800 mt-1">Đang xử lý</Badge>
+            <p className="text-sm text-gray-700 dark:text-gray-200">Băng chuyền</p>
+            <p className="text-xl font-bold text-blue-800 dark:text-blue-100">{data.conveyors}</p>
           </div>
         </Card>
-        <Card className="p-6 rounded-xl shadow-lg bg-gradient-to-br from-orange-100 to-white flex gap-4 items-center">
-          <Trash2 className="text-orange-600" size={40} />
+
+        {/* Ô 3: Rác hôm nay */}
+        <Card className="p-4 flex items-center gap-4 bg-red-100 dark:bg-red-900 shadow-md rounded-xl">
+          <Trash2 size={32} className="text-red-600 dark:text-red-300" />
           <div>
-            <p className="text-sm text-gray-600">Khối lượng rác hôm nay</p>
-            <h2 className="text-4xl font-bold text-orange-800">560kg</h2>
+            <p className="text-sm text-gray-700 dark:text-gray-200">Rác hôm nay (kg)</p>
+            <p className="text-xl font-bold text-red-800 dark:text-red-100">{data.trashToday}</p>
           </div>
         </Card>
-        <Card className="p-6 rounded-xl shadow-lg bg-gradient-to-br from-purple-100 to-white flex gap-4 items-center">
-          <Settings2 className="text-purple-600" size={40} />
+
+        {/* Ô 4: Năng lượng */}
+        <Card className="p-4 flex items-center gap-4 bg-yellow-100 dark:bg-yellow-900 shadow-md rounded-xl">
+          <Settings2 size={32} className="text-yellow-600 dark:text-yellow-300" />
           <div>
-            <p className="text-sm text-gray-600">Năng lượng tái tạo</p>
-            <h2 className="text-4xl font-bold text-purple-800">3.2 kWh</h2>
+            <p className="text-sm text-gray-700 dark:text-gray-200">Năng lượng tái tạo (kWh)</p>
+            <p className="text-xl font-bold text-yellow-800 dark:text-yellow-100">{data.energy}</p>
           </div>
         </Card>
       </div>
 
       {/* Biểu đồ */}
-      <Card className="p-6 rounded-xl shadow-xl bg-white">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          📈 Biểu đồ rác phân loại theo tháng
+      <Card className="p-6 rounded-xl shadow-xl bg-white dark:bg-gray-900">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+          📊 Biểu đồ rác phân loại theo tháng
         </h2>
         <EChartsOverview />
       </Card>
     </div>
-  )
+  );
 }
