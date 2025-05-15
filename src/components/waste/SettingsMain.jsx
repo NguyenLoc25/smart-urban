@@ -21,7 +21,7 @@ export default function SettingsMain() {
 
   useEffect(() => {
     const db = getDatabase();
-    const statusRef = ref(db, "waste/dayNight/currentStatus/status");
+    const statusRef = ref(db, "/dayNight/currentStatus/status");
 
     onValue(statusRef, (snapshot) => {
       setDayNightStatus(snapshot.val());
