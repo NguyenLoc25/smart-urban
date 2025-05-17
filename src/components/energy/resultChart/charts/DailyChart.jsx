@@ -27,15 +27,25 @@ const DailyChart = ({ data }) => {
       }]}
       layout={{
         ...chartLayout,
+        uirevision: true, // giữ trạng thái tương tác
         xaxis: { 
           ...chartLayout.xaxis,
-          range: [allDates.length - initialDisplayCount, allDates.length - 1], 
+          range: [allDates.length - initialDisplayCount, allDates.length - 1],
           autorange: false,
           title: { text: 'Ngày', font: { size: 12 } },
+          showline: false,       // Hiển thị đường viền trục x
+          showgrid: true,     // Ẩn đường lưới theo trục x
+          linecolor: '#e5e7eb', // Màu đường viền trục x
+          linewidth: 1,         // Độ dày đường viền
+          mirror: true,        // Hiển thị đường viền ở cả phía trên
         },
         yaxis: { 
           ...chartLayout.yaxis,
-          title: { text: 'Sản lượng (GWh)', font: { size: 12 } }
+          title: { text: 'Sản lượng (GWh)', font: { size: 12 } },
+          showline: true,       // Hiển thị đường viền trục y
+          linecolor: '#e5e7eb', // Màu đường viền trục y
+          linewidth: 1,         // Độ dày đường viền
+          mirror: true,        // Hiển thị đường viền ở cả phía phải
         },
         margin: { l: 50, r: 20, b: 60, t: 30, pad: 5 },
       }}
@@ -47,8 +57,7 @@ const DailyChart = ({ data }) => {
       style={{ 
         width: '100%', 
         height: '100%', 
-        minHeight: '300px',
-        overflowX: 'scroll' // Cho phép cuộn ngang
+        minHeight: '300px'
       }}
       useResizeHandler={true}
     />

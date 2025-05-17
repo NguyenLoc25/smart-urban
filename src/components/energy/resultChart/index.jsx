@@ -5,6 +5,7 @@ import ChartContainer from './ChartContainer';
 import LoadingState from './states/LoadingState';
 import ErrorState from './states/ErrorState';
 import EmptyState from './states/EmptyState';
+
 const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
   return (
     <ChartContainer cityName={cityName}>
@@ -23,8 +24,8 @@ const ResultChart = ({ cityName = "Hồ Chí Minh" }) => {
         
         return (
           <ViewComponent 
+            isMobile={isMobile} // Đảm bảo truyền prop isMobile xuống
             chartData={chartData}
-            isMobile={isMobile}
             cityName={cityName}
           />
         );

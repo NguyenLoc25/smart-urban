@@ -78,7 +78,7 @@ const CreateCollectionButton = () => {
           }
         }}
       >
-        Create New Collection
+        Tạo thiết bị mới
       </Button>
     </Box>
   );

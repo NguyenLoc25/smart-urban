@@ -1,12 +1,12 @@
 import React, { useReducer, useCallback, useMemo } from "react";
 import { Button } from "../../ui/button";
-import { Plus, Trash, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { Input } from "../../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { v4 as uuidv4 } from "uuid";
 import { ErrorBoundary } from "react-error-boundary";
 
-// Constants
+// ========== CONSTANTS ==========
 const ENERGY_TYPES = ["Solar", "Wind", "Hydro"];
 
 const DEVICE_OPTIONS = {
@@ -42,26 +42,42 @@ const ENERGY_FIELDS = {
 };
 
 const FIELD_LABELS = {
-  power: { Solar: "Power (W)", Wind: "Power (MW)", Hydro: "Power (MW)" },
-  weight: { Solar: "Weight (Kg)", Wind: "Weight (Kg)", Hydro: "Weight (Kg)" },
-  efficiency: { Solar: "Efficiency (%)", Wind: "Efficiency (%)", Hydro: "Efficiency (%)" },
-  size: { Solar: "Size (mm)", Wind: "Size (m)", Hydro: "Size (m)" },
-  origin: "Origin",
-  status: "Status",
-  turbine_type: "Turbine Type",
-  head_height: "Head Height (m)",
-  flow_rate: "Flow Rate (m³/s)",
-  quantity: "Quantity",
+  power: { 
+    Solar: "Công suất (W)", 
+    Wind: "Công suất (MW)", 
+    Hydro: "Công suất (MW)" 
+  },
+  weight: { 
+    Solar: "Khối lượng (kg)", 
+    Wind: "Khối lượng (kg)", 
+    Hydro: "Khối lượng (kg)" 
+  },
+  efficiency: { 
+    Solar: "Hiệu suất (%)", 
+    Wind: "Hiệu suất (%)", 
+    Hydro: "Hiệu suất (%)" 
+  },
+  size: { 
+    Solar: "Kích thước (mm)", 
+    Wind: "Kích thước (m)", 
+    Hydro: "Kích thước (m)" 
+  },
+  origin: "Xuất xứ",
+  status: "Trạng thái",
+  turbine_type: "Loại tuabin",
+  head_height: "Chiều cao (m)",
+  flow_rate: "Lưu lượng nước (m³/s)",
+  quantity: "Số lượng (nhà máy)",
 };
 
-// Helper functions
+// ========== HELPER FUNCTIONS ==========
 const getInitialDevice = (type = "Solar") => {
   const firstDevice = DEVICE_OPTIONS[type][0];
   const device = {
     id: uuidv4(),
     energy_type: type,
     device_name: firstDevice.name,
-    quantity: "1", // Add default quantity
+    quantity: "1",
   };
 
   ENERGY_FIELDS[type].forEach(field => {
@@ -76,7 +92,7 @@ const getFieldLabel = (field, energyType) => {
   return typeof label === 'object' ? label[energyType] : label || field;
 };
 
-// Error fallback component
+// ========== COMPONENTS ==========
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="p-4 bg-red-100 border border-red-400 rounded-lg text-red-700">
     <p>Something went wrong:</p>
@@ -87,7 +103,111 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
   </div>
 );
 
-// Reducer
+const DeviceCard = React.memo(({ device, dispatch }) => {
+  const fields = useMemo(() => ENERGY_FIELDS[device.energy_type], [device.energy_type]);
+  const devices = useMemo(() => DEVICE_OPTIONS[device.energy_type], [device.energy_type]);
+  
+  const handleTypeChange = useCallback((value) => {
+    dispatch({ type: "CHANGE_TYPE", id: device.id, value });
+  }, [device.id, dispatch]);
+
+  const handleDeviceChange = useCallback((value) => {
+    dispatch({ type: "CHANGE_DEVICE", id: device.id, deviceType: device.energy_type, value });
+  }, [device.id, device.energy_type, dispatch]);
+
+  const handleFieldChange = useCallback((field, value) => {
+    dispatch({ type: "UPDATE", id: device.id, field, value });
+  }, [device.id, dispatch]);
+
+  return (
+    <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">
+          {device.energy_type} Device
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Loại năng lượng
+          </label>
+          <Select value={device.energy_type} onValueChange={handleTypeChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              {ENERGY_TYPES.map(type => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Quantity
+          </label>
+          <Input 
+            type="number"
+            min="1"
+            value={device.quantity || "1"} 
+            onChange={(e) => handleFieldChange('quantity', e.target.value)}
+            placeholder="Enter quantity"
+          />
+        </div>
+
+        {devices.length > 0 && (
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Mẫu thiết bị {device.energy_type}
+            </label>
+            <Select value={device.device_name} onValueChange={handleDeviceChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={`Select ${device.energy_type.toLowerCase()} device`} />
+              </SelectTrigger>
+              <SelectContent>
+                {devices.map(device => (
+                  <SelectItem key={device.name} value={device.name}>
+                    {device.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {fields.map(field => {
+          const label = getFieldLabel(field, device.energy_type);
+          const defaultValue = DEVICE_OPTIONS[device.energy_type][0][field];
+
+          return (
+            <div key={field} className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {label}
+              </label>
+              <Input 
+                value={device[field] || ""} 
+                onChange={(e) => handleFieldChange(field, e.target.value)}
+                placeholder={`Enter ${label}`}
+              />
+              {device[field] === defaultValue && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Dữ liệu mặc định từ hệ thống
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+DeviceCard.displayName = "DeviceCard";
+
+// ========== REDUCER ==========
 function reducer(state, action) {
   switch (action.type) {
     case "ADD":
@@ -125,146 +245,21 @@ function reducer(state, action) {
   }
 }
 
-// Device Card Component
-const DeviceCard = React.memo(({ device, dispatch }) => {
-  const fields = useMemo(() => ENERGY_FIELDS[device.energy_type], [device.energy_type]);
-  
-  const handleTypeChange = useCallback((value) => {
-    dispatch({ type: "CHANGE_TYPE", id: device.id, value });
-  }, [device.id, dispatch]);
-
-  const handleDeviceChange = useCallback((value) => {
-    dispatch({ type: "CHANGE_DEVICE", id: device.id, deviceType: device.energy_type, value });
-  }, [device.id, device.energy_type, dispatch]);
-
-  const handleFieldChange = useCallback((field, value) => {
-    dispatch({ type: "UPDATE", id: device.id, field, value });
-  }, [device.id, dispatch]);
-
-  const devices = useMemo(() => DEVICE_OPTIONS[device.energy_type], [device.energy_type]);
-
-  return (
-    <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/30">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">
-          {device.energy_type} Device
-        </h3>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={() => dispatch({ type: "REMOVE", id: device.id })}
-          className="hover:scale-105 transition-transform"
-        >
-          <Trash className="w-4 h-4 mr-2" />
-          Remove
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Existing energy type select */}
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Energy Type
-          </label>
-          <Select 
-            value={device.energy_type} 
-            onValueChange={handleTypeChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              {ENERGY_TYPES.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Add Quantity field */}
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Quantity
-          </label>
-          <Input 
-            type="number"
-            min="1"
-            value={device.quantity || "1"} 
-            onChange={(e) => handleFieldChange('quantity', e.target.value)}
-            placeholder="Enter quantity"
-          />
-        </div>
-
-        {/* Rest of the existing fields */}
-        {devices.length > 0 && (
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {device.energy_type} Device Model
-            </label>
-            <Select 
-              value={device.device_name} 
-              onValueChange={handleDeviceChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={`Select ${device.energy_type.toLowerCase()} device`} />
-              </SelectTrigger>
-              <SelectContent>
-                {devices.map(device => (
-                  <SelectItem key={device.name} value={device.name}>
-                    {device.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {fields.map(field => {
-          const label = getFieldLabel(field, device.energy_type);
-          const defaultValue = DEVICE_OPTIONS[device.energy_type][0][field];
-
-          return (
-            <div key={field} className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {label}
-              </label>
-              <Input 
-                value={device[field] || ""} 
-                onChange={(e) => handleFieldChange(field, e.target.value)}
-                placeholder={`Enter ${label}`}
-              />
-              {device[field] === defaultValue && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Default value from device
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-});
-
-DeviceCard.displayName = "DeviceCard";
-
-// Main Component
+// ========== MAIN COMPONENT ==========
 export default function CollectionEditor() {
-  const [questions, dispatch] = useReducer(reducer, [getInitialDevice()]);
+  const [devices, dispatch] = useReducer(reducer, [getInitialDevice()]);
 
   const handleSave = useCallback(async () => {
-    if (questions.length === 0) return;
+    if (devices.length === 0) return;
     
     try {
-      const formattedQuestion = {
-        id: questions[0].id,
-        energy_type: questions[0].energy_type,
-        device_name: questions[0].device_name,
-        quantity: questions[0].quantity || "1", // Include quantity
+      const formattedDevice = {
+        id: devices[0].id,
+        energy_type: devices[0].energy_type,
+        device_name: devices[0].device_name,
+        quantity: devices[0].quantity || "1",
         ...Object.fromEntries(
-          Object.entries(questions[0])
+          Object.entries(devices[0])
             .filter(([key, value]) => 
               !['id', 'energy_type', 'device_name', 'quantity'].includes(key) && 
               value && 
@@ -273,11 +268,10 @@ export default function CollectionEditor() {
         )
       };
   
-      // Rest of the save logic remains the same
-      const response = await fetch(`/api/energy/settings/${formattedQuestion.energy_type.toLowerCase()}`, {
+      const response = await fetch(`/api/energy/settings/${formattedDevice.energy_type.toLowerCase()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedQuestion)
+        body: JSON.stringify(formattedDevice)
       });
   
       if (!response.ok) throw new Error(await response.text());
@@ -286,13 +280,10 @@ export default function CollectionEditor() {
       console.error("Error saving data:", error);
       alert(`Error: ${error.message}`);
     }
-  }, [questions]);
+  }, [devices]);
 
-  const canSave = useMemo(() => questions.length > 0, [questions]);
+  const canSave = useMemo(() => devices.length > 0, [devices]);
 
-  const handleAddDevice = useCallback(() => {
-    dispatch({ type: "ADD" });
-  }, []);
 
   return (
     <ErrorBoundary
@@ -302,32 +293,25 @@ export default function CollectionEditor() {
       <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-primary dark:text-primary-light mb-2">
-            Energy Device Configuration
+            Cấu hình thiết bị năng lượng
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Add and configure your energy monitoring devices
+            Thêm và cấu hình các thiết bị giám sát năng lượng của bạn
           </p>
         </div>
-
+  
         <div className="space-y-6">
-          {questions.map(q => (
+          {devices.map(device => (
             <DeviceCard 
-              key={q.id} 
-              device={q} 
+              key={device.id} 
+              device={device} 
               dispatch={dispatch}
             />
           ))}
         </div>
-
+  
         <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
-          <Button 
-            variant="outline"
-            onClick={handleAddDevice}
-            className="bg-primary/10 hover:bg-primary/20 dark:bg-primary-dark/10 dark:hover:bg-primary-dark/20"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add New Device
-          </Button>
+
           
           <Button 
             onClick={handleSave}
@@ -335,7 +319,7 @@ export default function CollectionEditor() {
             className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white disabled:opacity-50"
           >
             <Save className="w-5 h-5 mr-2" />
-            Save Configuration
+            Lưu cấu hình
           </Button>
         </div>
       </div>

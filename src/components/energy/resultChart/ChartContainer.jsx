@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { calculateMonthlySum } from './utils/dataUtils';
-import { useResponsive } from './hooks/useResponsive';
+import useResponsive from './hooks/useResponsive';
 
 const ChartContainer = ({ cityName, children }) => {
   const [chartData, setChartData] = useState({
