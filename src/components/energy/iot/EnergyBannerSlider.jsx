@@ -40,37 +40,48 @@ const EnergyBannerSlider = () => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const sliderRef = useRef(null);
   const startX = useRef(null);
   const dragOffset = useRef(0);
+  const intervalRef = useRef(null);
 
-  // Check mobile on mount and resize
+  // Auto slide every 5 seconds
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const startAutoSlide = () => {
+      intervalRef.current = setInterval(() => {
+        if (!paused && !isDragging) {
+          setIndex((prev) => (prev + 1) % slides.length);
+        }
+      }, 5000);
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
-  // Auto slide (disabled on mobile)
-  useEffect(() => {
-    if (paused || isMobile) return;
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [paused, isMobile]);
+    startAutoSlide();
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [paused, isDragging]);
 
   // Navigation
   const goTo = (dir) => {
+    // Reset auto slide timer when manually navigating
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
     setIndex((prev) =>
       dir === "next"
         ? (prev + 1) % slides.length
         : (prev - 1 + slides.length) % slides.length
     );
+    
+    // Restart auto slide
+    intervalRef.current = setInterval(() => {
+      if (!paused && !isDragging) {
+        setIndex((prev) => (prev + 1) % slides.length);
+      }
+    }, 5000);
   };
 
   // Handle touch/drag events
@@ -81,6 +92,11 @@ const EnergyBannerSlider = () => {
     if (sliderRef.current) {
       sliderRef.current.style.transition = "none";
       sliderRef.current.style.cursor = "grabbing";
+    }
+    
+    // Pause auto slide during drag
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
   };
 
@@ -94,7 +110,7 @@ const EnergyBannerSlider = () => {
 
   const handleEnd = () => {
     if (!isDragging) return;
-    const threshold = isMobile ? 50 : 80; // Smaller threshold for mobile
+    const threshold = 50;
     let newIndex = index;
 
     if (dragOffset.current > threshold) {
@@ -113,9 +129,18 @@ const EnergyBannerSlider = () => {
       sliderRef.current.style.transform = `translateX(-${newIndex * 100}%)`;
       sliderRef.current.style.cursor = "grab";
     }
+    
+    // Restart auto slide after drag ends
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => {
+      if (!paused && !isDragging) {
+        setIndex((prev) => (prev + 1) % slides.length);
+      }
+    }, 5000);
   };
 
-  // Mobile-optimized slide rendering
   const renderSlides = () => (
     slides.map((slide) => (
       <div
@@ -124,7 +149,7 @@ const EnergyBannerSlider = () => {
       >
         <div className="max-w-2xl z-10 space-y-3 md:space-y-4 text-center md:text-left">
           <div className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-            {isMobile ? slide.subtitle.split(' ').slice(0, 3).join(' ') + '...' : slide.subtitle}
+            {slide.subtitle}
           </div>
           <h2 className={`text-2xl md:text-4xl lg:text-5xl font-bold ${slide.color} leading-tight`}>
             {slide.title}
@@ -143,12 +168,10 @@ const EnergyBannerSlider = () => {
           </button>
         </div>
         
-        {/* Icon - hidden on small mobile, smaller on medium mobile */}
-        <div className="hidden xs:block text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] opacity-20 md:opacity-30 transform rotate-12 transition-transform duration-500 hover:scale-110 mt-6 md:mt-0">
+        <div className="text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] opacity-20 md:opacity-30 transform rotate-12 transition-transform duration-500 hover:scale-110 mt-6 md:mt-0">
           {slide.icon}
         </div>
         
-        {/* Animated background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
           <div className="absolute -top-16 -left-16 sm:-top-20 sm:-left-20 md:-top-24 md:-left-24 w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full bg-amber-200/20 dark:bg-amber-800/10 blur-[60px] md:blur-[80px] animate-float" />
           <div className="absolute -bottom-16 -right-16 sm:-bottom-20 sm:-right-20 md:-bottom-24 md:-right-24 w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full bg-blue-200/20 dark:bg-blue-800/10 blur-[60px] md:blur-[80px] animate-float-delay" />
@@ -157,19 +180,18 @@ const EnergyBannerSlider = () => {
     ))
   );
 
-  // Mobile-friendly controls
   const renderControls = () => (
     <>
       <button
         onClick={() => goTo("prev")}
-        className="hidden sm:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
       <button
         onClick={() => goTo("next")}
-        className="hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Next slide"
       >
         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -177,24 +199,22 @@ const EnergyBannerSlider = () => {
     </>
   );
 
-  // Mobile swipe indicators
-  const renderSwipeHint = () => (
-    <div className="sm:hidden absolute bottom-4 left-0 right-0 flex justify-center items-center space-x-2 z-10">
-      <div className="flex items-center justify-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 17l-5-5 5-5M21 17l-5-5 5-5"/>
-        </svg>
-        <span>Vuốt để chuyển</span>
-      </div>
-    </div>
-  );
-
   const renderDots = () => (
     <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex justify-center space-x-2 z-10">
       {slides.map((_, i) => (
         <button
           key={i}
-          onClick={() => setIndex(i)}
+          onClick={() => {
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+            }
+            setIndex(i);
+            intervalRef.current = setInterval(() => {
+              if (!paused && !isDragging) {
+                setIndex((prev) => (prev + 1) % slides.length);
+              }
+            }, 5000);
+          }}
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full transition-all duration-300 ${
             i === index ? 'bg-white dark:bg-gray-300 w-4 sm:w-6' : 'bg-white/50 dark:bg-gray-500/50 w-1.5 sm:w-2'
           }`}
@@ -207,42 +227,39 @@ const EnergyBannerSlider = () => {
   return (
     <div
       className="relative w-full max-w-6xl mx-auto overflow-hidden rounded-xl md:rounded-2xl lg:rounded-3xl shadow-lg md:shadow-2xl ring-1 ring-gray-200/50 dark:ring-gray-700/50 select-none group"
-      onMouseEnter={() => !isMobile && setPaused(true)}
-      onMouseLeave={() => !isMobile && setPaused(false)}
-      onMouseDown={(e) => !isMobile && handleStart(e.clientX)}
-      onMouseMove={(e) => !isMobile && isDragging && handleMove(e.clientX)}
-      onMouseUp={() => !isMobile && handleEnd()}
-      onTouchStart={(e) => isMobile && handleStart(e.touches[0].clientX)}
-      onTouchMove={(e) => isMobile && handleMove(e.touches[0].clientX)}
-      onTouchEnd={() => isMobile && handleEnd()}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onMouseDown={(e) => handleStart(e.clientX)}
+      onMouseMove={(e) => isDragging && handleMove(e.clientX)}
+      onMouseUp={() => handleEnd()}
+      onTouchStart={(e) => handleStart(e.touches[0].clientX)}
+      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+      onTouchEnd={() => handleEnd()}
     >
       <div
         ref={sliderRef}
         className="flex w-full h-64 sm:h-72 md:h-80 lg:h-96 cursor-grab active:cursor-grabbing"
         style={{
           transform: `translateX(-${index * 100}%)`,
-          transition: isDragging ? "none" : `transform ${isMobile ? '0.5s' : '0.7s'} cubic-bezier(0.16, 1, 0.3, 1)`,
+          transition: isDragging ? "none" : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {renderSlides()}
       </div>
 
       {renderControls()}
-      {isMobile ? renderSwipeHint() : renderDots()}
+      {renderDots()}
 
-      {/* Animated progress bar (desktop only) */}
-      {!isMobile && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
-          <div 
-            className="h-full bg-gradient-to-r from-amber-400 via-blue-500 to-purple-500 transition-all duration-500 ease-linear"
-            style={{ 
-              width: paused ? '0%' : '100%',
-              animation: paused ? 'none' : 'progress 5s linear forwards'
-            }}
-            key={index}
-          />
-        </div>
-      )}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
+        <div 
+          className="h-full bg-gradient-to-r from-amber-400 via-blue-500 to-purple-500 transition-all duration-500 ease-linear"
+          style={{ 
+            width: paused || isDragging ? '0%' : '100%',
+            animation: paused || isDragging ? 'none' : 'progress 5s linear forwards'
+          }}
+          key={index}
+        />
+      </div>
     </div>
   );
 };
