@@ -68,7 +68,7 @@ const SummaryCard = ({ dailyData, monthlyData, mobile = false, inputMonth = 5 })
       <div className="flex items-end justify-between mb-3">
         <div className="text-2xl font-bold">{currentConsumption.toFixed(2)} GWh</div>
         <div className={`text-xs ${percentageChange >= 0 ? 'text-red-100' : 'text-green-100'}`}>
-          {percentageChange >= 0 ? '↑' : '↓'} {Math.abs(percentageChange).toFixed(1)}%
+          {percentageChange >= 0 ? '↑' : '↓'} {Math.abs(percentageChange).toFixed(1)}% so với tháng trước
         </div>
       </div>
 
