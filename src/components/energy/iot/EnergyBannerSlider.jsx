@@ -2,86 +2,91 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 const slides = [
   {
     id: 1,
-    title: "HỆ THỐNG NĂNG LƯỢNG TÁI TẠO",
-    subtitle: "Giám sát hiệu suất thời gian thực",
+    title: "TỔNG QUAN HỆ THỐNG IoT",
+    subtitle: "Giám sát năng lượng tái tạo thời gian thực",
     bg: "bg-gradient-to-br from-amber-100 via-white to-blue-100 dark:from-amber-900/30 dark:via-gray-900 dark:to-blue-900/30",
-    icon: "🌱",
-    stats: "Tổng công suất 10.5 MW",
+    icon: "🌐",
+    stats: "Kết nối 150+ thiết bị IoT",
     color: "text-amber-600 dark:text-amber-300",
-    highlight: "from-amber-400 to-amber-600"
+    highlight: "from-amber-400 to-amber-600",
+    link: "/energy/iot"  // Added link for IoT overview
   },
   {
     id: 2,
-    title: "THÀNH PHỐ XANH BỀN VỮNG",
-    subtitle: "Giảm 35% lượng khí thải",
+    title: "TRANG TRẠI ĐIỆN GIÓ",
+    subtitle: "5 tuabin gió công suất cao",
     bg: "bg-gradient-to-br from-green-100 via-white to-cyan-100 dark:from-green-900/30 dark:via-gray-900 dark:to-cyan-900/30",
-    icon: "🏙️",
-    stats: "8.3 MW tiêu thụ hàng ngày",
+    icon: "🌬️",
+    stats: "Công suất tối đa 7.5 MW",
     color: "text-green-600 dark:text-green-300",
-    highlight: "from-green-400 to-green-600"
+    highlight: "from-green-400 to-green-600",
+    link: "/energy/iot/windplace"  // Added link for wind farm
   },
   {
     id: 3,
-    title: "CÔNG NGHỆ THÔNG MINH",
-    subtitle: "Tích hợp AI tối ưu hóa",
+    title: "TRANG TRẠI PIN MẶT TRỜI",
+    subtitle: "Hệ thống quang điện hiệu suất cao",
     bg: "bg-gradient-to-br from-purple-100 via-white to-pink-100 dark:from-purple-900/30 dark:via-gray-900 dark:to-pink-900/30",
-    icon: "🤖",
-    stats: "Hiệu suất tăng 22%",
+    icon: "☀️",
+    stats: "3.000 tấm pin, công suất 3 MW",
     color: "text-purple-600 dark:text-purple-300",
-    highlight: "from-purple-400 to-purple-600"
+    highlight: "from-purple-400 to-purple-600",
+    link: "/energy/iot/solarplace"  // Added link for solar farm
+  },
+  {
+    id: 4,
+    title: "CHU KỲ NGÀY ĐÊM",
+    subtitle: "Mô phỏng thời gian thực",
+    bg: "bg-gradient-to-br from-blue-100 via-white to-indigo-100 dark:from-blue-900/30 dark:via-gray-900 dark:to-indigo-900/30",
+    icon: "⏳",
+    stats: "1 ngày (24h) = 24 phút mô phỏng",
+    color: "text-blue-600 dark:text-blue-300",
+    highlight: "from-blue-400 to-blue-600",
+    link: "/energy/iot/daynight"  // Added link for day/night cycle
   }
 ];
 
 const EnergyBannerSlider = () => {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const sliderRef = useRef(null);
   const startX = useRef(null);
   const dragOffset = useRef(0);
-  const intervalRef = useRef(null);
 
-  // Auto slide every 5 seconds
+  // Check mobile on mount and resize
   useEffect(() => {
-    const startAutoSlide = () => {
-      intervalRef.current = setInterval(() => {
-        if (!paused && !isDragging) {
-          setIndex((prev) => (prev + 1) % slides.length);
-        }
-      }, 5000);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-    startAutoSlide();
-    
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [paused, isDragging]);
+  // Auto slide (disabled on mobile)
+  useEffect(() => {
+    if (paused || isMobile) return;
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [paused, isMobile]);
 
   // Navigation
   const goTo = (dir) => {
-    // Reset auto slide timer when manually navigating
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
     setIndex((prev) =>
       dir === "next"
         ? (prev + 1) % slides.length
         : (prev - 1 + slides.length) % slides.length
     );
-    
-    // Restart auto slide
-    intervalRef.current = setInterval(() => {
-      if (!paused && !isDragging) {
-        setIndex((prev) => (prev + 1) % slides.length);
-      }
-    }, 5000);
   };
 
   // Handle touch/drag events
@@ -92,11 +97,6 @@ const EnergyBannerSlider = () => {
     if (sliderRef.current) {
       sliderRef.current.style.transition = "none";
       sliderRef.current.style.cursor = "grabbing";
-    }
-    
-    // Pause auto slide during drag
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
     }
   };
 
@@ -110,7 +110,7 @@ const EnergyBannerSlider = () => {
 
   const handleEnd = () => {
     if (!isDragging) return;
-    const threshold = 50;
+    const threshold = isMobile ? 50 : 80; // Smaller threshold for mobile
     let newIndex = index;
 
     if (dragOffset.current > threshold) {
@@ -129,18 +129,15 @@ const EnergyBannerSlider = () => {
       sliderRef.current.style.transform = `translateX(-${newIndex * 100}%)`;
       sliderRef.current.style.cursor = "grab";
     }
-    
-    // Restart auto slide after drag ends
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    intervalRef.current = setInterval(() => {
-      if (!paused && !isDragging) {
-        setIndex((prev) => (prev + 1) % slides.length);
-      }
-    }, 5000);
   };
 
+  // Handle detail button click
+  const handleDetailClick = (e, link) => {
+    e.preventDefault();
+    router.push(link);
+  };
+
+  // Mobile-optimized slide rendering
   const renderSlides = () => (
     slides.map((slide) => (
       <div
@@ -149,7 +146,7 @@ const EnergyBannerSlider = () => {
       >
         <div className="max-w-2xl z-10 space-y-3 md:space-y-4 text-center md:text-left">
           <div className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-            {slide.subtitle}
+            {isMobile ? slide.subtitle.split(' ').slice(0, 3).join(' ') + '...' : slide.subtitle}
           </div>
           <h2 className={`text-2xl md:text-4xl lg:text-5xl font-bold ${slide.color} leading-tight`}>
             {slide.title}
@@ -160,7 +157,10 @@ const EnergyBannerSlider = () => {
               {slide.stats}
             </div>
           </div>
-          <button className={`mt-4 md:mt-6 px-5 md:px-6 py-2 md:py-3 rounded-lg shadow-sm text-sm font-medium text-white ${slide.color.replace('text', 'bg')} hover:opacity-90 transition-opacity duration-300 flex items-center space-x-2 mx-auto md:mx-0`}>
+          <button 
+            onClick={(e) => handleDetailClick(e, slide.link)}
+            className={`mt-4 md:mt-6 px-5 md:px-6 py-2 md:py-3 rounded-lg shadow-sm text-sm font-medium text-white ${slide.color.replace('text', 'bg')} hover:opacity-90 transition-opacity duration-300 flex items-center space-x-2 mx-auto md:mx-0`}
+          >
             <span>Xem chi tiết</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -168,10 +168,12 @@ const EnergyBannerSlider = () => {
           </button>
         </div>
         
-        <div className="text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] opacity-20 md:opacity-30 transform rotate-12 transition-transform duration-500 hover:scale-110 mt-6 md:mt-0">
+        {/* Icon - hidden on small mobile, smaller on medium mobile */}
+        <div className="hidden xs:block text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] opacity-20 md:opacity-30 transform rotate-12 transition-transform duration-500 hover:scale-110 mt-6 md:mt-0">
           {slide.icon}
         </div>
         
+        {/* Animated background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
           <div className="absolute -top-16 -left-16 sm:-top-20 sm:-left-20 md:-top-24 md:-left-24 w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full bg-amber-200/20 dark:bg-amber-800/10 blur-[60px] md:blur-[80px] animate-float" />
           <div className="absolute -bottom-16 -right-16 sm:-bottom-20 sm:-right-20 md:-bottom-24 md:-right-24 w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full bg-blue-200/20 dark:bg-blue-800/10 blur-[60px] md:blur-[80px] animate-float-delay" />
@@ -180,18 +182,19 @@ const EnergyBannerSlider = () => {
     ))
   );
 
+  // Mobile-friendly controls
   const renderControls = () => (
     <>
       <button
         onClick={() => goTo("prev")}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
+        className="hidden sm:block absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
       <button
         onClick={() => goTo("next")}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
+        className="hidden sm:block absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Next slide"
       >
         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -199,22 +202,24 @@ const EnergyBannerSlider = () => {
     </>
   );
 
+  // Mobile swipe indicators
+  const renderSwipeHint = () => (
+    <div className="sm:hidden absolute bottom-4 left-0 right-0 flex justify-center items-center space-x-2 z-10">
+      <div className="flex items-center justify-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 17l-5-5 5-5M21 17l-5-5 5-5"/>
+        </svg>
+        <span>Vuốt để chuyển</span>
+      </div>
+    </div>
+  );
+
   const renderDots = () => (
     <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex justify-center space-x-2 z-10">
       {slides.map((_, i) => (
         <button
           key={i}
-          onClick={() => {
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-            }
-            setIndex(i);
-            intervalRef.current = setInterval(() => {
-              if (!paused && !isDragging) {
-                setIndex((prev) => (prev + 1) % slides.length);
-              }
-            }, 5000);
-          }}
+          onClick={() => setIndex(i)}
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full transition-all duration-300 ${
             i === index ? 'bg-white dark:bg-gray-300 w-4 sm:w-6' : 'bg-white/50 dark:bg-gray-500/50 w-1.5 sm:w-2'
           }`}
@@ -227,39 +232,42 @@ const EnergyBannerSlider = () => {
   return (
     <div
       className="relative w-full max-w-6xl mx-auto overflow-hidden rounded-xl md:rounded-2xl lg:rounded-3xl shadow-lg md:shadow-2xl ring-1 ring-gray-200/50 dark:ring-gray-700/50 select-none group"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onMouseDown={(e) => handleStart(e.clientX)}
-      onMouseMove={(e) => isDragging && handleMove(e.clientX)}
-      onMouseUp={() => handleEnd()}
-      onTouchStart={(e) => handleStart(e.touches[0].clientX)}
-      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
-      onTouchEnd={() => handleEnd()}
+      onMouseEnter={() => !isMobile && setPaused(true)}
+      onMouseLeave={() => !isMobile && setPaused(false)}
+      onMouseDown={(e) => !isMobile && handleStart(e.clientX)}
+      onMouseMove={(e) => !isMobile && isDragging && handleMove(e.clientX)}
+      onMouseUp={() => !isMobile && handleEnd()}
+      onTouchStart={(e) => isMobile && handleStart(e.touches[0].clientX)}
+      onTouchMove={(e) => isMobile && handleMove(e.touches[0].clientX)}
+      onTouchEnd={() => isMobile && handleEnd()}
     >
       <div
         ref={sliderRef}
         className="flex w-full h-64 sm:h-72 md:h-80 lg:h-96 cursor-grab active:cursor-grabbing"
         style={{
           transform: `translateX(-${index * 100}%)`,
-          transition: isDragging ? "none" : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: isDragging ? "none" : `transform ${isMobile ? '0.5s' : '0.7s'} cubic-bezier(0.16, 1, 0.3, 1)`,
         }}
       >
         {renderSlides()}
       </div>
 
       {renderControls()}
-      {renderDots()}
+      {isMobile ? renderSwipeHint() : renderDots()}
 
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
-        <div 
-          className="h-full bg-gradient-to-r from-amber-400 via-blue-500 to-purple-500 transition-all duration-500 ease-linear"
-          style={{ 
-            width: paused || isDragging ? '0%' : '100%',
-            animation: paused || isDragging ? 'none' : 'progress 5s linear forwards'
-          }}
-          key={index}
-        />
-      </div>
+      {/* Animated progress bar (desktop only) */}
+      {!isMobile && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
+          <div 
+            className="h-full bg-gradient-to-r from-amber-400 via-green-500 to-purple-500 transition-all duration-500 ease-linear"
+            style={{ 
+              width: paused ? '0%' : '100%',
+              animation: paused ? 'none' : 'progress 5s linear forwards'
+            }}
+            key={index}
+          />
+        </div>
+      )}
     </div>
   );
 };
