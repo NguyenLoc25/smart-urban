@@ -10,7 +10,8 @@ export default {
 	  extend: {
 		animation: {
 		  blob: "blob 7s infinite",
-		  'fade-in': "fadeIn 1s ease-in-out"
+		  'fade-in': "fadeIn 1s ease-in-out",
+      'spin-slow': 'spin 3s linear infinite',
 		},
 		keyframes: {
 		  blob: {
