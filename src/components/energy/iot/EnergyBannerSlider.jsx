@@ -1,159 +1,121 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRouter } from 'next/navigation';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
-interface Slide {
-  id: number;
-  title: string;
-  subtitle: string;
-  bg: string;
-  icon: string;
-  stats: string;
-  color: string;
-  highlight: string;
-  link: string;
-}
-
-const slides: Slide[] = [
+const slides = [
   {
     id: 1,
-    title: "TỔNG QUAN HỆ THỐNG IoT",
-    subtitle: "Giám sát năng lượng tái tạo thời gian thực",
+    title: "HỆ THỐNG NĂNG LƯỢNG TÁI TẠO",
+    subtitle: "Giám sát hiệu suất thời gian thực",
     bg: "bg-gradient-to-br from-amber-100 via-white to-blue-100 dark:from-amber-900/30 dark:via-gray-900 dark:to-blue-900/30",
-    icon: "🌐",
-    stats: "Kết nối 150+ thiết bị IoT",
+    icon: "🌱",
+    stats: "Tổng công suất 10.5 MW",
     color: "text-amber-600 dark:text-amber-300",
-    highlight: "from-amber-400 to-amber-600",
-    link: "/energy/iot"
+    highlight: "from-amber-400 to-amber-600"
   },
   {
     id: 2,
-    title: "TRANG TRẠI ĐIỆN GIÓ",
-    subtitle: "5 tuabin gió công suất cao",
+    title: "THÀNH PHỐ XANH BỀN VỮNG",
+    subtitle: "Giảm 35% lượng khí thải",
     bg: "bg-gradient-to-br from-green-100 via-white to-cyan-100 dark:from-green-900/30 dark:via-gray-900 dark:to-cyan-900/30",
-    icon: "🌬️",
-    stats: "Công suất tối đa 7.5 MW",
+    icon: "🏙️",
+    stats: "8.3 MW tiêu thụ hàng ngày",
     color: "text-green-600 dark:text-green-300",
-    highlight: "from-green-400 to-green-600",
-    link: "/energy/iot/windplace"
+    highlight: "from-green-400 to-green-600"
   },
   {
     id: 3,
-    title: "TRANG TRẠI PIN MẶT TRỜI",
-    subtitle: "Hệ thống quang điện hiệu suất cao",
+    title: "CÔNG NGHỆ THÔNG MINH",
+    subtitle: "Tích hợp AI tối ưu hóa",
     bg: "bg-gradient-to-br from-purple-100 via-white to-pink-100 dark:from-purple-900/30 dark:via-gray-900 dark:to-pink-900/30",
-    icon: "☀️",
-    stats: "3.000 tấm pin, công suất 3 MW",
+    icon: "🤖",
+    stats: "Hiệu suất tăng 22%",
     color: "text-purple-600 dark:text-purple-300",
-    highlight: "from-purple-400 to-purple-600",
-    link: "/energy/iot/solarplace"
-  },
-  {
-    id: 4,
-    title: "CHU KỲ NGÀY ĐÊM",
-    subtitle: "Mô phỏng thời gian thực",
-    bg: "bg-gradient-to-br from-blue-100 via-white to-indigo-100 dark:from-blue-900/30 dark:via-gray-900 dark:to-indigo-900/30",
-    icon: "⏳",
-    stats: "1 ngày (24h) = 24 phút mô phỏng",
-    color: "text-blue-600 dark:text-blue-300",
-    highlight: "from-blue-400 to-blue-600",
-    link: "/energy/iot/daynight"
+    highlight: "from-purple-400 to-purple-600"
   }
 ];
 
-const AUTO_SLIDE_INTERVAL = 5000;
-const DRAG_THRESHOLD = 50;
-
 const EnergyBannerSlider = () => {
-  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const startX = useRef<number | null>(null);
+  const sliderRef = useRef(null);
+  const startX = useRef(null);
   const dragOffset = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const intervalRef = useRef(null);
 
-  // Reset auto slide timer
-  const resetTimer = useCallback(() => {
+  // Auto slide every 5 seconds
+  useEffect(() => {
+    const startAutoSlide = () => {
+      intervalRef.current = setInterval(() => {
+        if (!paused && !isDragging) {
+          setIndex((prev) => (prev + 1) % slides.length);
+        }
+      }, 5000);
+    };
+
+    startAutoSlide();
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [paused, isDragging]);
+
+  // Navigation
+  const goTo = (dir) => {
+    // Reset auto slide timer when manually navigating
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-  }, []);
-
-  // Start auto slide
-  const startTimer = useCallback(() => {
-    resetTimer();
+    setIndex((prev) =>
+      dir === "next"
+        ? (prev + 1) % slides.length
+        : (prev - 1 + slides.length) % slides.length
+    );
+    
+    // Restart auto slide
     intervalRef.current = setInterval(() => {
       if (!paused && !isDragging) {
         setIndex((prev) => (prev + 1) % slides.length);
       }
-    }, AUTO_SLIDE_INTERVAL);
-  }, [paused, isDragging, resetTimer]);
+    }, 5000);
+  };
 
-  // Auto slide effect
-  useEffect(() => {
-    startTimer();
-    return () => resetTimer();
-  }, [startTimer, resetTimer]);
-
-  // Navigation
-  const goTo = useCallback((dir: 'prev' | 'next' | number) => {
-    resetTimer();
-    
-    if (typeof dir === 'number') {
-      setIndex(dir);
-    } else {
-      setIndex((prev) =>
-        dir === "next"
-          ? (prev + 1) % slides.length
-          : (prev - 1 + slides.length) % slides.length
-      );
-    }
-    
-    startTimer();
-  }, [resetTimer, startTimer]);
-
-  // Handle detail button click
-  const handleDetailClick = useCallback((e: React.MouseEvent, link: string) => {
-    e.preventDefault();
-    router.push(link);
-  }, [router]);
-
-  // Touch/drag events
-  const handleStart = useCallback((x: number) => {
+  // Handle touch/drag events
+  const handleStart = (x) => {
     startX.current = x;
     dragOffset.current = 0;
     setIsDragging(true);
-    
     if (sliderRef.current) {
       sliderRef.current.style.transition = "none";
       sliderRef.current.style.cursor = "grabbing";
     }
     
-    resetTimer();
-  }, [resetTimer]);
+    // Pause auto slide during drag
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
 
-  const handleMove = useCallback((x: number) => {
+  const handleMove = (x) => {
     if (!isDragging || startX.current === null) return;
     dragOffset.current = x - startX.current;
-    
     if (sliderRef.current) {
       sliderRef.current.style.transform = `translateX(calc(-${index * 100}% + ${dragOffset.current}px))`;
     }
-  }, [index, isDragging]);
+  };
 
-  const handleEnd = useCallback(() => {
+  const handleEnd = () => {
     if (!isDragging) return;
-    
+    const threshold = 50;
     let newIndex = index;
-    if (dragOffset.current > DRAG_THRESHOLD) {
+
+    if (dragOffset.current > threshold) {
       newIndex = (index - 1 + slides.length) % slides.length;
-    } else if (dragOffset.current < -DRAG_THRESHOLD) {
+    } else if (dragOffset.current < -threshold) {
       newIndex = (index + 1) % slides.length;
     }
 
@@ -168,11 +130,18 @@ const EnergyBannerSlider = () => {
       sliderRef.current.style.cursor = "grab";
     }
     
-    startTimer();
-  }, [index, isDragging, startTimer]);
+    // Restart auto slide after drag ends
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => {
+      if (!paused && !isDragging) {
+        setIndex((prev) => (prev + 1) % slides.length);
+      }
+    }, 5000);
+  };
 
-  // Slide rendering
-  const renderSlides = useCallback(() => (
+  const renderSlides = () => (
     slides.map((slide) => (
       <div
         key={slide.id}
@@ -191,10 +160,7 @@ const EnergyBannerSlider = () => {
               {slide.stats}
             </div>
           </div>
-          <button 
-            onClick={(e) => handleDetailClick(e, slide.link)}
-            className={`mt-4 md:mt-6 px-5 md:px-6 py-2 md:py-3 rounded-lg shadow-sm text-sm font-medium text-white ${slide.color.replace('text', 'bg')} hover:opacity-90 transition-opacity duration-300 flex items-center space-x-2 mx-auto md:mx-0`}
-          >
+          <button className={`mt-4 md:mt-6 px-5 md:px-6 py-2 md:py-3 rounded-lg shadow-sm text-sm font-medium text-white ${slide.color.replace('text', 'bg')} hover:opacity-90 transition-opacity duration-300 flex items-center space-x-2 mx-auto md:mx-0`}>
             <span>Xem chi tiết</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -212,20 +178,20 @@ const EnergyBannerSlider = () => {
         </div>
       </div>
     ))
-  ), [handleDetailClick]);
+  );
 
   const renderControls = () => (
     <>
       <button
         onClick={() => goTo("prev")}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-current"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
       <button
         onClick={() => goTo("next")}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-current"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 p-1.5 sm:p-2 rounded-full shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-xl"
         aria-label="Next slide"
       >
         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -238,11 +204,19 @@ const EnergyBannerSlider = () => {
       {slides.map((_, i) => (
         <button
           key={i}
-          onClick={() => goTo(i)}
-          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-current ${
-            i === index 
-              ? 'bg-white dark:bg-gray-300 w-4 sm:w-6' 
-              : 'bg-white/50 dark:bg-gray-500/50 w-1.5 sm:w-2 hover:bg-white/80 dark:hover:bg-gray-400/50'
+          onClick={() => {
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+            }
+            setIndex(i);
+            intervalRef.current = setInterval(() => {
+              if (!paused && !isDragging) {
+                setIndex((prev) => (prev + 1) % slides.length);
+              }
+            }, 5000);
+          }}
+          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full transition-all duration-300 ${
+            i === index ? 'bg-white dark:bg-gray-300 w-4 sm:w-6' : 'bg-white/50 dark:bg-gray-500/50 w-1.5 sm:w-2'
           }`}
           aria-label={`Go to slide ${i + 1}`}
         />
@@ -257,20 +231,17 @@ const EnergyBannerSlider = () => {
       onMouseLeave={() => setPaused(false)}
       onMouseDown={(e) => handleStart(e.clientX)}
       onMouseMove={(e) => isDragging && handleMove(e.clientX)}
-      onMouseUp={handleEnd}
-      onMouseLeave={handleEnd}
+      onMouseUp={() => handleEnd()}
       onTouchStart={(e) => handleStart(e.touches[0].clientX)}
       onTouchMove={(e) => handleMove(e.touches[0].clientX)}
-      onTouchEnd={handleEnd}
+      onTouchEnd={() => handleEnd()}
     >
       <div
         ref={sliderRef}
         className="flex w-full h-64 sm:h-72 md:h-80 lg:h-96 cursor-grab active:cursor-grabbing"
         style={{
           transform: `translateX(-${index * 100}%)`,
-          transition: isDragging 
-            ? "none" 
-            : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: isDragging ? "none" : "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {renderSlides()}
@@ -279,27 +250,16 @@ const EnergyBannerSlider = () => {
       {renderControls()}
       {renderDots()}
 
-      {/* Animated progress bar (desktop only) */}
-      {!isMobile && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
-          <div 
-            className="h-full bg-gradient-to-r from-amber-400 via-green-500 to-purple-500 transition-all duration-500 ease-linear"
-            style={{ 
-              width: paused || isDragging ? '0%' : '100%',
-              animation: paused || isDragging ? 'none' : 'progress 5s linear forwards'
-            }}
-            key={index}
-          />
-        </div>
-      )}
-
-      {/* Add CSS animation for progress bar */}
-      <style jsx>{`
-        @keyframes progress {
-          from { width: 0%; }
-          to { width: 100%; }
-        }
-      `}</style>
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden z-10">
+        <div 
+          className="h-full bg-gradient-to-r from-amber-400 via-blue-500 to-purple-500 transition-all duration-500 ease-linear"
+          style={{ 
+            width: paused || isDragging ? '0%' : '100%',
+            animation: paused || isDragging ? 'none' : 'progress 5s linear forwards'
+          }}
+          key={index}
+        />
+      </div>
     </div>
   );
 };
