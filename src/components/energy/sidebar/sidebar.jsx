@@ -43,10 +43,9 @@ export default function Sidebar() {
 
       {/* Sidebar Content */}
       <aside
-        className={`fixed z-30 h-screen mt-16 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 
+        className={`fixed z-30 ${isMobile ? 'h-[calc(100vh-4rem)] bottom-0' : 'h-screen top-0'} left-0 mt-16 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 
           shadow-lg transition-all duration-300 ease-in-out
-          ${sidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'}
-          ${isMobile ? 'bottom-0 left-0' : 'top-0 left-0'}`}
+          ${sidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}
       >
         <nav className="space-y-2 p-4 h-full flex flex-col">
           <div className="flex-1">
