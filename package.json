@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -31,7 +30,7 @@
     "dotenv": "^16.4.7",
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",
-    "firebase": "^11.3.1",
+    "firebase": "^11.8.0",
     "firebase-admin": "^13.2.0",
     "framer-motion": "^12.5.0",
     "lucide-react": "^0.477.0",
