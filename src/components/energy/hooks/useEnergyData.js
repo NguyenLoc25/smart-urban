@@ -1,15 +1,8 @@
 'use client';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
-import SyncStatus from "./SyncStatus";
-import LoadingState from "./LoadingState";
-import MobileView from "./MobileView";
-import DesktopView from "./DesktopView";
-import { calculateEnergyProduction } from "@/components/energy/ProductCalculator";
-import { useSyncStatus } from "./hooks/useSyncStatus";
-import useEnergyTypes from "./hooks/useEnergyTypes";
+import { getAuth } from "firebase/auth";
 
 const EFFECTIVE_HOURS_CONFIG = {
   Solar: {
@@ -26,31 +19,17 @@ const EFFECTIVE_HOURS_CONFIG = {
   }
 };
 
-export default function EnergyPage() {  
+export default function useEnergyData() {
   const [energyDevices, setEnergyDevices] = useState([]);
   const [data, setData] = useState({ yearly: [], monthly: [], hourly: [] });
+  const [energyData, setEnergyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [energyData, setEnergyData] = useState([]);
   const [dataProcessingStage, setDataProcessingStage] = useState('initial');
-  const [syncStatus, setSyncStatus] = useState({
-    isSyncing: false,
-    lastSyncTime: null,
-    syncInProgressBy: null
-  });
   const [dataVersion, setDataVersion] = useState(0);
-
+  
   const postedEntriesRef = useRef(new Set());
-  const hasPostedRef = useRef(false);
   const auth = getAuth();
-  const energyTypes = useEnergyTypes();
-  const { checkSyncStatus, lockSync, unlockSync } = useSyncStatus(auth);
-
-  const energyProduction = useMemo(() => 
-    calculateEnergyProduction(energyDevices, energyTypes),
-    [energyDevices, energyTypes]
-  );
 
   const normalizeData = useCallback((data, key) => {
     return data.map((d) => ({
@@ -60,7 +39,7 @@ export default function EnergyPage() {
     })).filter(d => d.energy > 0);
   }, []);
 
-  const fetchEnergyData = useCallback(() => {
+  const fetchEnergyData = useCallback(async () => {
     const database = getDatabase();
     const physicInfoRef = ref(database, 'energy/physic-info');
     
@@ -164,17 +143,6 @@ export default function EnergyPage() {
       setLoading(true);
       setError(null);
 
-      const currentSyncStatus = await checkSyncStatus();
-      
-      if (currentSyncStatus.isSyncing) {
-        if (retryCount < 3) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          return fetchData(retryCount + 1);
-        } else {
-          throw new Error("Dữ liệu đang được cập nhật, vui lòng thử lại sau");
-        }
-      }
-
       const [
         solarYearRes, windYearRes, hydroYearRes,
         solarMonthRes, windMonthRes, hydroMonthRes,
@@ -199,7 +167,7 @@ export default function EnergyPage() {
       const failedRes = allRes.filter(res => !res.ok);
 
       if (failedRes.length > 0) {
-        console.error("Failed to fetch data:", failedRes);
+        throw new Error("Lỗi khi tải dữ liệu từ server");
       }
 
       const [
@@ -231,6 +199,7 @@ export default function EnergyPage() {
       const hydroHourData = normalizeData(hydroHour, "hour");
 
       const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
+      const uniqueMonths = Array.from({ length: 12 }, (_, i) => i + 1);
       const uniqueHours = Array.from({ length: 24 }, (_, i) => i);
 
       const formattedYearlyData = uniqueYears.map(year => ({
@@ -266,10 +235,6 @@ export default function EnergyPage() {
       });
 
       setDataProcessingStage('complete');
-      setSyncStatus(prev => ({
-        ...prev,
-        lastSyncTime: Date.now()
-      }));
     } catch (err) {
       if (retryCount < 3) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -280,7 +245,7 @@ export default function EnergyPage() {
     } finally {
       setLoading(false);
     }
-  }, [checkSyncStatus, normalizeData]);
+  }, [normalizeData]);
 
   const postAllData = useCallback(async () => {
     const user = auth.currentUser;
@@ -290,27 +255,9 @@ export default function EnergyPage() {
       return;
     }
 
-    const currentSyncStatus = await checkSyncStatus();
-    
-    if (currentSyncStatus.isSyncing) {
-      if (currentSyncStatus.syncInProgressBy === user.uid) {
-        return;
-      } else {
-        setError("Đồng bộ đang được thực hiện bởi người dùng khác");
-        return;
-      }
-    }
-
-    const lockAcquired = await lockSync(user.uid);
-    if (!lockAcquired) {
-      setError("Không thể khóa đồng bộ, có thể đang được thực hiện bởi người khác");
-      return;
-    }
-
     try {
       setDataProcessingStage('posting');
       setLoading(true);
-      setSyncStatus(prev => ({ ...prev, isSyncing: true }));
 
       const database = getDatabase();
       const renewableHourRef = ref(db, "energy/renewable/hour");
@@ -359,71 +306,12 @@ export default function EnergyPage() {
       await set(versionRef, currentVersion + 1);
       
       setDataProcessingStage('fetching');
-      hasPostedRef.current = true;
     } catch (error) {
-      // setError('Lỗi khi gửi dữ liệu lên server');
-      // setDataProcessingStage('error');
-      // setLoading(false);
-      console.log("Error posting data:", error);
-    } finally {
-      await unlockSync();
-      setSyncStatus(prev => ({
-        ...prev,
-        isSyncing: false,
-        lastSyncTime: Date.now()
-      }));
+      setError('Lỗi khi gửi dữ liệu lên server');
+      setDataProcessingStage('error');
+      setLoading(false);
     }
-  }, [energyProduction, checkSyncStatus, lockSync, unlockSync, auth]);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    
-    const resizeHandler = () => {
-      checkMobile();
-    };
-    
-    window.addEventListener('resize', resizeHandler);
-    return () => window.removeEventListener('resize', resizeHandler);
-  }, []);
-
-  useEffect(() => {
-    const database = getDatabase();
-    const versionRef = ref(database, 'energy/dataVersion');
-    
-    const unsubscribe = onValue(versionRef, (snapshot) => {
-      const version = snapshot.val();
-      if (version && version > dataVersion) {
-        setDataVersion(version);
-        fetchData();
-      }
-    });
-
-    return () => unsubscribe();
-  }, [dataVersion, fetchData]);
-
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'energy_sync_status') {
-        const newStatus = JSON.parse(e.newValue);
-        setSyncStatus(newStatus);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (dataProcessingStage === 'initial' && energyDevices.length > 0) {
-      postAllData();
-    } else if (dataProcessingStage === 'fetching') {
-      fetchData();
-    }
-  }, [dataProcessingStage, energyDevices, postAllData, fetchData]);
+  }, [energyProduction, auth]);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -444,22 +332,37 @@ export default function EnergyPage() {
     return unsubscribeAuth;
   }, [loadDeviceData, fetchEnergyData, auth]);
 
-  if (loading) {
-    return <LoadingState dataProcessingStage={dataProcessingStage} energyDevices={energyDevices} />;
-  }
+  useEffect(() => {
+    if (dataProcessingStage === 'initial' && energyDevices.length > 0) {
+      postAllData();
+    } else if (dataProcessingStage === 'fetching') {
+      fetchData();
+    }
+  }, [dataProcessingStage, energyDevices, postAllData, fetchData]);
 
-  if (error) return <div className="text-red-500 p-4">❌ Lỗi: {error}</div>;
-
-  return (
-    <>
-      {isMobile ? 
-        <MobileView energyData={energyData} data={data} /> : 
-        <DesktopView energyData={energyData} data={data} energyProduction={energyProduction} />
+  useEffect(() => {
+    const database = getDatabase();
+    const versionRef = ref(database, 'energy/dataVersion');
+    
+    const unsubscribe = onValue(versionRef, (snapshot) => {
+      const version = snapshot.val();
+      if (version && version > dataVersion) {
+        setDataVersion(version);
+        fetchData();
       }
-      <SyncStatus 
-        syncStatus={syncStatus} 
-        lastSyncTime={syncStatus.lastSyncTime} 
-      />
-    </>
-  );
+    });
+
+    return () => unsubscribe();
+  }, [dataVersion, fetchData]);
+
+  return {
+    energyDevices,
+    data,
+    energyData,
+    loading,
+    error,
+    dataProcessingStage,
+    fetchData,
+    postAllData
+  };
 }
