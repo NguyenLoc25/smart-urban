@@ -43,7 +43,7 @@ export const energyTypes = {
       textDark: "dark:text-blue-400"
     },
     green: {
-      bg: "bg-green-300",
+      bg: "bg-green-500",
       bgLight: "bg-green-100",
       text: "text-green-600",
       bgDark: "dark:bg-green-900/30",
