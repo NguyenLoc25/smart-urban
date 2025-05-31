@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
 import { db } from "@/lib/firebaseConfig";
+import { v4 as uuidv4 } from 'uuid';
 import SyncStatus from "./SyncStatus";
 import LoadingState from "./LoadingState";
 import MobileView from "./MobileView";
@@ -40,6 +41,12 @@ export default function EnergyPage() {
     syncInProgressBy: null
   });
   const [dataVersion, setDataVersion] = useState(0);
+  const [saveStatus, setSaveStatus] = useState({
+    isSaving: false,
+    lastSaveTime: null,
+    error: null,
+    lastSavedId: null
+  });
 
   const postedEntriesRef = useRef(new Set());
   const hasPostedRef = useRef(false);
@@ -361,9 +368,6 @@ export default function EnergyPage() {
       setDataProcessingStage('fetching');
       hasPostedRef.current = true;
     } catch (error) {
-      // setError('Lỗi khi gửi dữ liệu lên server');
-      // setDataProcessingStage('error');
-      // setLoading(false);
       console.log("Error posting data:", error);
     } finally {
       await unlockSync();
@@ -374,6 +378,78 @@ export default function EnergyPage() {
       }));
     }
   }, [energyProduction, checkSyncStatus, lockSync, unlockSync, auth]);
+
+  const saveProductionData = useCallback(async () => {
+    try {
+      console.log('Starting saveProductionData');
+      setSaveStatus(prev => ({ ...prev, isSaving: true, error: null }));
+
+      const date = new Date();
+      const dateKey = date.toISOString().split('T')[0];
+      const [year, month, day] = dateKey.split('-');
+      const uuid = uuidv4();
+
+      const productionData = {
+        id: uuid,
+        date: dateKey,
+        entity: "Vietnam",
+        year: parseInt(year),
+        month: parseInt(month),
+        production: Object.entries(energyProduction)
+          .filter(([type]) => type !== 'all')
+          .reduce((acc, [type, values]) => ({
+            ...acc,
+            [type]: {
+              value: values.production,
+              percentage: values.percentage,
+              devices: energyDevices
+                .filter(device => device.type === type)
+                .map(({ id, model, quantity }) => ({ id, model, quantity }))
+            }
+          }), {}),
+        metadata: {
+          savedAt: new Date().toISOString(),
+          version: dataVersion,
+          userId: auth.currentUser?.uid
+        }
+      };
+
+      console.log('Saving production data:', productionData);
+
+      const response = await fetch('/api/energy/totalProduction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productionData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save production data');
+      }
+
+      const result = await response.json();
+      console.log('Save successful:', result);
+
+      setSaveStatus(prev => ({
+        ...prev,
+        isSaving: false,
+        lastSaveTime: Date.now(),
+        lastSavedId: uuid
+      }));
+
+      return result;
+    } catch (error) {
+      console.error('Save error:', error);
+      setSaveStatus(prev => ({
+        ...prev,
+        isSaving: false,
+        error: error.message
+      }));
+      return { success: false, message: error.message };
+    }
+  }, [energyProduction, energyDevices, dataVersion, auth]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -426,6 +502,25 @@ export default function EnergyPage() {
   }, [dataProcessingStage, energyDevices, postAllData, fetchData]);
 
   useEffect(() => {
+    const saveData = async () => {
+      if (dataProcessingStage === 'complete') {
+        try {
+          console.log('Attempting to save production data...');
+          const result = await saveProductionData();
+          console.log('Save result:', result);
+          if (result.success) {
+            hasPostedRef.current = true;
+          }
+        } catch (error) {
+          console.error('Failed to save production data:', error);
+        }
+      }
+    };
+  
+    saveData();
+  }, [dataProcessingStage, saveProductionData]);
+
+  useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         const unsubscribeDevice = loadDeviceData();
@@ -459,6 +554,7 @@ export default function EnergyPage() {
       <SyncStatus 
         syncStatus={syncStatus} 
         lastSyncTime={syncStatus.lastSyncTime} 
+        saveStatus={saveStatus}
       />
     </>
   );

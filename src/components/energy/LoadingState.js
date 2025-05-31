@@ -15,7 +15,7 @@ const loadingProgress = {
   complete: 100
 };
 
-export default function LoadingState({ dataProcessingStage, energyDevices }) {
+export default function LoadingState({ dataProcessingStage}) {
   const currentMessage = loadingMessages[dataProcessingStage] || "Đang tải...";
   const currentProgress = loadingProgress[dataProcessingStage] || 30;
 
@@ -65,7 +65,6 @@ export default function LoadingState({ dataProcessingStage, energyDevices }) {
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs text-gray-500 dark:text-gray-400">
             <p>Trạng thái hiện tại: <span className="font-mono">{dataProcessingStage}</span></p>
-            <p className="mt-1">Số lượng thiết bị: <span className="font-mono">{energyDevices.length}</span></p>
           </div>
         )}
       </div>

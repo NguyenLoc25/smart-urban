@@ -32,7 +32,7 @@ const DesktopView = ({ chartData, cityName }) => {
   }));
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900 shadow-lg w-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-6">
         <div className="p-6 md:p-8 text-white">
@@ -60,9 +60,9 @@ const DesktopView = ({ chartData, cityName }) => {
       </div>
       
       {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart panel */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2 dark:border-gray-700 dark:bg-gray-900/90">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {activeTab === 'daily' ? 'Biểu đồ tiêu thụ theo ngày' : 'Biểu đồ trung bình tháng'}
@@ -71,7 +71,7 @@ const DesktopView = ({ chartData, cityName }) => {
           </div>
           
           {/* Chart container */}
-          <div className="relative" style={{ height: '500px' }}>
+          <div className="h-[500px] min-h-[200px] w-full">
             {activeTab === 'daily' ? (
               <DailyChart data={chartData.dailyData} />
             ) : (

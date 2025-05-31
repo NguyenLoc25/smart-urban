@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { parseFirebaseNumber } from "@/components/energy/tableDevide/utils/parsers";
 import DesktopView from "@/components/energy/tableDevide/Views/DesktopView";
 import MobileView from "@/components/energy/tableDevide/Views/MobileView";
-import ModalState from "@/components/energy/States/ModalState";
+import ModalState from "@/components/energy/states/ModalState";
 import SummaryCard from "@/components/energy/tableDevide/components/SummaryCard";
 import { energyTypes } from "@/components/energy/tableDevide/types";
 
