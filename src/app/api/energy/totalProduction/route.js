@@ -16,26 +16,25 @@ export async function POST(request) {
     }
 
     // Validate required fields
-    if (!data.date || !data.entity || !data.year || !data.month) {
+    if (!data.entity || !data.metadata?.year || !data.metadata?.month) {
       return NextResponse.json(
-        { error: "Missing required fields (date, entity, year, month)" },
+        { error: "Missing required fields (entity, metadata.year, metadata.month)" },
         { status: 400 }
       );
     }
 
     // Generate UUID if not provided
-    const recordId = data.id || uuidv4();
-    const [year, month, day] = data.date.split('-');
-    
-    // Create Realtime Database reference path
-    const refPath = `${PATH}/${year}/${month}/${day}/${recordId}`;
-    const dbRef = db.ref(refPath);
+    const recordId = data.uuid || uuidv4();
+    const dbRef = db.ref(`${PATH}/${recordId}`);
 
     // Prepare data with timestamp
     const saveData = {
-      ...data,
-      id: recordId,
-      timestamp: new Date().toISOString(),
+      entity: data.entity,
+      uuid: recordId,
+      metadata: {
+        ...data.metadata,
+        timestamp: new Date().toISOString(),
+      },
       updatedAt: { ".sv": "timestamp" } // Server timestamp
     };
 
@@ -46,8 +45,8 @@ export async function POST(request) {
       { 
         success: true, 
         message: "Production data saved successfully",
-        path: refPath,
-        id: recordId
+        id: recordId,
+        data: saveData
       },
       { status: 200 }
     );
@@ -68,32 +67,19 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     
     // Extract query parameters
-    const year = searchParams.get('year');
-    const month = searchParams.get('month');
-    const day = searchParams.get('day');
     const id = searchParams.get('id');
     const entity = searchParams.get('entity');
+    const year = searchParams.get('year');
+    const month = searchParams.get('month');
 
-    let refPath = PATH;
     let results = [];
+    const dbRef = db.ref(PATH);
 
-    // Build the query path based on parameters
-    if (year) refPath += `/${year}`;
-    if (month) refPath += `/${month}`;
-    if (day) refPath += `/${day}`;
-    if (id) refPath += `/${id}`;
-
-    const dbRef = db.ref(refPath);
-
-    // Different query scenarios
     if (id) {
       // Get specific record by ID
-      const snapshot = await dbRef.once('value');
+      const snapshot = await dbRef.child(id).once('value');
       if (snapshot.exists()) {
-        results.push({
-          id: id,
-          ...snapshot.val()
-        });
+        results.push(snapshot.val());
       } else {
         return NextResponse.json(
           { error: "Record not found" },
@@ -101,28 +87,30 @@ export async function GET(request) {
         );
       }
     } else {
-      // Get multiple records with potential filtering
+      // Get all records with optional filtering
       let query = dbRef.orderByKey();
 
-      // Additional filtering by entity if provided
-      if (entity && !day) {
-        query = dbRef.orderByChild('entity').equalTo(entity);
+      if (entity) {
+        query = query.orderByChild('entity').equalTo(entity);
       }
 
       const snapshot = await query.once('value');
       
       snapshot.forEach((childSnapshot) => {
-        results.push({
-          id: childSnapshot.key,
-          ...childSnapshot.val()
-        });
+        const record = childSnapshot.val();
+        
+        // Apply additional filters if provided
+        if (year && record.metadata.year !== parseInt(year)) return;
+        if (month && record.metadata.month !== parseInt(month)) return;
+        
+        results.push(record);
       });
     }
 
-    // Sort results by date if we have multiple records
-    if (results.length > 1) {
-      results.sort((a, b) => new Date(a.date) - new Date(b.date));
-    }
+    // Sort results by timestamp (newest first)
+    results.sort((a, b) => 
+      new Date(b.metadata.timestamp || 0) - new Date(a.metadata.timestamp || 0)
+    );
 
     return NextResponse.json(
       { 

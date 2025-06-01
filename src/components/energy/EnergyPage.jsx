@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
+import { v4 as uuidv4 } from 'uuid';
 import { db } from "@/lib/firebaseConfig";
 import SyncStatus from "./SyncStatus";
 import LoadingState from "./LoadingState";
@@ -328,7 +329,7 @@ function useSyncOperations() {
     }
   }, [checkSyncStatus, lockSync, unlockSync, auth]);
 
-  return { postAllData };
+  return { postAllData, checkSyncStatus  };
 }
 
 function useResponsiveLayout() {
@@ -358,13 +359,63 @@ export default function EnergyPage() {
   const isMobile = useResponsiveLayout();
   const { energyDevices, energyData, loadDeviceData, fetchEnergyData } = useDeviceData();
   const { data, dataProcessingStage, dataVersion, setDataVersion, fetchData, setDataProcessingStage } = useEnergyData();
-  const { postAllData } = useSyncOperations();
+  const { postAllData, checkSyncStatus } = useSyncOperations();
   const energyTypes = useEnergyTypes();
+  const auth = getAuth();
 
   const energyProduction = useMemo(() => 
     calculateEnergyProduction(energyDevices, energyTypes),
     [energyDevices, energyTypes]
   );
+
+  const saveProductionData = useCallback(async () => {
+    try {
+      const uuid = uuidv4();
+      const now = new Date();
+    
+      const productionData = {
+        entity: "Vietnam",
+        uuid: uuid,
+        metadata: {
+          month: now.getMonth() + 1, // getMonth() returns 0-11
+          year: now.getFullYear(),
+          production: Object.entries(energyProduction)
+            .filter(([type]) => type !== 'all')
+            .reduce((acc, [type, values]) => ({
+              ...acc,
+              [type]: {
+                value: values.production,
+                percentage: values.percentage,
+                devices: energyDevices
+                  .filter(device => device.type === type)
+                  .map(({ id, model, quantity }) => ({ id, model, quantity }))
+              }
+            }), {}),
+          timestamp: now.toISOString()
+        },
+        updatedAt: now.getTime()
+      };
+    
+      const response = await fetch('/api/energy/totalProduction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productionData)
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save production data');
+      }
+    
+      return await response.json();
+    }
+      catch (error) {
+      console.error("Error saving production data:", error);
+      return { success: false, message: error.message };
+    }
+  }, [energyProduction, energyDevices, dataVersion, auth]);
 
   useEffect(() => {
     const database = getDatabase();
@@ -374,12 +425,13 @@ export default function EnergyPage() {
       const version = snapshot.val();
       if (version && version > dataVersion) {
         setDataVersion(version);
-        fetchData();
+        fetchData(checkSyncStatus); // Pass checkSyncStatus here
       }
     });
 
     return () => unsubscribe();
-  }, [dataVersion, fetchData]);
+  }, [dataVersion, fetchData, checkSyncStatus]);
+
 
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -392,6 +444,8 @@ export default function EnergyPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+
+
   useEffect(() => {
     if (dataProcessingStage === 'initial' && energyDevices.length > 0) {
       setLoading(true);
@@ -400,11 +454,11 @@ export default function EnergyPage() {
         .finally(() => setLoading(false));
     } else if (dataProcessingStage === 'fetching') {
       setLoading(true);
-      fetchData()
+      fetchData(checkSyncStatus) // Pass checkSyncStatus here
         .catch(err => setError(err.message))
         .finally(() => setLoading(false));
     }
-  }, [dataProcessingStage, energyDevices, postAllData, fetchData, energyProduction]);
+  }, [dataProcessingStage, energyDevices, postAllData, fetchData, energyProduction, checkSyncStatus]);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(getAuth(), (user) => {
@@ -424,6 +478,38 @@ export default function EnergyPage() {
 
     return unsubscribeAuth;
   }, [loadDeviceData, fetchEnergyData]);
+
+  useEffect(() => {
+    const saveDataOnLoad = async () => {
+      if (energyDevices.length > 0 && dataProcessingStage === 'complete') {
+        try {
+          await saveProductionData();
+        } catch (error) {
+          console.error("Failed to save production data on load:", error);
+        }
+      }
+    };
+
+    saveDataOnLoad();
+  }, [energyDevices, dataProcessingStage, saveProductionData]);
+
+  // Add this useEffect to save data when production changes
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (energyDevices.length > 0) {
+        try {
+          await saveProductionData();
+        } catch (error) {
+          console.error("Failed to save production data before unload:", error);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [energyDevices, saveProductionData]);
 
   if (loading) {
     return <LoadingState dataProcessingStage={dataProcessingStage} energyDevices={energyDevices} />;
