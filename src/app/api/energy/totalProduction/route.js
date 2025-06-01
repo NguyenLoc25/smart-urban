@@ -15,48 +15,63 @@ export async function POST(request) {
       );
     }
 
-    // Validate required fields
-    if (!data.entity || !data.metadata?.year || !data.metadata?.month) {
+    // Validation
+    if (!data.entity || !data.metadata?.production) {
       return NextResponse.json(
-        { error: "Missing required fields (entity, metadata.year, metadata.month)" },
+        { error: "Missing required fields (entity, metadata.production)" },
         { status: 400 }
       );
     }
 
-    // Generate UUID if not provided
-    const recordId = data.uuid || uuidv4();
-    const dbRef = db.ref(`${PATH}/${recordId}`);
+    // Tạo uniqueKey
+    const uniqueKey = `${data.entity}-production`;
+    const pathRef = db.ref(PATH);
+    
+    // Kiểm tra bản ghi tồn tại
+    const snapshot = await pathRef.orderByChild('uniqueKey').equalTo(uniqueKey).once('value');
+    
+    let recordId;
+    let isUpdate = false;
 
-    // Prepare data with timestamp
+    if (snapshot.exists()) {
+      const existingRecord = Object.entries(snapshot.val())[0];
+      recordId = existingRecord[0];
+      isUpdate = true;
+    } else {
+      recordId = data.uuid || uuidv4();
+    }
+
+    // Dữ liệu sẽ được lưu
     const saveData = {
       entity: data.entity,
       uuid: recordId,
+      uniqueKey: uniqueKey,
       metadata: {
-        ...data.metadata,
-        timestamp: new Date().toISOString(),
+        production: data.metadata.production
       },
-      updatedAt: { ".sv": "timestamp" } // Server timestamp
+      updatedAt: { ".sv": "timestamp" }
     };
 
-    // Save to Realtime Database
-    await dbRef.set(saveData);
+    // Sử dụng transaction ở node con để đảm bảo an toàn
+    const recordRef = pathRef.child(recordId);
+    await recordRef.transaction(async (currentRecord) => {
+      // Nếu bản ghi hiện tại mới hơn, không ghi đè
+      if (currentRecord && currentRecord.updatedAt > saveData.updatedAt) {
+        return currentRecord;
+      }
+      return saveData;
+    });
 
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: "Production data saved successfully",
-        id: recordId,
-        data: saveData
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true, 
+      message: isUpdate ? "Data updated" : "Data saved",
+      id: recordId
+    });
+    
   } catch (error) {
     console.error("Error saving production data:", error);
     return NextResponse.json(
-      { 
-        error: "Failed to save production data", 
-        details: error.message
-      },
+      { error: "Failed to save data", details: error.message },
       { status: 500 }
     );
   }
@@ -65,8 +80,6 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    
-    // Extract query parameters
     const id = searchParams.get('id');
     const entity = searchParams.get('entity');
     const year = searchParams.get('year');
@@ -76,7 +89,7 @@ export async function GET(request) {
     const dbRef = db.ref(PATH);
 
     if (id) {
-      // Get specific record by ID
+      // Lấy bản ghi cụ thể theo ID
       const snapshot = await dbRef.child(id).once('value');
       if (snapshot.exists()) {
         results.push(snapshot.val());
@@ -87,7 +100,7 @@ export async function GET(request) {
         );
       }
     } else {
-      // Get all records with optional filtering
+      // Lấy tất cả bản ghi với filter tùy chọn
       let query = dbRef.orderByKey();
 
       if (entity) {
@@ -99,7 +112,7 @@ export async function GET(request) {
       snapshot.forEach((childSnapshot) => {
         const record = childSnapshot.val();
         
-        // Apply additional filters if provided
+        // Filter thêm nếu có tham số
         if (year && record.metadata.year !== parseInt(year)) return;
         if (month && record.metadata.month !== parseInt(month)) return;
         
@@ -107,9 +120,9 @@ export async function GET(request) {
       });
     }
 
-    // Sort results by timestamp (newest first)
+    // Sắp xếp theo thời gian (mới nhất trước)
     results.sort((a, b) => 
-      new Date(b.metadata.timestamp || 0) - new Date(a.metadata.timestamp || 0)
+      (b.updatedAt || 0) - (a.updatedAt || 0)
     );
 
     return NextResponse.json(

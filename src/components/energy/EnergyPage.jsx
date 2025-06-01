@@ -377,8 +377,6 @@ export default function EnergyPage() {
         entity: "Vietnam",
         uuid: uuid,
         metadata: {
-          month: now.getMonth() + 1, // getMonth() returns 0-11
-          year: now.getFullYear(),
           production: Object.entries(energyProduction)
             .filter(([type]) => type !== 'all')
             .reduce((acc, [type, values]) => ({
@@ -390,8 +388,7 @@ export default function EnergyPage() {
                   .filter(device => device.type === type)
                   .map(({ id, model, quantity }) => ({ id, model, quantity }))
               }
-            }), {}),
-          timestamp: now.toISOString()
+            }), {})
         },
         updatedAt: now.getTime()
       };
@@ -410,8 +407,7 @@ export default function EnergyPage() {
       }
     
       return await response.json();
-    }
-      catch (error) {
+    } catch (error) {
       console.error("Error saving production data:", error);
       return { success: false, message: error.message };
     }
