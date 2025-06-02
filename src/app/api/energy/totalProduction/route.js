@@ -6,77 +6,72 @@ const PATH = "energy/totalProduction";
 
 export async function POST(request) {
   try {
-    const data = await request.json();
+    const requestData = await request.json();
     
-    if (!data) {
-      return NextResponse.json(
-        { error: "No data provided" },
-        { status: 400 }
-      );
-    }
-
     // Validation
-    if (!data.entity || !data.metadata?.production) {
+    if (!requestData.entity || !requestData.metadata?.production) {
       return NextResponse.json(
-        { error: "Missing required fields (entity, metadata.production)" },
+        { success: false, message: "Missing required fields (entity, metadata.production)" },
         { status: 400 }
       );
     }
 
-    // Tạo uniqueKey
-    const uniqueKey = `${data.entity}-production`;
+    const now = new Date().toISOString();
+    const uniqueKey = `${requestData.entity}-production`;
     const pathRef = db.ref(PATH);
-    
-    // Kiểm tra bản ghi tồn tại
-    const snapshot = await pathRef.orderByChild('uniqueKey').equalTo(uniqueKey).once('value');
-    
-    let recordId;
-    let isUpdate = false;
 
+    // Check for existing record by uniqueKey
+    const snapshot = await pathRef
+      .orderByChild("uniqueKey")
+      .equalTo(uniqueKey)
+      .once("value");
+
+    let recordId;
+    let action = "created";
+    
     if (snapshot.exists()) {
-      const existingRecord = Object.entries(snapshot.val())[0];
-      recordId = existingRecord[0];
-      isUpdate = true;
+      // Get the first matching record (should be only one)
+      const existingRecord = snapshot.val();
+      recordId = Object.keys(existingRecord)[0];
+      action = "updated";
     } else {
-      recordId = data.uuid || uuidv4();
+      recordId = requestData.uuid || uuidv4();
     }
 
-    // Dữ liệu sẽ được lưu
-    const saveData = {
-      entity: data.entity,
-      uuid: recordId,
+    // Prepare data with flat structure
+    const recordData = {
+      entity: requestData.entity,
       uniqueKey: uniqueKey,
-      metadata: {
-        production: data.metadata.production
-      },
-      updatedAt: { ".sv": "timestamp" }
+      production: requestData.metadata.production, // Flatten metadata
+      updatedAt: now // Use client timestamp instead of server value
     };
 
-    // Sử dụng transaction ở node con để đảm bảo an toàn
-    const recordRef = pathRef.child(recordId);
-    await recordRef.transaction(async (currentRecord) => {
-      // Nếu bản ghi hiện tại mới hơn, không ghi đè
-      if (currentRecord && currentRecord.updatedAt > saveData.updatedAt) {
-        return currentRecord;
-      }
-      return saveData;
-    });
+    // Simple set/update without transaction
+    if (action === "updated") {
+      await pathRef.child(recordId).update(recordData);
+    } else {
+      await pathRef.child(recordId).set(recordData);
+    }
 
     return NextResponse.json({
-      success: true, 
-      message: isUpdate ? "Data updated" : "Data saved",
-      id: recordId
+      success: true,
+      action: action,
+      id: recordId,
+      data: recordData
     });
-    
+
   } catch (error) {
-    console.error("Error saving production data:", error);
+    console.error("POST error:", error);
     return NextResponse.json(
-      { error: "Failed to save data", details: error.message },
+      {
+        success: false,
+        message: "Failed to save data",
+        error: error.message
+      },
       { status: 500 }
     );
   }
 }
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

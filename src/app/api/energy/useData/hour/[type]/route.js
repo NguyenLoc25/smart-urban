@@ -1,37 +1,51 @@
 import { db } from "@/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 
-// API GET: Lấy dữ liệu năng lượng theo giờ
-export async function GET(req) {
+export async function GET(request, { params }) {
   try {
-    const segments = req.nextUrl.pathname.split("/");
-    const energyType = segments[segments.length - 1]; // solar, wind, hydro
+    // Await params to ensure they're resolved
+    const { type } = await params;
+    const energyType = type.toLowerCase();
+
+    // Validate energy type
+    const validTypes = ['solar', 'wind', 'hydro'];
+    if (!validTypes.includes(energyType)) {
+      return NextResponse.json(
+        { error: "Invalid energy type" },
+        { status: 400 }
+      );
+    }
 
     const snapshot = await db.ref(`energy/renewable/hour/${energyType}`).once("value");
 
     if (!snapshot.exists()) {
-      return NextResponse.json({ message: "Không có dữ liệu" }, { status: 404 });
+      return NextResponse.json(
+        { message: "No data available" },
+        { status: 404 }
+      );
     }
 
     const data = snapshot.val();
+    const energyField = `Electricity from ${energyType} - TWh`;
 
-    // Chuyển dữ liệu thành danh sách có cấu trúc cố định
     const formattedData = Object.values(data)
       .map((item) => ({
-        hour: Number(item.Hour) || 0, // Đảm bảo hour là số (0-23)
-        energy: Number(item[`Electricity from ${energyType} - TWh`]) || 0, // Đơn vị có thể là MWh thay vì TWh
-        month: Number(item.Month) || 0, // Tháng nếu có
-        year: Number(item.Year) || 0, // Năm nếu có
-        code: item.code || "VNM", // Mã nếu có
-        entity: item.Entity || "", // Entity nếu có
+        hour: Number(item.Hour) || 0,
+        energy: Number(item[energyField]) || 0,
+        month: Number(item.Month) || 0,
+        year: Number(item.Year) || 0,
+        code: item.code || "VNM",
+        entity: item.Entity || "",
       }))
-      // Lọc các mục có hour hợp lệ và energy > 0
       .filter((item) => item.hour >= 0 && item.hour <= 23 && item.energy > 0)
-      .sort((a, b) => a.hour - b.hour); // Sắp xếp theo giờ tăng dần
+      .sort((a, b) => a.hour - b.hour);
 
     return NextResponse.json(formattedData, { status: 200 });
   } catch (error) {
-    console.error("❌ Lỗi khi lấy dữ liệu từ Firebase:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error fetching energy data:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
