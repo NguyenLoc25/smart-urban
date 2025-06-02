@@ -370,12 +370,11 @@ export default function EnergyPage() {
 
   const saveProductionData = useCallback(async () => {
     try {
-      const uuid = uuidv4();
       const now = new Date();
-    
+      
+      // Chuẩn bị dữ liệu sản xuất theo cấu trúc mới
       const productionData = {
         entity: "Vietnam",
-        uuid: uuid,
         metadata: {
           production: Object.entries(energyProduction)
             .filter(([type]) => type !== 'all')
@@ -389,10 +388,10 @@ export default function EnergyPage() {
                   .map(({ id, model, quantity }) => ({ id, model, quantity }))
               }
             }), {})
-        },
-        updatedAt: now.getTime()
+        }
       };
-    
+  
+      // Gửi request đến API
       const response = await fetch('/api/energy/totalProduction', {
         method: 'POST',
         headers: {
@@ -400,18 +399,25 @@ export default function EnergyPage() {
         },
         body: JSON.stringify(productionData)
       });
-    
+      
+      // Xử lý response
+      const result = await response.json();
+      console.log('API Response:', result);
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save production data');
+        throw new Error(result.message || 'Failed to save production data');
       }
-    
-      return await response.json();
+  
+      return result;
     } catch (error) {
       console.error("Error saving production data:", error);
-      return { success: false, message: error.message };
+      return { 
+        success: false, 
+        message: error.message,
+        error: error.toString() 
+      };
     }
-  }, [energyProduction, energyDevices, dataVersion, auth]);
+  }, [energyProduction, energyDevices]);
 
   useEffect(() => {
     const database = getDatabase();
