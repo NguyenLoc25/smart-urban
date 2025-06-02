@@ -4,7 +4,7 @@ import TotalChart from "@/components/energy/total-chart";
 import QuantityTable from "@/components/energy/tableDevide";
 import ResultChart from "@/components/energy/resultChart";
 import EnergyProductionCards from "./EnergyProductionCards";
-import AdviceChart from "@/components/energy/adviceChart/AdviceChart";
+import AdviceChart from "@/components/energy/adviceChart/adviceChart";
 
 export default function DesktopView({ energyData, data, renewableEnergy, consumption, error, loading,  energyProduction }) {
   return (
