@@ -32,7 +32,7 @@ const DesktopView = ({ chartData, cityName }) => {
   }));
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900/90 shadow-lg overflow-hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-6 bg-white dark:bg-gray-900 shadow-lg w-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl shadow-xl overflow-hidden mb-6">
         <div className="p-6 md:p-8 text-white">
@@ -71,7 +71,7 @@ const DesktopView = ({ chartData, cityName }) => {
           </div>
           
           {/* Chart container */}
-          <div className="relative" style={{ height: '500px' }}>
+          <div className="h-[500px] min-h-[200px] w-full">
             {activeTab === 'daily' ? (
               <DailyChart data={chartData.dailyData} />
             ) : (
