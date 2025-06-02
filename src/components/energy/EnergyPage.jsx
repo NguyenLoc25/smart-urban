@@ -362,6 +362,142 @@ function useResponsiveLayout() {
   return isMobile;
 }
 
+function useEnergyDataFetching() {
+  const [renewableEnergy, setRenewableEnergy] = useState(0);
+  const [consumption, setConsumption] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Fixed: Removed TypeScript annotation 
+
+  // First useEffect for fetching data
+  useEffect(() => {
+    const db = getDatabase();
+    
+    const fetchData = () => {
+      // Fetch renewable energy production data
+      const productionRef = ref(db, 'energy/totalProduction');
+      const productionUnsub = onValue(productionRef, (snapshot) => {
+        try {
+          const data = snapshot.val();
+          console.log('Raw production data:', data);
+          
+          // Extract the first key (UUID) since data is nested under a random UUID
+          const productionKey = Object.keys(data)[0];
+          const productionData = data[productionKey]?.production;
+          
+          if (productionData) {
+            const { Hydro, Solar, Wind } = productionData;
+            const hydroValue = Hydro?.value || 0;
+            const solarValue = Solar?.value || 0;
+            const windValue = Wind?.value || 0;
+            const totalRenewable = hydroValue + solarValue + windValue;
+            
+            console.log('Energy Production:', {
+              Hydro: hydroValue,
+              Solar: solarValue,
+              Wind: windValue,
+              Total: totalRenewable,
+            });
+            
+            setRenewableEnergy(totalRenewable);
+          } else {
+            console.warn('Production data not found in expected structure');
+            setError('Dữ liệu sản xuất không có cấu trúc như mong đợi');
+          }
+        } catch (err) {
+          setError('Lỗi khi đọc dữ liệu sản xuất năng lượng');
+          console.error('Production data processing error:', err);
+        }
+      }, (error) => {
+        setError('Lỗi kết nối đến dữ liệu sản xuất năng lượng');
+        console.error('Production connection error:', error);
+      });
+    
+      const cityRef = ref(db, 'energy/city');
+const cityUnsub = onValue(cityRef, (snapshot) => {
+  try {
+    const data = snapshot.val();
+    console.log('Raw consumption data:', data);
+
+    if (data && typeof data === 'object') {
+      // Lấy mảng các object thành phố từ object
+      const cityArray = Object.values(data);
+
+      if (cityArray.length > 0) {
+        // Giả sử chọn bản ghi mới nhất theo ngày tháng năm
+        const latest = cityArray.sort((a, b) => {
+          const dateA = new Date(a.year, a.month - 1, a.day);
+          const dateB = new Date(b.year, b.month - 1, b.day);
+          return dateB - dateA;
+        })[0];
+
+        const consumptionValue = latest.production;
+        console.log('Latest consumption data:', latest);
+        setConsumption(consumptionValue);
+        setLoading(false);
+      } else {
+        setError('Không có dữ liệu tiêu thụ năng lượng');
+      }
+    } else {
+      setError('Dữ liệu tiêu thụ năng lượng không hợp lệ');
+    }
+  } catch (err) {
+    setError('Lỗi khi đọc dữ liệu tiêu thụ năng lượng');
+    console.error('Consumption data error:', err);
+  }
+}, (error) => {
+  setError('Lỗi kết nối đến dữ liệu tiêu thụ năng lượng');
+  console.error('Consumption connection error:', error);
+});
+
+    
+      return () => {
+        productionUnsub();
+        cityUnsub();
+      };
+    };
+
+    const unsubscribe = fetchData();
+    return unsubscribe;
+  }, []);
+
+  // Second useEffect for saving production data when renewableEnergy changes
+  useEffect(() => {
+    const saveProductionData = async () => {
+      try {
+        const db = getDatabase();
+        const now = new Date();
+        
+        // Prepare production data
+        const productionData = {
+          totalProduction: {
+            timestamp: now.toISOString(),
+            production: {
+              Hydro: { value: renewableEnergy * 0.4 }, // Example distribution
+              Solar: { value: renewableEnergy * 0.3 },
+              Wind: { value: renewableEnergy * 0.3 }
+            }
+          }
+        };
+
+        // Save to database
+        const productionRef = ref(db, 'energy/totalproduction');
+        await set(productionRef, productionData);
+        
+        console.log('Production data saved successfully');
+      } catch (err) {
+        console.error('Failed to save production data:', err);
+        setError('Lỗi khi lưu dữ liệu sản xuất');
+      }
+    };
+
+    if (renewableEnergy > 0) {
+      saveProductionData();
+    }
+  }, [renewableEnergy]);
+
+  return { renewableEnergy, consumption, loading, error };
+}
+
 export default function EnergyPage() {  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -370,6 +506,7 @@ export default function EnergyPage() {
     lastSyncTime: null,
     syncInProgressBy: null
   });
+  const { renewableEnergy, consumption } = useEnergyDataFetching();
 
   const isMobile = useResponsiveLayout();
   const { energyDevices, energyData, loadDeviceData, fetchEnergyData } = useDeviceData();
@@ -531,6 +668,8 @@ export default function EnergyPage() {
     };
   }, [energyDevices, saveProductionData]);
 
+
+
   if (loading) {
     return <LoadingState dataProcessingStage={dataProcessingStage} energyDevices={energyDevices} />;
   }
@@ -541,7 +680,7 @@ export default function EnergyPage() {
     <>
       {isMobile ? 
         <MobileView energyData={energyData} data={data} /> : 
-        <DesktopView energyData={energyData} data={data} energyProduction={energyProduction} />
+        <DesktopView energyData={energyData} data={data} renewableEnergy={renewableEnergy} consumption={consumption} error={error} loading={loading}  energyProduction={energyProduction} />
       }
       <SyncStatus 
         syncStatus={syncStatus} 
