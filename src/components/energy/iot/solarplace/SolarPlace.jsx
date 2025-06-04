@@ -8,8 +8,14 @@ const SolarPlace = () => {
   const [windowHeight, setWindowHeight] = useState(0);
 
   useEffect(() => {
+    // Set initial height
     setWindowHeight(window.innerHeight);
-    const handleResize = () => setWindowHeight(window.innerHeight);
+    
+    // Update height on resize
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -24,20 +30,16 @@ const SolarPlace = () => {
       let latestUpdate = 0;
 
       Object.entries(data).forEach(([colKey, colData]) => {
-        Object.entries(colData).forEach(([panelKey, panelData]) => {
+        Object.entries(colData).forEach(([rowKey, panelData]) => {
           if (panelData) {
             panelArray.push({
-              id: `${colKey}-${panelKey}`,
+              id: `${colKey}-${rowKey}`,
               status: panelData.status || 'inactive',
-              position: {
-                col: parseInt(colKey.replace('col', '')),
-                panel: parseInt(panelKey.replace('panel', '')),
-              },
+              position: panelData.position || { col: parseInt(colKey), row: parseInt(rowKey) },
               lastUpdate: panelData.lastUpdate || 0,
               powerOutput: panelData.powerOutput || 0,
               efficiency: panelData.efficiency || 0,
-              sunlight: panelData.sunlight || 0,
-              temperature: panelData.temperature || 25,
+              temperature: panelData.temperature || 0
             });
             if (panelData.lastUpdate > latestUpdate) {
               latestUpdate = panelData.lastUpdate;
@@ -46,28 +48,23 @@ const SolarPlace = () => {
         });
       });
 
-      const gridPanels = [];
-      for (let col = 1; col <= 2; col++) {
-        for (let panel = 1; panel <= 6; panel++) {
-          const existingPanel = panelArray.find(
-            (p) => p.position.col === col && p.position.panel === panel
-          );
-          gridPanels.push(
-            existingPanel || {
-              id: `col${col}-panel${panel}`,
-              status: 'inactive',
-              position: { col, panel },
-              lastUpdate: 0,
-              powerOutput: 0,
-              efficiency: 0,
-              sunlight: 0,
-              temperature: 25,
-            }
-          );
-        }
+      // Organize into 2 columns (left and right), each with 6 positions
+      // Each column has 3 sub-columns with 2 positions each
+      const organizedPanels = { left: [], right: [] };
+      
+      // Left column (positions 1-6)
+      for (let i = 1; i <= 6; i++) {
+        const panel = panelArray.find(p => p.position.row === i && p.position.col === 1);
+        organizedPanels.left.push(panel || null);
+      }
+      
+      // Right column (positions 7-12)
+      for (let i = 1; i <= 6; i++) {
+        const panel = panelArray.find(p => p.position.row === i && p.position.col === 2);
+        organizedPanels.right.push(panel || null);
       }
 
-      setPanels(gridPanels);
+      setPanels(organizedPanels);
       setLastUpdated(latestUpdate);
       setLoading(false);
     });
@@ -75,84 +72,80 @@ const SolarPlace = () => {
     return () => unsubscribe();
   }, []);
 
-  const renderPanel = useCallback((panel) => {
-    const brightness = Math.min(100, panel.sunlight * 10);
-    const temperatureColor =
-      panel.temperature > 45
-        ? 'text-red-600 dark:text-red-400'
-        : panel.temperature > 35
-          ? 'text-orange-600 dark:text-orange-400'
-          : 'text-yellow-600 dark:text-yellow-400';
+  const renderPanel = useCallback((panel, index) => {
+    if (!panel) {
+      return (
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+            <span className="text-gray-400 dark:text-gray-500 text-xs">Offline</span>
+          </div>
+        </div>
+      );
+    }
 
-    const isOffline = panel.status === 'inactive' && panel.lastUpdate === 0;
+    const intensity = panel.status === 'active' ? 
+      Math.min(100, Math.max(20, panel.efficiency / 2)) : 20;
+    const tempColor = panel.temperature > 60 ? 'orange' : 'yellow';
 
     return (
-      <div className="relative flex flex-col items-center group">
-
-        {/* Panel Display */}
+      <div
+        className="relative flex flex-col items-center group"
+        role="button"
+        tabIndex={0}
+        aria-label={`Solar Panel ${panel.id}, Status: ${panel.status}, Power: ${panel.powerOutput.toFixed(1)} kW, Efficiency: ${panel.efficiency.toFixed(1)}%`}
+      >
         <div
-          className={`w-16 h-16 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 relative ${
-            isOffline
-              ? 'bg-gray-300 dark:bg-gray-600 shadow-md'
-              : panel.status === 'active'
-                ? 'bg-yellow-100 dark:bg-yellow-800 shadow-lg shadow-yellow-200 dark:shadow-yellow-900/50'
-                : 'bg-gray-200 dark:bg-gray-700 shadow-md'
+          className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center mb-1 sm:mb-2 transition-all duration-300 ${
+            panel.status === 'active'
+              ? 'bg-yellow-100 dark:bg-yellow-800 shadow-lg shadow-yellow-200 dark:shadow-yellow-900/50'
+              : 'bg-gray-100 dark:bg-gray-800 shadow-lg shadow-gray-200 dark:shadow-gray-900/50'
           }`}
-          style={{
-            filter: panel.status === 'active' ? `brightness(${brightness}%)` : 'brightness(70%)',
-          }}
         >
-          {isOffline ? (
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-              Empty
-            </span>
-          ) : (
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                className={`w-12 h-12 ${
-                  panel.status === 'active'
-                    ? 'text-yellow-500 dark:text-yellow-400'
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                <path
-                  fill={panel.status === 'active' ? '#FFC107' : 'currentColor'}
-                  d="M12 2L15 8H21L16 13L18 19L12 15L6 19L8 13L3 8H9L12 2Z"
-                />
-              </svg>
-              {/* Glowing Effect for Active Panels */}
-              {panel.status === 'active' && (
-                <div
-                  className="absolute inset-0 rounded-lg"
-                  style={{
-                    boxShadow: '0 0 15px 5px rgba(255, 193, 7, 0.6), 0 0 30px 10px rgba(255, 193, 7, 0.4)',
-                    animation: 'glow 2s ease-in-out infinite alternate',
-                  }}
-                ></div>
-              )}
-            </>
-          )}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 ${
+              panel.status === 'active'
+                ? `text-yellow-${intensity} dark:text-yellow-300`
+                : 'text-gray-400 dark:text-gray-500'
+            }`}
+            style={{
+              opacity: panel.status === 'active' ? intensity/100 : 0.5
+            }}
+          >
+            <rect x="2" y="2" width="20" height="20" rx="1" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="2" y1="8" x2="22" y2="8" stroke="currentColor" strokeWidth="1" />
+            <line x1="2" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="1" />
+            <line x1="8" y1="2" x2="8" y2="22" stroke="currentColor" strokeWidth="1" />
+            <line x1="14" y1="2" x2="14" y2="22" stroke="currentColor" strokeWidth="1" />
+            {panel.status === 'active' && (
+              <circle cx="12" cy="12" r="3" fill="currentColor" className="animate-pulse" />
+            )}
+          </svg>
         </div>
-
-        {!isOffline && (
-          <>
-            <p
-              className={`text-xs font-semibold ${
-                panel.status === 'active'
-                  ? 'text-yellow-700 dark:text-yellow-300'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
-            >
-              {panel.powerOutput.toFixed(1)} kW
-            </p>
-            <p className={`text-xs ${temperatureColor}`}>
-              {panel.temperature.toFixed(1)}°C
-            </p>
-          </>
-        )}
+        <p
+          className={`text-[10px] sm:text-xs font-semibold ${
+            panel.status === 'active'
+              ? 'text-yellow-700 dark:text-yellow-300'
+              : 'text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          {panel.powerOutput.toFixed(1)} kW
+        </p>
+        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+          Eff: {panel.efficiency.toFixed(1)}%
+        </p>
+        <p className={`text-[10px] sm:text-xs ${panel.temperature > 60 ? 'text-orange-500' : 'text-blue-500'}`}>
+          {panel.temperature}°C
+        </p>
+        <div className="absolute hidden group-hover:block bg-gray-800 dark:bg-gray-900 text-white text-xs rounded-lg p-2 sm:p-3 shadow-xl -top-20 sm:-top-24 z-10">
+          <p className="font-semibold">Panel {panel.id}</p>
+          <p>Status: {panel.status.charAt(0).toUpperCase() + panel.status.slice(1)}</p>
+          <p>Power: {panel.powerOutput.toFixed(1)} kW</p>
+          <p>Efficiency: {panel.efficiency.toFixed(1)}%</p>
+          <p>Temp: {panel.temperature}°C</p>
+        </div>
       </div>
     );
   }, []);
@@ -167,22 +160,32 @@ const SolarPlace = () => {
             viewBox="0 0 24 24"
             fill="none"
           >
-            <path
-              fill="#FFC107"
-              d="M12 2L15 8H21L16 13L18 19L12 15L6 19L8 13L3 8H9L12 2Z"
-            />
+            <rect x="4" y="4" width="16" height="16" rx="1" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="4" y1="10" x2="20" y2="10" stroke="currentColor" strokeWidth="1" />
+            <line x1="4" y1="16" x2="20" y2="16" stroke="currentColor" strokeWidth="1" />
+            <line x1="10" y1="4" x2="10" y2="20" stroke="currentColor" strokeWidth="1" />
+            <line x1="16" y1="4" x2="16" y2="20" stroke="currentColor" strokeWidth="1" />
           </svg>
         </div>
-        <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg font-medium">
-          Loading solar farm data...
-        </p>
+        <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg font-medium">Loading solar farm data...</p>
+      </div>
+    );
+  }
+
+  if (!panels.left?.length && !panels.right?.length) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+        <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg font-medium">No solar panel data available.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Please check the data source or try again later.</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4">
+      {/* Solar Farm Visualization */}
       <section className="bg-transparent rounded-xl p-2 sm:p-4 md:p-6">
+        {/* 3D Terrain Visualization - Responsive with dynamic height */}
         <div className="relative w-full" style={{ height: `${windowHeight * 0.8}px` }}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div
@@ -190,68 +193,69 @@ const SolarPlace = () => {
               style={{
                 background: `
                   linear-gradient(to bottom, 
-                    hsl(200, 70%, 50%) 0%,
-                    hsl(200, 70%, 70%) 30%,
-                    hsl(142, 60%, 75%) 50%,
-                    hsl(142, 60%, 55%) 70%,
-                    hsl(142, 60%, 45%) 100%
+                    hsl(200, 70%, 90%) 0%,
+                    hsl(200, 70%, 85%) 30%,
+                    hsl(40, 80%, 85%) 50%,
+                    hsl(40, 80%, 75%) 70%,
+                    hsl(40, 80%, 65%) 100%
                 )`,
                 boxShadow: `
                   5px 5px 15px rgba(0, 0, 0, 0.2),
                   -5px -5px 15px rgba(255, 255, 255, 0.1)
                 `,
-                position: 'relative',
+                position: 'relative'
               }}
             >
+              {/* Simplified Terrain for Mobile */}
               <div className="absolute inset-0 overflow-hidden">
-                <div
+                {/* Solar farm ground */}
+                <div 
                   className="absolute bottom-0 left-0 w-full h-2/3"
                   style={{
-                    background: 'linear-gradient(to top, hsl(142, 60%, 40%), hsl(142, 60%, 50%))',
-                    clipPath: 'polygon(0 100%, 20% 60%, 40% 80%, 60% 50%, 80% 70%, 100% 60%, 100% 100%)',
-                    filter: 'drop-shadow(0px 5px 3px rgba(0,0,0,0.2))',
+                    background: 'linear-gradient(to top, hsl(40, 60%, 50%), hsl(40, 60%, 60%))',
+                    clipPath: 'polygon(0 100%, 20% 80%, 40% 90%, 60% 70%, 80% 85%, 100% 75%, 100% 100%)',
+                    filter: 'drop-shadow(0px 5px 3px rgba(0,0,0,0.2))'
                   }}
                 ></div>
-                <div
-                  className="absolute bottom-0 left-0 w-2/3 h-1/2"
+                
+                {/* Sun */}
+                <div 
+                  className="absolute top-8 right-8 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-yellow-300"
                   style={{
-                    background: 'linear-gradient(to top, hsl(142, 60%, 35%), hsl(142, 60%, 45%))',
-                    clipPath: 'polygon(0 100%, 30% 70%, 50% 80%, 70% 60%, 100% 80%, 100% 100%)',
-                    zIndex: 1,
+                    filter: 'blur(4px)',
+                    boxShadow: '0 0 20px 10px rgba(255, 200, 0, 0.5)',
+                    zIndex: 1
                   }}
                 ></div>
-                <div
+                
+                {/* Sun rays */}
+                <div 
+                  className="absolute top-8 right-8 w-16 h-16 sm:w-20 sm:h-20 rounded-full"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
+                    animation: 'pulseSun 3s infinite alternate',
+                    zIndex: 2
+                  }}
+                ></div>
+                
+                {/* Light rays */}
+                <div 
                   className="absolute inset-0"
                   style={{
                     background: `
-                      linear-gradient(90deg, 
+                      linear-gradient(135deg, 
                         rgba(255,255,255,0.1) 0%, 
-                        rgba(255,255,255,0.2) 20%, 
+                        rgba(255,255,255,0.3) 20%, 
                         rgba(255,255,255,0.1) 30%, 
                         transparent 50%
                       )`,
-                    animation: 'windFlow 5s linear infinite',
-                    zIndex: 2,
+                    animation: 'sunLight 5s linear infinite',
+                    zIndex: 2
                   }}
                 ></div>
               </div>
-              <div className="absolute inset-0 overflow-hidden">
-                <div
-                  className="absolute top-6 left-6 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-yellow-300 opacity-70"
-                  style={{
-                    filter: 'blur(6px) sm:blur(8px)',
-                    boxShadow: '0 0 10px sm:0 0 20px rgba(255, 255, 0, 0.5)',
-                    zIndex: 1,
-                  }}
-                ></div>
-                <div
-                  className="absolute top-4 left-0 w-16 h-8 sm:w-24 sm:h-12 bg-white rounded-full opacity-20"
-                  style={{
-                    filter: 'blur(4px) sm:blur(6px)',
-                    animation: 'cloudMove 20s linear infinite',
-                  }}
-                ></div>
-              </div>
+              
+              {/* Integrated Legends - Positioned inside the background */}
               <div className="absolute bottom-4 left-4 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-md">
                 <div className="flex flex-col space-y-1 sm:space-y-2">
                   <div className="flex items-center">
@@ -268,19 +272,28 @@ const SolarPlace = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Sun Intensity Indicator */}
               <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-1 sm:p-2 shadow-md">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 dark:text-yellow-400"
+                <svg 
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 dark:text-yellow-300 animate-pulse"
                   viewBox="0 0 24 24"
                   fill="none"
                 >
-                  <path
-                    fill="#FFC107"
-                    d="M12 2L15 8H21L16 13L18 19L12 15L6 19L8 13L3 8H9L12 2Z"
-                  />
+                  <circle cx="12" cy="12" r="4" fill="currentColor" />
+                  <line x1="12" y1="2" x2="12" y2="4" stroke="currentColor" strokeWidth="2" />
+                  <line x1="12" y1="20" x2="12" y2="22" stroke="currentColor" strokeWidth="2" />
+                  <line x1="4" y1="12" x2="6" y2="12" stroke="currentColor" strokeWidth="2" />
+                  <line x1="18" y1="12" x2="20" y2="12" stroke="currentColor" strokeWidth="2" />
+                  <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" stroke="currentColor" strokeWidth="2" />
+                  <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" stroke="currentColor" strokeWidth="2" />
+                  <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" stroke="currentColor" strokeWidth="2" />
+                  <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" stroke="currentColor" strokeWidth="2" />
                 </svg>
-                <span className="text-gray-700 dark:text-gray-200 text-xs sm:text-sm ml-1">High Sun</span>
+                <span className="text-gray-700 dark:text-gray-200 text-xs sm:text-sm ml-1">High (85%)</span>
               </div>
+              
+              {/* Last Updated Time */}
               {lastUpdated && (
                 <div className="absolute bottom-4 right-4 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md">
                   <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">
@@ -288,48 +301,74 @@ const SolarPlace = () => {
                   </span>
                 </div>
               )}
-              <div className="absolute w-full h-full flex flex-col justify-center z-10 px-4 sm:px-8">
-                <div className="grid grid-cols-2 gap-4 sm:gap-8">
-                  {[1, 2].map((col) => (
-                    <div key={`col-${col}`} className="relative">
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-8 sm:gap-y-12">
-                        {panels
-                          .filter((panel) => panel.position.col === col)
-                          .sort((a, b) => a.position.panel - b.position.panel)
-                          .map((panel) => (
-                            <div key={`panel-${col}-${panel.position.panel}`} className="relative">
-                              {renderPanel(panel)}
-                            </div>
-                          ))}
+              
+              {/* Panel Grid - 2 main columns, each with 3 sub-columns of 2 panels */}
+              <div className="absolute w-full h-full flex z-10 p-4 sm:p-6">
+                {/* Left Column */}
+                <div className="w-1/2 h-full flex">
+                  {/* Sub-column 1 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.left.slice(0, 2).map((panel, index) => (
+                      <div key={`left-${index}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index)}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  {/* Sub-column 2 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.left.slice(2, 4).map((panel, index) => (
+                      <div key={`left-${index+2}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index+2)}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Sub-column 3 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.left.slice(4, 6).map((panel, index) => (
+                      <div key={`left-${index+4}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index+4)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Right Column */}
+                <div className="w-1/2 h-full flex">
+                  {/* Sub-column 1 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.right.slice(0, 2).map((panel, index) => (
+                      <div key={`right-${index}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index)}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Sub-column 2 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.right.slice(2, 4).map((panel, index) => (
+                      <div key={`right-${index+2}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index+2)}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Sub-column 3 */}
+                  <div className="w-1/3 h-full flex flex-col items-center justify-evenly">
+                    {panels.right.slice(4, 6).map((panel, index) => (
+                      <div key={`right-${index+4}`} className="flex items-center justify-center relative">
+                        {renderPanel(panel, index+4)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+              
               <style jsx>{`
-                @keyframes cloudMove {
-                  0% {
-                    transform: translateX(-30px);
-                  }
-                  100% {
-                    transform: translateX(calc(100% + 30px));
-                  }
+                @keyframes pulseSun {
+                  0% { transform: scale(1); opacity: 0.8; }
+                  100% { transform: scale(1.1); opacity: 1; }
                 }
-                @keyframes windFlow {
-                  0% {
-                    background-position: 0 0;
-                  }
-                  100% {
-                    background-position: 200% 0;
-                  }
-                }
-                @keyframes glow {
-                  0% {
-                    box-shadow: 0 0 15px 5px rgba(255, 193, 7, 0.6), 0 0 30px 10px rgba(255, 193, 7, 0.4);
-                  }
-                  100% {
-                    box-shadow: 0 0 20px 8px rgba(255, 193, 7, 0.8), 0 0 40px 15px rgba(255, 193, 7, 0.5);
-                  }
+                @keyframes sunLight {
+                  0% { background-position: 0 0; }
+                  100% { background-position: 200% 0; }
                 }
               `}</style>
             </div>
