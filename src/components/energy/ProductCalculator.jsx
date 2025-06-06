@@ -70,7 +70,7 @@ export const calculateEnergyProduction = (data, energyTypes) => {
 
       case 'Wind': {
         if (efficiency <= 0) return 0;
-        return power * efficiency * 12 * quantity; // 12 effective hours
+        return power * efficiency * 24 * quantity; // 12 effective hours
       }
 
       case 'Hydro': {
