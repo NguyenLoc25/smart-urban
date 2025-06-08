@@ -6,6 +6,26 @@ const WindPlace = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [windowHeight, setWindowHeight] = useState(0);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    const updateWindowSize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      checkIfMobile();
+    };
+
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
 
   useEffect(() => {
     // Set initial height
@@ -178,108 +198,107 @@ const WindPlace = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-4">
-      {/* Wind Farm Visualization */}
-      <section className="bg-transparent rounded-xl p-2 sm:p-4 md:p-6">
-        {/* 3D Terrain Visualization - Responsive with dynamic height */}
-        <div className="relative w-full" style={{ height: `${windowHeight * 0.8}px` }}>
+    <div className="max-w-7xl mt-8 mx-auto px-2 sm:px-4">
+      <section className="bg-transparent rounded-xl p-2 sm:p-4">
+        <div className="relative w-full" style={{ height: isMobile ? '70vh' : `${windowSize.height * 0.8}px` }}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-full h-full rounded-xl shadow-2xl overflow-hidden"
+              className="w-full h-full rounded-xl shadow-lg overflow-hidden"
               style={{
                 background: `
-                  linear-gradient(to bottom, 
-                    hsl(200, 70%, 50%) 0%,
-                    hsl(200, 70%, 70%) 30%,
-                    hsl(142, 60%, 75%) 50%,
-                    hsl(142, 60%, 55%) 70%,
-                    hsl(142, 60%, 45%) 100%
+                  linear-gradient(135deg, 
+                    hsl(200, 80%, 65%) 0%,
+                    hsl(200, 80%, 75%) 30%,
+                    hsl(200, 60%, 85%) 60%,
+                    hsl(200, 50%, 95%) 100%
                 )`,
-                boxShadow: `
-                  5px 5px 15px rgba(0, 0, 0, 0.2),
-                  -5px -5px 15px rgba(255, 255, 255, 0.1)
-                `,
-                position: 'relative'
+                boxShadow: 'inset 0 0 30px rgba(255, 255, 255, 0.3)',
+                position: 'relative',
               }}
             >
-              {/* Simplified Terrain for Mobile */}
-              <div className="absolute inset-0 overflow-hidden">
-                <div 
-                  className="absolute bottom-0 left-0 w-full h-2/3"
-                  style={{
-                    background: 'linear-gradient(to top, hsl(142, 60%, 40%), hsl(142, 60%, 50%))',
-                    clipPath: 'polygon(0 100%, 20% 60%, 40% 80%, 60% 50%, 80% 70%, 100% 60%, 100% 100%)',
-                    filter: 'drop-shadow(0px 5px 3px rgba(0,0,0,0.2))'
-                  }}
-                ></div>
-                
-                <div 
-                  className="absolute bottom-0 left-0 w-2/3 h-1/2"
-                  style={{
-                    background: 'linear-gradient(to top, hsl(142, 60%, 35%), hsl(142, 60%, 45%))',
-                    clipPath: 'polygon(0 100%, 30% 70%, 50% 80%, 70% 60%, 100% 80%, 100% 100%)',
-                    zIndex: 1
-                  }}
-                ></div>
-                
+              {/* Animated Wind Flow */}
+              <div className="absolute inset-0 z-0">
                 <div 
                   className="absolute inset-0"
                   style={{
                     background: `
                       linear-gradient(90deg, 
-                        rgba(255,255,255,0.1) 0%, 
-                        rgba(255,255,255,0.2) 20%, 
-                        rgba(255,255,255,0.1) 30%, 
-                        transparent 50%
+                        rgba(255,255,255,0) 0%, 
+                        rgba(255,255,255,0.2) 50%, 
+                        rgba(255,255,255,0) 100%
                       )`,
-                    animation: 'windFlow 5s linear infinite',
-                    zIndex: 2
-                  }}
-                ></div>
-              </div>
-              
-              {/* Sky Elements */}
-              <div className="absolute inset-0 overflow-hidden">
-                <div 
-                  className="absolute top-6 left-6 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-yellow-300 opacity-70"
-                  style={{
-                    filter: 'blur(6px) sm:blur(8px)',
-                    boxShadow: '0 0 10px sm:0 0 20px rgba(255, 255, 0, 0.5)',
+                    animation: 'windFlow 8s linear infinite',
                     zIndex: 1
                   }}
                 ></div>
-                
-                <div 
-                  className="absolute top-4 left-0 w-16 h-8 sm:w-24 sm:h-12 bg-white rounded-full opacity-20"
+              </div>
+  
+              {/* Clouds - Slower animation than solar */}
+              <div className="absolute top-0 left-0 w-full h-1/3 z-5">
+                <div
+                  className="absolute w-32 h-16 bg-white/70 rounded-full animate-cloud"
                   style={{
-                    filter: 'blur(4px) sm:blur(6px)',
-                    animation: 'cloudMove 20s linear infinite'
+                    top: '20%',
+                    left: '10%',
+                    filter: 'blur(8px)',
+                    animationDuration: '60s',
+                  }}
+                ></div>
+                <div
+                  className="absolute w-40 h-20 bg-white/60 rounded-full animate-cloud"
+                  style={{
+                    top: '30%',
+                    left: '30%',
+                    filter: 'blur(10px)',
+                    animationDuration: '80s',
+                    animationDelay: '-15s',
+                  }}
+                ></div>
+                <div
+                  className="absolute w-28 h-14 bg-white/80 rounded-full animate-cloud"
+                  style={{
+                    top: '15%',
+                    left: '60%',
+                    filter: 'blur(6px)',
+                    animationDuration: '70s',
+                    animationDelay: '-10s',
                   }}
                 ></div>
               </div>
-              
-              {/* Integrated Legends - Positioned inside the background */}
-              <div className="absolute bottom-4 left-4 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-md">
-                <div className="flex flex-col space-y-1 sm:space-y-2">
+  
+              {/* Terrain - More pronounced than solar */}
+              <div className="absolute bottom-0 left-0 w-full h-1/3 z-10"
+                style={{
+                  background: 'linear-gradient(to top, hsl(140, 60%, 30%), hsl(140, 60%, 40%))',
+                  clipPath: isMobile
+                    ? 'polygon(0% 100%, 0% 60%, 20% 55%, 40% 65%, 60% 50%, 80% 60%, 100% 55%, 100% 100%)'
+                    : 'polygon(0% 100%, 0% 50%, 15% 55%, 30% 45%, 45% 60%, 60% 40%, 75% 55%, 90% 45%, 100% 50%, 100% 100%)',
+                  boxShadow: 'inset 0 -12px 20px rgba(0,0,0,0.25)',
+                }}
+              ></div>
+  
+              {/* Legends - Consistent with solar style */}
+              <div className={`absolute ${isMobile ? 'bottom-2 left-2 p-2' : 'bottom-4 left-4 p-3'} z-20 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
+                <div className={`flex ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">Running</span>
+                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-green-500 mr-1 sm:mr-2`}></div>
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Running</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">Stopped</span>
+                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-red-500 mr-1 sm:mr-2`}></div>
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Stopped</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600 mr-2"></div>
-                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">Offline</span>
+                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-gray-400 mr-1 sm:mr-2`}></div>
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Offline</span>
                   </div>
                 </div>
               </div>
-              
-              {/* Wind Direction Indicator */}
-              <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-1 sm:p-2 shadow-md">
+  
+              {/* Wind Direction Indicator - More prominent */}
+              <div className={`absolute ${isMobile ? 'top-2 right-2 p-1' : 'top-4 right-4 p-2'} z-20 flex items-center bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
                 <svg 
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-200 animate-pulse"
+                  className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-gray-700 dark:text-gray-200 animate-pulse`}
                   viewBox="0 0 24 24"
                   fill="none"
                 >
@@ -296,42 +315,50 @@ const WindPlace = () => {
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="text-gray-700 dark:text-gray-200 text-xs sm:text-sm ml-1">NW 15km/h</span>
+                <span className={`text-gray-700 dark:text-gray-200 ${isMobile ? 'text-xs ml-1' : 'text-sm ml-2'}`}>
+                  {isMobile ? 'NW 15km/h' : 'Wind: NW 15km/h'}
+                </span>
               </div>
-              
-              {/* Last Updated Time */}
+  
+              {/* Last Updated - Consistent with solar */}
               {lastUpdated && (
-                <div className="absolute bottom-4 right-4 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md">
-                  <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">
-                    Updated: {new Date(lastUpdated).toLocaleTimeString()}
+                <div className={`absolute ${isMobile ? 'bottom-2 right-2 px-2 py-1' : 'bottom-4 right-4 px-3 py-2'} z-20 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {isMobile
+                      ? new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : `Updated: ${new Date(lastUpdated).toLocaleTimeString()}`}
                   </span>
                 </div>
               )}
-              
-              {/* Turbine Grid - Maintains 2x3 layout */}
-              <div className="absolute w-full h-full grid grid-cols-2 grid-rows-3 gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 z-10">
+  
+              {/* Turbine Grid - Improved layout */}
+              <div className={`absolute w-full h-full grid ${isMobile ? 'grid-cols-2 grid-rows-3 gap-2 p-2' : 'grid-cols-3 grid-rows-2 gap-4 p-6'} z-10`}>
                 {turbines.map((turbine, index) => (
                   <div key={index} className="flex items-center justify-center relative">
                     {renderTurbine(turbine, index)}
+                    {/* Turbine shadow */}
                     <div 
-                      className="absolute bottom-0 w-10 h-3 sm:w-12 sm:h-4 md:w-16 md:h-4 rounded-full bg-black opacity-10 blur-sm"
+                      className={`absolute bottom-0 rounded-full bg-black opacity-10 blur-sm ${isMobile ? 'w-8 h-2' : 'w-12 h-3'}`}
                       style={{
-                        transform: 'translateY(8px) sm:translateY(10px) scale(0.8)',
-                        filter: 'blur(3px) sm:blur(4px)'
+                        transform: isMobile ? 'translateY(5px) scale(0.8)' : 'translateY(8px) scale(0.9)',
+                        filter: 'blur(3px)'
                       }}
                     ></div>
                   </div>
                 ))}
               </div>
-              
+  
               <style jsx>{`
-                @keyframes cloudMove {
-                  0% { transform: translateX(-30px); }
-                  100% { transform: translateX(calc(100% + 30px)); }
-                }
                 @keyframes windFlow {
-                  0% { background-position: 0 0; }
-                  100% { background-position: 200% 0; }
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(100%); }
+                }
+                @keyframes cloud {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(200vw); }
+                }
+                .animate-cloud {
+                  animation: cloud linear infinite;
                 }
               `}</style>
             </div>
