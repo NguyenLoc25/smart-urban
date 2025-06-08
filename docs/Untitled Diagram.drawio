@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="27.1.1" pages="3">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="27.1.4" pages="3">
   <diagram name="Page-1" id="91jscVkorQK-JBloRmye">
     <mxGraphModel dx="1426" dy="777" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -145,80 +145,75 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="wind_farm" value="Khu quạt gió" style="shape=ellipse;fillColor=#4CAF50;strokeColor=#2E7D32;gradientColor=#81C784;fontColor=#FFFFFF;fontSize=16;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="10" y="420" width="110" height="60" as="geometry" />
+        <mxCell id="solar_farm" value="Khu vực &#xa;năng lượng tái tạo" style="shape=ellipse;fontSize=16;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="10" y="50" width="170" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="solar_farm" value="Khu pin Mặt trời" style="shape=ellipse;fillColor=#FFC107;strokeColor=#FF8F00;gradientColor=#FFD54F;fontColor=#212121;fontSize=16;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="80" y="360" width="140" height="60" as="geometry" />
+        <mxCell id="esp8266" value="ESP8266" style="shape=hexagon;fontSize=16;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="70" y="260" width="130" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="hydro_farm" value="Khu thủy điện" style="shape=ellipse;fillColor=#03A9F4;strokeColor=#0288D1;gradientColor=#4FC3F7;fontColor=#FFFFFF;fontSize=16;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="250" y="400" width="110" height="60" as="geometry" />
+        <mxCell id="firebase" value="Cơ sở dữ liệu&#xa;thời gian thực" style="shape=cloud;fontSize=16;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="360" y="265" width="190" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="7ERgb1z3eQwkxTSyfQp_-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" edge="1" parent="1" source="esp8266" target="7ERgb1z3eQwkxTSyfQp_-16">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="web_interface" value="Giao diện Web" style="shape=rectangle;rounded=1;fontSize=18;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="680" y="272.5" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="7ERgb1z3eQwkxTSyfQp_-18" value="Text" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="7ERgb1z3eQwkxTSyfQp_-17">
-          <mxGeometry x="-0.32" y="-2" relative="1" as="geometry">
+        <mxCell id="city" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;Thành Phố (Metro)" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="220" y="50" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="solar_to_esp" value="&lt;font style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;Dữ liệu&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;Mặt trời, gió, thủy điện&lt;/font&gt;&lt;/div&gt;" style="endArrow=classic;html=1;strokeWidth=2;fontSize=12;fontColor=#FF8F00;exitX=0.5;exitY=1;entryX=0.375;entryY=0;entryDx=0;entryDy=0;" parent="1" source="solar_farm" target="esp8266" edge="1">
+          <mxGeometry x="0.0655" y="3" relative="1" as="geometry">
+            <mxPoint x="100" y="250" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="esp8266" value="ESP8266" style="shape=hexagon;fillColor=#673AB7;strokeColor=#5E35B1;gradientColor=#9575CD;fontColor=#FFFFFF;fontSize=16;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="25" y="560" width="130" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="firebase" value="Firebase &#xa;Realtime Database" style="shape=cloud;fillColor=#FF5722;strokeColor=#E64A19;gradientColor=#FF7043;fontColor=#FFFFFF;fontSize=16;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="290" y="560" width="190" height="85" as="geometry" />
-        </mxCell>
-        <mxCell id="web_interface" value="Giao diện Web" style="shape=rectangle;rounded=1;fillColor=#E1F5FE;strokeColor=#0288D1;gradientColor=#B3E5FC;fontColor=#01579B;fontSize=18;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="660" y="560" width="140" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="city" value="Thành Phố (Metro)" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;fontSize=16;fillColor=#9C27B0;strokeColor=#7B1FA2;gradientColor=#BA68C8;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="510" y="290" width="120" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="wind_to_esp" value="Dữ liệu gió" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#2E7D32;fontSize=12;fontColor=#2E7D32;exitX=0.5;exitY=1;" edge="1" parent="1" source="wind_farm" target="esp8266">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="solar_to_esp" value="Dữ liệu mặt trời" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#FF8F00;fontSize=12;fontColor=#FF8F00;exitX=0.5;exitY=1;" edge="1" parent="1" source="solar_farm" target="esp8266">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="hydro_to_esp" value="Dữ liệu thủy điện" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0288D1;fontSize=12;fontColor=#0288D1;exitX=0.5;exitY=1;" edge="1" parent="1" source="hydro_farm" target="esp8266">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="esp_to_firebase" value="Gửi dữ liệu qua WiFi" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#5E35B1;fontSize=12;fontColor=#5E35B1;dashed=0;entryX=0.074;entryY=0.482;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="esp8266" target="firebase">
+        <mxCell id="esp_to_firebase" value="&lt;font style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;Gửi dữ liệu qua WiFi&lt;/font&gt;" style="endArrow=classic;html=1;strokeWidth=2;fontSize=12;fontColor=#5E35B1;dashed=0;entryX=0.074;entryY=0.482;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="esp8266" target="firebase" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="603" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="firebase_to_web" value="API Realtime" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#0288D1;fontSize=12;fontColor=#01579B;dashed=0;" edge="1" parent="1" source="firebase" target="web_interface">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="web_to_firebase" value="Sản lượng điện" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#E64A19;fontSize=12;fontColor=#E64A19;dashed=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="web_interface">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="570" y="605" as="sourcePoint" />
-            <mxPoint x="480" y="612" as="targetPoint" />
+        <mxCell id="firebase_to_web" value="&lt;font style=&quot;font-size: 14px; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237));&quot;&gt;Dữ liệu&lt;br&gt;từng khu vực&lt;/font&gt;" style="endArrow=classic;html=1;strokeWidth=2;fontSize=12;fontColor=#01579B;dashed=0;" parent="1" source="firebase" target="web_interface" edge="1">
+          <mxGeometry x="-0.1106" y="6" relative="1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="firebase_to_esp" value="Dữ liệu hiển thị OLED" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#5E35B1;fontSize=12;fontColor=#5E35B1;dashed=0;" edge="1" parent="1">
-          <mxGeometry x="-0.0577" y="-3" relative="1" as="geometry">
+        <mxCell id="firebase_to_esp" value="&lt;font style=&quot;font-size: 14px; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237));&quot;&gt;Dữ liệu hiển thị OLED&lt;/font&gt;" style="endArrow=classic;html=1;strokeWidth=2;fontSize=12;fontColor=#5E35B1;dashed=0;exitX=0.13;exitY=0.77;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.869;entryY=0.767;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1" target="esp8266" source="firebase">
+          <mxGeometry x="-0.068" y="1" relative="1" as="geometry">
             <mxPoint x="310" y="630.54" as="sourcePoint" />
-            <mxPoint x="140" y="630.0042857142857" as="targetPoint" />
+            <mxPoint x="138" y="320" as="targetPoint" />
             <Array as="points" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="city_to_firebase" value="Nhu cầu năng lượng" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#7B1FA2;fontSize=12;fontColor=#7B1FA2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="city" target="firebase">
+        <mxCell id="city_to_firebase" value="&lt;font style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;Năng lượng tiêu thụ&lt;/font&gt;" style="endArrow=classic;html=1;strokeWidth=2;fontSize=12;fontColor=#7B1FA2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.625;entryY=0;entryDx=0;entryDy=0;" parent="1" source="city" target="esp8266" edge="1">
+          <mxGeometry x="-0.2571" y="-3" relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="calculations" value="Tính toán sản lượng điện" style="shape=rectangle;rounded=1;fontSize=14;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="520" y="400" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="firebase_to_calc" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#616161;fontSize=12;dashed=0;" parent="1" source="calculations" target="firebase" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="calculations" value="Tính toán sản lượng điện" style="shape=rectangle;rounded=1;fillColor=#F5F5F5;strokeColor=#616161;gradientColor=#EEEEEE;fontColor=#212121;fontSize=14;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="490" y="460" width="170" height="50" as="geometry" />
+        <mxCell id="hq0E4BFVcQaOYP95ZEng-3" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Kết quả&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="firebase_to_calc">
+          <mxGeometry x="-0.0783" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="firebase_to_calc" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#616161;fontSize=12;dashed=0;" edge="1" parent="1" source="firebase" target="calculations">
+        <mxCell id="calc_to_web" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#616161;fontSize=12;dashed=0;" parent="1" source="web_interface" target="calculations" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="calc_to_web" value="Kết quả" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#616161;fontSize=12;dashed=0;" edge="1" parent="1" source="calculations" target="web_interface">
+        <mxCell id="hq0E4BFVcQaOYP95ZEng-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="esp8266" target="hq0E4BFVcQaOYP95ZEng-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="7ERgb1z3eQwkxTSyfQp_-16" value="OLED" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="1">
-          <mxGeometry x="30" y="700" width="120" height="60" as="geometry" />
+        <mxCell id="hq0E4BFVcQaOYP95ZEng-6" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;sản lượng&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;từng khu vực&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hq0E4BFVcQaOYP95ZEng-5">
+          <mxGeometry x="-0.2667" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hq0E4BFVcQaOYP95ZEng-4" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;OLED&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="75" y="420" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
