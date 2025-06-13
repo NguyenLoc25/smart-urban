@@ -287,7 +287,7 @@ const SolarPlace = () => {
               </div>
   
               {/* Last Updated */}
-              {lastUpdated && (
+              {!!lastUpdated && (
                 <div className={`absolute ${isMobile ? 'bottom-2 right-2 px-2 py-1' : 'bottom-4 right-4 px-3 py-2'} z-20 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
                   <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {isMobile
