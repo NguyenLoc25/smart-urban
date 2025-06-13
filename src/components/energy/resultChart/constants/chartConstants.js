@@ -33,7 +33,6 @@ export const chartLayout = {
   
   export const chartConfig = { 
     responsive: true,
-    displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['toImage', 'sendDataToCloud', 'hoverCompareCartesian', 'hoverClosestCartesian'],
     modeBarButtonsToAdd: [{ 

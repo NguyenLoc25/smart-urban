@@ -57,7 +57,6 @@ const MonthlyChart = ({ data }) => {
         }}
         config={{
           ...chartConfig,
-          displayModeBar: false,
           responsive: true
         }}
         style={{ 
