@@ -193,82 +193,101 @@ const MainPage = () => {
       </nav>
 
       {/* Overview Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+<section className="py-20 bg-white">
+  <div className="max-w-7xl mx-auto px-6">
+    <motion.div 
+      className="text-center mb-16"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+    >
+      <h2 className="text-4xl font-bold mb-6">Giải pháp đô thị thông minh toàn diện</h2>
+      <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        SmartUrban tích hợp công nghệ tiên tiến để xây dựng thành phố thông minh, bền vững và đáng sống
+      </p>
+    </motion.div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+          {/* Thay đổi ở đây: Thêm autoplay và loop */}
+<iframe 
+  width="100%" 
+  height="360" 
+  src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ" 
+  frameborder="0" 
+  allowfullscreen
+></iframe>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 p-6 text-white">
+            <h3 className="text-2xl font-bold">Thành phố tương lai</h3>
+            <p>Kết nối mọi mặt của đời sống đô thị</p>
+          </div>
+          {/* Thêm nút điều khiển âm thanh */}
+          <button 
+            onClick={() => {
+              const iframe = document.querySelector('iframe');
+              const newSrc = iframe.src.includes('mute=1') 
+                ? iframe.src.replace('mute=1', 'mute=0') 
+                : iframe.src.replace('mute=0', 'mute=1');
+              iframe.src = newSrc;
+            }}
+            className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition"
+            aria-label="Toggle sound"
           >
-            <h2 className="text-4xl font-bold mb-6">Giải pháp đô thị thông minh toàn diện</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              SmartUrban tích hợp công nghệ tiên tiến để xây dựng thành phố thông minh, bền vững và đáng sống
-            </p>
-          </motion.div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.975 7.975 0 015.657 2.343m0 0a7.975 7.975 0 010 11.314m-11.314 0a7.975 7.975 0 010-11.314m0 0a7.975 7.975 0 015.657-2.343" />
+            </svg>
+          </button>
+        </div>
+      </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                  alt="Smart City" 
-                  className="w-full h-auto"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-6 text-white">
-                  <h3 className="text-2xl font-bold">Thành phố tương lai</h3>
-                  <p>Kết nối mọi mặt của đời sống đô thị</p>
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        <div className="space-y-6">
+          <h3 className="text-3xl font-bold text-gray-900">Tầm nhìn của chúng tôi</h3>
+          <p className="text-lg text-gray-600">
+            SmartUrban không chỉ là công nghệ - đó là cách chúng tôi tái tạo đô thị thành không gian sống thông minh, 
+            nơi con người và công nghệ cùng phát triển hài hòa.
+          </p>
+          
+          <div className="space-y-4">
+            {[
+              "Hạ tầng thông minh kết nối IoT",
+              "Năng lượng sạch và bền vững",
+              "Giao thông thông minh và an toàn",
+              "Dịch vụ công trực tuyến 24/7",
+              "Môi trường sống xanh và lành mạnh"
+            ].map((item, index) => (
+              <motion.div 
+                key={index} 
+                className="flex items-start"
+                whileHover={{ x: 5 }}
+              >
+                <div className="flex-shrink-0 mt-1 mr-3 text-blue-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <div className="space-y-6">
-                <h3 className="text-3xl font-bold text-gray-900">Tầm nhìn của chúng tôi</h3>
-                <p className="text-lg text-gray-600">
-                  SmartUrban không chỉ là công nghệ - đó là cách chúng tôi tái tạo đô thị thành không gian sống thông minh, 
-                  nơi con người và công nghệ cùng phát triển hài hòa.
-                </p>
-                
-                <div className="space-y-4">
-                  {[
-                    "Hạ tầng thông minh kết nối IoT",
-                    "Năng lượng sạch và bền vững",
-                    "Giao thông thông minh và an toàn",
-                    "Dịch vụ công trực tuyến 24/7",
-                    "Môi trường sống xanh và lành mạnh"
-                  ].map((item, index) => (
-                    <motion.div 
-                      key={index} 
-                      className="flex items-start"
-                      whileHover={{ x: 5 }}
-                    >
-                      <div className="flex-shrink-0 mt-1 mr-3 text-blue-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="text-lg">{item}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+                <span className="text-lg">{item}</span>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </section>
+      </motion.div>
+    </div>
+  </div>
+</section>
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
