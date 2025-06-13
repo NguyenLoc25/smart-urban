@@ -4,7 +4,7 @@ export default function MobileView({ energyTypes, quantityData, openModal }) {
   return (
     <div className="space-y-4">
       {Object.entries(energyTypes).map(([key, energy]) => {
-        const totalSlots = energy.maxSlots;
+        const totalSlots = energy.maxSlots.toLocaleString();
         const availableSlots = totalSlots - quantityData[key];
         const usagePercentage = totalSlots > 0 ? Math.round((quantityData[key] / totalSlots) * 100) : 0;
         const currentColor = colorClasses[energy.color];
