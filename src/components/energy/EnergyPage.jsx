@@ -480,7 +480,7 @@ const cityUnsub = onValue(cityRef, (snapshot) => {
         };
 
         // Save to database
-        const productionRef = ref(db, 'energy/totalproduction');
+        const productionRef = ref(db, 'energy/totalProduction');
         await set(productionRef, productionData);
         
         console.log('Production data saved successfully');
