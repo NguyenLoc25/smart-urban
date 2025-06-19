@@ -5,7 +5,6 @@ const WindPlace = () => {
   const [turbines, setTurbines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [windowHeight, setWindowHeight] = useState(0);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [isMobile, setIsMobile] = useState(false);
 
@@ -25,19 +24,6 @@ const WindPlace = () => {
     updateWindowSize();
     window.addEventListener('resize', updateWindowSize);
     return () => window.removeEventListener('resize', updateWindowSize);
-  }, []);
-
-  useEffect(() => {
-    // Set initial height
-    setWindowHeight(window.innerHeight);
-    
-    // Update height on resize
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -84,10 +70,12 @@ const WindPlace = () => {
   }, []);
 
   const renderTurbine = useCallback((turbine, index) => {
+    const isActive = turbine?.status === 'running';
+    
     if (!turbine) {
       return (
         <div className="flex flex-col items-center justify-center">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
             <span className="text-gray-400 dark:text-gray-500 text-xs">Offline</span>
           </div>
         </div>
@@ -102,24 +90,24 @@ const WindPlace = () => {
         aria-label={`Turbine ${turbine.id}, Status: ${turbine.status}, Power: ${turbine.powerOutput.toFixed(1)} kW, Efficiency: ${turbine.efficiency.toFixed(1)}%`}
       >
         <div
-          className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center mb-1 sm:mb-2 transition-all duration-300 ${
-            turbine.status === 'running'
-              ? 'bg-green-100 dark:bg-green-800 shadow-lg shadow-green-200 dark:shadow-green-900/50'
-              : 'bg-red-100 dark:bg-red-800 shadow-lg shadow-red-200 dark:shadow-red-900/50'
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${
+            isActive
+              ? 'bg-green-100 dark:bg-green-900 shadow-lg shadow-green-200 dark:shadow-green-900/50'
+              : 'bg-gray-100 dark:bg-gray-800 shadow-lg shadow-gray-200 dark:shadow-gray-900/50'
           }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
-            className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 ${
-              turbine.status === 'running'
+            className={`w-10 h-10 sm:w-12 sm:h-12 ${
+              isActive
                 ? 'text-green-600 dark:text-green-300'
-                : 'text-red-600 dark:text-red-300'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             <path stroke="currentColor" strokeWidth="1.5" d="M12 18V10" />
-            <g className={turbine.status === 'running' ? 'animate-spin-slow origin-center' : ''}>
+            <g className={isActive ? 'animate-spin-slow origin-center' : ''}>
               <path
                 fill="currentColor"
                 d="M12 6c-1.2 0-2.4.6-3.2 1.6L6 10.4c-.5.5-.5 1.3 0 1.8l2.8 2.8c1 .9 2.6.9 3.5 0l2.8-2.8c.5-.5.5-1.3 0-1.8L12.8 7.6C12.4 6.6 12 6 12 6z"
@@ -141,25 +129,25 @@ const WindPlace = () => {
               cy="10"
               r="2"
               fill="currentColor"
-              className={turbine.status === 'running' ? 'animate-pulse' : ''}
+              className={isActive ? 'animate-pulse' : ''}
             />
           </svg>
         </div>
         <p
-          className={`text-[10px] sm:text-xs font-semibold ${
-            turbine.status === 'running'
+          className={`text-xs sm:text-sm font-medium ${
+            isActive
               ? 'text-green-700 dark:text-green-300'
-              : 'text-red-700 dark:text-red-300'
+              : 'text-gray-700 dark:text-gray-300'
           }`}
         >
           {turbine.powerOutput.toFixed(1)} kW
         </p>
-        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Eff: {turbine.efficiency.toFixed(1)}%
         </p>
-        <div className="absolute hidden group-hover:block bg-gray-800 dark:bg-gray-900 text-white text-xs rounded-lg p-2 sm:p-3 shadow-xl -top-16 sm:-top-20 z-10">
+        <div className="absolute hidden group-hover:block bg-gray-800 dark:bg-gray-900 text-white text-xs rounded-lg p-2 sm:p-3 shadow-xl -top-20 z-10">
           <p className="font-semibold">Turbine {turbine.id}</p>
-          <p>Status: {turbine.status.charAt(0).toUpperCase() + turbine.status.slice(1)}</p>
+          <p>Status: {isActive ? 'Running' : 'Inactive'}</p>
           <p>Power: {turbine.powerOutput.toFixed(1)} kW</p>
           <p>Efficiency: {turbine.efficiency.toFixed(1)}%</p>
         </div>
@@ -198,12 +186,12 @@ const WindPlace = () => {
   }
 
   return (
-    <div className="max-w-7xl mt-8 mx-auto px-2 sm:px-4">
-      <section className="bg-transparent rounded-xl p-2 sm:p-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <section className="bg-transparent rounded-2xl overflow-hidden">
         <div className="relative w-full" style={{ height: isMobile ? '70vh' : `${windowSize.height * 0.8}px` }}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-full h-full rounded-xl shadow-lg overflow-hidden"
+              className="w-full h-full rounded-2xl shadow-xl overflow-hidden"
               style={{
                 background: `
                   linear-gradient(135deg, 
@@ -233,7 +221,7 @@ const WindPlace = () => {
                 ></div>
               </div>
   
-              {/* Clouds - Slower animation than solar */}
+              {/* Clouds */}
               <div className="absolute top-0 left-0 w-full h-1/3 z-5">
                 <div
                   className="absolute w-32 h-16 bg-white/70 rounded-full animate-cloud"
@@ -266,39 +254,35 @@ const WindPlace = () => {
                 ></div>
               </div>
   
-              {/* Terrain - More pronounced than solar */}
+              {/* Terrain with rounder peaks */}
               <div className="absolute bottom-0 left-0 w-full h-1/3 z-10"
                 style={{
                   background: 'linear-gradient(to top, hsl(140, 60%, 30%), hsl(140, 60%, 40%))',
                   clipPath: isMobile
-                    ? 'polygon(0% 100%, 0% 60%, 20% 55%, 40% 65%, 60% 50%, 80% 60%, 100% 55%, 100% 100%)'
-                    : 'polygon(0% 100%, 0% 50%, 15% 55%, 30% 45%, 45% 60%, 60% 40%, 75% 55%, 90% 45%, 100% 50%, 100% 100%)',
+                    ? 'polygon(0% 100%, 0% 60%, 10% 55%, 20% 60%, 30% 50%, 40% 60%, 50% 55%, 60% 65%, 70% 50%, 80% 60%, 90% 55%, 100% 60%, 100% 100%)'
+                    : 'polygon(0% 100%, 0% 50%, 10% 55%, 20% 45%, 30% 55%, 40% 40%, 50% 55%, 60% 45%, 70% 60%, 80% 40%, 90% 55%, 100% 50%, 100% 100%)',
                   boxShadow: 'inset 0 -12px 20px rgba(0,0,0,0.25)',
                 }}
               ></div>
   
-              {/* Legends - Consistent with solar style */}
+              {/* Simplified Legend - Only green and gray */}
               <div className={`absolute ${isMobile ? 'bottom-2 left-2 p-2' : 'bottom-4 left-4 p-3'} z-20 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
-                <div className={`flex ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
+                <div className={`flex ${isMobile ? 'space-x-3' : 'space-x-4'}`}>
                   <div className="flex items-center">
-                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-green-500 mr-1 sm:mr-2`}></div>
-                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Running</span>
+                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-green-500 mr-2`}></div>
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Active</span>
                   </div>
                   <div className="flex items-center">
-                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-red-500 mr-1 sm:mr-2`}></div>
-                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Stopped</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-gray-400 mr-1 sm:mr-2`}></div>
-                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Offline</span>
+                    <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full bg-gray-500 mr-2`}></div>
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Inactive</span>
                   </div>
                 </div>
               </div>
   
-              {/* Wind Direction Indicator - More prominent */}
-              <div className={`absolute ${isMobile ? 'top-2 right-2 p-1' : 'top-4 right-4 p-2'} z-20 flex items-center bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
+              {/* Wind Direction Indicator */}
+              <div className={`absolute ${isMobile ? 'top-2 right-2 p-2' : 'top-4 right-4 p-3'} z-20 flex items-center bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
                 <svg 
-                  className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-gray-700 dark:text-gray-200 animate-pulse`}
+                  className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-gray-700 dark:text-gray-200 animate-pulse`}
                   viewBox="0 0 24 24"
                   fill="none"
                 >
@@ -320,7 +304,7 @@ const WindPlace = () => {
                 </span>
               </div>
   
-              {/* Last Updated - Consistent with solar */}
+              {/* Last Updated */}
               {lastUpdated && (
                 <div className={`absolute ${isMobile ? 'bottom-2 right-2 px-2 py-1' : 'bottom-4 right-4 px-3 py-2'} z-20 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-md`}>
                   <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -331,14 +315,14 @@ const WindPlace = () => {
                 </div>
               )}
   
-              {/* Turbine Grid - Improved layout */}
-              <div className={`absolute w-full h-full grid ${isMobile ? 'grid-cols-2 grid-rows-3 gap-2 p-2' : 'grid-cols-3 grid-rows-2 gap-4 p-6'} z-10`}>
+              {/* Turbine Grid */}
+              <div className={`absolute w-full h-full grid ${isMobile ? 'grid-cols-2 grid-rows-3 gap-4 p-4' : 'grid-cols-2 grid-rows-3 gap-8 p-8'} z-10`}>
                 {turbines.map((turbine, index) => (
                   <div key={index} className="flex items-center justify-center relative">
                     {renderTurbine(turbine, index)}
                     {/* Turbine shadow */}
                     <div 
-                      className={`absolute bottom-0 rounded-full bg-black opacity-10 blur-sm ${isMobile ? 'w-8 h-2' : 'w-12 h-3'}`}
+                      className={`absolute bottom-0 rounded-full bg-black opacity-10 blur-sm ${isMobile ? 'w-10 h-2' : 'w-14 h-3'}`}
                       style={{
                         transform: isMobile ? 'translateY(5px) scale(0.8)' : 'translateY(8px) scale(0.9)',
                         filter: 'blur(3px)'
