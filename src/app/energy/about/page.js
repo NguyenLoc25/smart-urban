@@ -14,15 +14,15 @@ const teamMembers = [
     image: "/member_2_PTHTruc.jpg"
   },
   {
-    id: 3,
-    name: "Nguyen Minh Tri",
-    role: "Technical Support & Documentation",
-    image: "/member_3_NMTri.png"
-  },
+      id: 3,
+      name: "MSc. Huynh Thanh Nhan",
+      role: "Advisor",
+      image: "/member_3_HTNhan.jpg"
+    },
   {
     id: 4,
     name: "MSc. Nguyen Vuong Thuy Ngan",
-    role: "Academic Mentor",
+    role: "Academic Mentor & Technical Advisor",
     image: "/member_4_NVTNgan.jpg"
   }
 ];
