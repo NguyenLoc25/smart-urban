@@ -102,7 +102,7 @@ const Header = () => {
           <div className="flex items-center space-x-8">
           <Link href="/" passHref>
           <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt="Smart Urban Logo" className="w-8 h-8" />
+            <img src="/logo1.png" alt="Smart Urban Logo" className="w-8 h-8" />
             <h1 className="text-xl font-bold tracking-tight">
               Smart Urban
             </h1>

@@ -2,7 +2,6 @@ import { Y_AXIS_CONFIG } from '../constants/chart-constants'
 
 export const getChartConfig = (viewMode, isMobile) => ({
   responsive: true,
-  displayModeBar: true,
   scrollZoom: true,
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],

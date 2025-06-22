@@ -18,7 +18,8 @@ const MonthlyChart = dynamic(() => import('../charts/MonthlyChart'), {
   loading: () => <div className="h-[300px] flex items-center justify-center">Đang tải biểu đồ...</div>
 });
 
-const MobileView = ({ chartData, cityName }) => {
+const MobileView = ({ chartData, cityName, isMobile }) => {
+  console.log('isMobile in MobileView:', isMobile);
   const [activeTab, setActiveTab] = useState('daily');
 
   // Calculate monthly data
@@ -44,9 +45,9 @@ const MobileView = ({ chartData, cityName }) => {
             isMobile={true}
           />
           <SystemOverview 
+            isMobile={true}
             dailyData={chartData.dailyData} 
             monthlyData={monthlyData}
-            isMobile={true}
           />
           <ConsumptionStats 
             dailyData={chartData.dailyData}

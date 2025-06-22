@@ -28,7 +28,9 @@ export default function DesktopView({ energyTypes, quantityData, openModal }) {
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {Object.entries(energyTypes).map(([key, energy]) => {
+            const totalSlot = energy.maxSlots.toLocaleString();
             const totalSlots = energy.maxSlots;
+            const availableSlot = (totalSlots - quantityData[key]).toLocaleString();
             const availableSlots = totalSlots - quantityData[key];
             const usagePercentage = totalSlots > 0 ? Math.round((quantityData[key] / totalSlots) * 100) : 0;
             const currentColor = colorClasses[energy.color];
@@ -54,17 +56,17 @@ export default function DesktopView({ energyTypes, quantityData, openModal }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900 dark:text-white font-medium">
-                    {totalSlots}
+                    {totalSlot}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-red-600 dark:text-red-400 font-medium">
-                    {quantityData[key]}
+                    {(quantityData[key].toLocaleString())}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                    {availableSlots > 0 ? availableSlots : 0}
+                    {availableSlot}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

@@ -1,25 +1,39 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-export const useResponsive = () => {
+export function useResponsive(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    // Chỉ chạy phía client
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = `(max-width: ${breakpoint - 0.02}px)`;
+    const mql = window.matchMedia(mediaQuery);
     
-    // Set initial value
-    checkMobile();
-    
-    // Add event listener
-    window.addEventListener('resize', checkMobile);
-    
-    // Clean up
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    // Cập nhật state ban đầu
+    setIsMobile(mql.matches);
+
+    let rAF = null;
+    const handle = () => {
+      if (rAF) cancelAnimationFrame(rAF);
+      rAF = requestAnimationFrame(() => {
+        setIsMobile(mql.matches);
+      });
+    };
+
+    mql.addEventListener("change", handle);
+    window.addEventListener("resize", handle);
+
+    return () => {
+      mql.removeEventListener("change", handle);
+      window.removeEventListener("resize", handle);
+      if (rAF) cancelAnimationFrame(rAF);
+    };
+  }, [breakpoint]);
 
   return isMobile;
-};
+}
 
-// Export as default as well for backward compatibility
 export default useResponsive;

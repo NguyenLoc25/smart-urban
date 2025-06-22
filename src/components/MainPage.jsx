@@ -1,236 +1,477 @@
 import React, { useState } from 'react';
-import { FiHome, FiZap, FiTrash2, FiChevronDown, FiChevronUp, FiExternalLink, FiCheckCircle } from 'react-icons/fi';
-
-const FeatureCard = ({ icon, title, description, progress, color, children }) => {
-  const [expanded, setExpanded] = useState(false);
-  
-  return (
-    <div className={`w-full bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border-t-4 border-${color}-500 relative overflow-hidden`}>
-      <div className=" flex items-start justify-between">
-        <div className="flex items-start">
-          <div className={`bg-${color}-100 p-3 rounded-lg mr-4 text-${color}-600`}>
-            {icon}
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-            <p className="text-gray-600 mt-1">{description}</p>
-          </div>
-        </div>
-        <button 
-          onClick={() => setExpanded(!expanded)}
-          className={`text-${color}-600 hover:bg-${color}-50 p-2 rounded-full transition-colors`}
-          aria-label={expanded ? "Thu gọn" : "Mở rộng"}
-        >
-          {expanded ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-        </button>
-      </div>
-      
-      {progress && (
-        <div className="mt-4">
-          <div className="flex justify-between text-sm text-gray-500 mb-1">
-            <span>Tiến độ phát triển</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className={`bg-${color}-500 h-2 rounded-full`} 
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
-      
-      <div className={`transition-all duration-300 overflow-hidden ${expanded ? 'mt-4 opacity-100 max-h-screen' : 'opacity-0 max-h-0'}`}>
-        {children}
-      </div>
-      
-      {/* Decorative element */}
-      <div className={`absolute bottom-0 right-0 w-16 h-16 bg-${color}-50 rounded-tl-full opacity-30`}></div>
-    </div>
-  );
-};
+import { 
+  FiHome, FiZap, FiUsers, FiMap, FiBarChart2, 
+  FiWifi, FiSun, FiDroplet, FiShield, FiSmartphone,
+  FiFacebook, FiTwitter, FiLinkedin, FiYoutube,
+  FiChevronDown
+} from 'react-icons/fi';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { Parallax, ParallaxProvider } from 'react-scroll-parallax';
 
 const MainPage = () => {
-  const [activeTab, setActiveTab] = useState('energy');
-  
-  const energyData = [
-    { year: 2023, solar: 1200, wind: 800, hydro: 400 },
-    { year: 2022, solar: 900, wind: 700, hydro: 350 },
-    { year: 2021, solar: 600, wind: 500, hydro: 300 },
+  const [activeSection, setActiveSection] = useState('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Feature data
+  const features = [
+    {
+      icon: <FiZap className="text-3xl" />,
+      title: "Năng lượng thông minh",
+      desc: "Hệ thống quản lý năng lượng tái tạo và phân phối thông minh",
+      color: "from-yellow-400 to-yellow-600"
+    },
+    {
+      icon: <FiWifi className="text-3xl" />,
+      title: "Kết nối IoT",
+      desc: "Mạng lưới thiết bị kết nối toàn thành phố",
+      color: "from-blue-400 to-blue-600"
+    },
+    {
+      icon: <FiSun className="text-3xl" />,
+      title: "Chiếu sáng thông minh",
+      desc: "Đèn đường tự động điều chỉnh theo môi trường",
+      color: "from-orange-400 to-orange-600"
+    },
+    {
+      icon: <FiDroplet className="text-3xl" />,
+      title: "Quản lý nước",
+      desc: "Hệ thống giám sát và phân phối nước tối ưu",
+      color: "from-cyan-400 to-cyan-600"
+    },
+    {
+      icon: <FiShield className="text-3xl" />,
+      title: "An ninh đô thị",
+      desc: "Giám sát an ninh bằng AI và camera thông minh",
+      color: "from-purple-400 to-purple-600"
+    },
+    {
+      icon: <FiSmartphone className="text-3xl" />,
+      title: "Ứng dụng di động",
+      desc: "Kết nối cư dân với dịch vụ đô thị",
+      color: "from-green-400 to-green-600"
+    }
+  ];
+
+  // Stats data
+  const stats = [
+    { value: "98%", label: "Hài lòng của cư dân" },
+    { value: "45%", label: "Tiết kiệm năng lượng" },
+    { value: "10k+", label: "Thiết bị IoT" },
+    { value: "24/7", label: "Giám sát an ninh" }
   ];
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen p-4 md:p-8">
-      <div className="w-full max-w-6xl mx-auto">
-        {/* Animated Header */}
-        <header className="w-full mb-12 text-center animate-fadeIn">
-          <div className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl mb-4 shadow-lg transform hover:scale-105 transition-transform duration-300">
-            <h1 className="text-3xl md:text-4xl font-bold flex items-center justify-center">
-              <span className="mr-2">🏙️</span> Smart-Urban
-            </h1>
+    <ParallaxProvider>
+      <div className="relative overflow-hidden dark:bg-gray-900">
+        {/* Navigation */}
+
+
+        {/* Hero Section */}
+        <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent" />
           </div>
-        </header>
 
+          <Parallax speed={-10}>
+            <motion.div 
+              className="relative z-10 text-center px-6 max-w-6xl mx-auto"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400">
+                  Smart Urban
+                </span>
+                <br />
+                Tương lai của đô thị thông minh
+              </h1>
+              <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-10 text-gray-300">
+                Giải pháp toàn diện cho thành phố thông minh, kết nối và bền vững
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <motion.button
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 rounded-xl font-medium text-lg shadow-lg hover:shadow-xl transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Khám phá ngay
+                </motion.button>
+                <motion.a 
+  href="#video-section"
+  className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-xl font-medium text-lg border border-white/20 hover:bg-white/20 transition-all inline-block"
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={(e) => {
+    e.preventDefault();
+    document.getElementById('video-section').scrollIntoView({
+      behavior: 'smooth'
+    });
+  }}
+>
+  Xem video giới thiệu
+</motion.a>
+              </div>
+            </motion.div>
+          </Parallax>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Home Dashboard */}
-          <FeatureCard 
-            icon={<FiHome size={24} />}
-            title="Tổng quan Đô thị"
-            description="Bảng điều khiển trung tâm quản lý toàn bộ hệ thống"
-            progress={30}
-            color="blue"
+          <motion.div 
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h3 className="font-medium text-blue-800 mb-2">Thống kê nhanh</h3>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">1,240</div>
-                    <div className="text-xs text-gray-500">Cư dân</div>
+            <FiChevronDown className="w-8 h-8 text-white" />
+          </motion.div>
+        </section>
+
+        {/* Overview Section */}
+        <section id="video-section" className="py-20 bg-white dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-6">
+            <motion.div 
+              className="text-center mb-16"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-4xl font-bold mb-6 dark:text-white">Giải pháp đô thị thông minh toàn diện</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                SmartUrban tích hợp công nghệ tiên tiến để xây dựng thành phố thông minh, bền vững và đáng sống
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                  <iframe 
+                    width="100%" 
+                    height="320" 
+                    src="https://www.youtube.com/embed/71ocMfYgV1Y?autoplay=1&mute=1&loop=1&playlist=71ocMfYgV1Y" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    title="Smart City Introduction"
+                  ></iframe>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-6 text-white">
+                    <h3 className="text-2xl font-bold">Thành phố tương lai</h3>
+                    <p>Kết nối mọi mặt của đời sống đô thị</p>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">42</div>
-                    <div className="text-xs text-gray-500">Tòa nhà</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">98%</div>
-                    <div className="text-xs text-gray-500">Hài lòng</div>
+                  <button 
+                    onClick={() => {
+                      const iframe = document.querySelector('iframe');
+                      const newSrc = iframe.src.includes('mute=1') 
+                        ? iframe.src.replace('mute=1', 'mute=0') 
+                        : iframe.src.replace('mute=0', 'mute=1');
+                      iframe.src = newSrc;
+                    }}
+                    className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition"
+                    aria-label="Toggle sound"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.975 7.975 0 015.657 2.343m0 0a7.975 7.975 0 010 11.314m-11.314 0a7.975 7.975 0 010-11.314m0 0a7.975 7.975 0 015.657-2.343" />
+                    </svg>
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <div className="space-y-6">
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white">Tầm nhìn của chúng tôi</h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    SmartUrban không chỉ là công nghệ - đó là cách chúng tôi tái tạo đô thị thành không gian sống thông minh, 
+                    nơi con người và công nghệ cùng phát triển hài hòa.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {[
+                      "Hạ tầng thông minh kết nối IoT",
+                      "Năng lượng sạch và bền vững",
+                      "Giao thông thông minh và an toàn",
+                      "Dịch vụ công trực tuyến 24/7",
+                      "Môi trường sống xanh và lành mạnh"
+                    ].map((item, index) => (
+                      <motion.div 
+                        key={index} 
+                        className="flex items-start"
+                        whileHover={{ x: 5 }}
+                      >
+                        <div className="flex-shrink-0 mt-1 mr-3 text-blue-500">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <span className="text-lg dark:text-gray-300">{item}</span>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </FeatureCard>
+          </div>
+        </section>
 
-          {/* Garden Management */}
-          <FeatureCard 
-            icon={<FiZap size={24} />}
-            title="Quản lý Cảnh quan"
-            description="Hệ thống theo dõi và chăm sóc không gian xanh"
-            progress={15}
-            color="green"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center text-green-700">
-                <FiCheckCircle className="mr-2" />
-                <span>Giám sát tự động cây xanh</span>
-              </div>
-              <div className="flex items-center text-green-700">
-                <FiCheckCircle className="mr-2" />
-                <span>Lịch tưới tiêu thông minh</span>
-              </div>
-              <div className="flex items-center text-gray-400">
-                <FiCheckCircle className="mr-2" />
-                <span>Phân tích chất lượng đất (coming soon)</span>
-              </div>
+        {/* Features Section */}
+        <section className="py-20 bg-gray-50 dark:bg-gray-800">
+          <div className="max-w-7xl mx-auto px-6">
+            <motion.div 
+              className="text-center mb-16"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-4xl font-bold mb-6 dark:text-white">Tính năng nổi bật</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Các giải pháp công nghệ tiên tiến được tích hợp trong hệ sinh thái SmartUrban
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -10 }}
+                >
+                  <div className={`h-2 bg-gradient-to-r ${feature.color}`} />
+                  <div className="p-8">
+                    <div className={`w-16 h-16 mb-6 rounded-lg bg-gradient-to-br ${feature.color} text-white flex items-center justify-center`}>
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">{feature.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </FeatureCard>
-        </div>
+          </div>
+        </section>
 
-        {/* Energy Section - Full width */}
-        <FeatureCard 
-          icon={<FiZap size={24} />}
-          title="Quản lý Năng lượng Thông minh"
-          description="Tối ưu hóa hệ thống năng lượng xanh cho đô thị bền vững"
-          progress={75}
-          color="yellow"
-          className="mb-8"
-        >
-          <div className="space-y-6">
-            {/* Energy Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-                <div className="text-yellow-800 font-medium mb-1">Tổng thiết bị</div>
-                <div className="text-3xl font-bold text-yellow-600">156</div>
-                <div className="text-xs text-yellow-700 mt-1">+12% so với năm ngoái</div>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <div className="text-blue-800 font-medium mb-1">Sản lượng hôm nay</div>
-                <div className="text-3xl font-bold text-blue-600">24.5 MWh</div>
-                <div className="text-xs text-blue-700 mt-1">Đủ cho 850 hộ gia đình</div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <div className="text-green-800 font-medium mb-1">Giảm phát thải</div>
-                <div className="text-3xl font-bold text-green-600">42 tấn</div>
-                <div className="text-xs text-green-700 mt-1">CO2 tiết kiệm hàng tháng</div>
-              </div>
+        {/* Stats Section */}
+        <section className="py-20 bg-gradient-to-br from-blue-600 to-teal-600 text-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  className="text-center"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <div className="text-5xl font-bold mb-3">{stat.value}</div>
+                  <div className="text-xl">{stat.label}</div>
+                </motion.div>
+              ))}
             </div>
+          </div>
+        </section>
 
+        {/* Testimonials */}
+        <section className="py-20 bg-white dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-6">
+            <motion.div 
+              className="text-center mb-16"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-4xl font-bold mb-6 dark:text-white">Đánh giá từ đối tác</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Những gì các đối tác và cư dân nói về SmartUrban
+              </p>
+            </motion.div>
 
-            {/* Installation Suggestions */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs">
-              <h3 className="font-medium text-gray-800 mb-3">Đề xuất lắp đặt mới</h3>
-              <div className="space-y-3">
-                {[
-                  { location: 'Khu A - Tòa nhà B', type: 'Solar Panel', potential: 'High' },
-                  { location: 'Công viên Trung tâm', type: 'Wind Turbine', potential: 'Medium' },
-                  { location: 'Hồ nước phía Bắc', type: 'Hydro Generator', potential: 'Low' },
-                ].map((item, index) => (
-                  <div key={index} className="flex items-start p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div className={`w-2 h-2 mt-2 rounded-full mr-3 ${
-                      item.potential === 'High' ? 'bg-green-500' : 
-                      item.potential === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
-                    <div className="flex-1">
-                      <div className="font-medium">{item.location}</div>
-                      <div className="text-sm text-gray-600">{item.type} - Tiềm năng: {item.potential}</div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  quote: "Hệ thống năng lượng mặt trời của SmartUrban giúp khu đô thị chúng tôi giảm 75% khí thải độc hại, đồng thời tiết kiệm chi phí điện năng.",
+                  name: "Ông Nguyễn Thành Long",
+                  title: "Giám đốc Năng lượng Xanh",
+                  avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+                },
+                {
+                  quote: "Nhà thông minh tích hợp vân tay đã ngăn chặn 100% vụ đột nhập trong 6 tháng qua. An toàn tuyệt đối cho gia đình tôi.",
+                  name: "Bà Huỳnh Thị Ngọc Thảo",
+                  title: "Cư dân cao cấp",
+                  avatar: "https://randomuser.me/api/portraits/women/44.jpg"
+                },
+                {
+                  quote: "Hệ thống tưới tự động thông minh không chỉ tiết kiệm 50% nước mà còn tự động điều chỉnh theo thời tiết, khu vườn luôn xanh tươi mà không cần can thiệp.",
+                  name: "Anh Lê Hàn Lập",
+                  title: "Chuyên gia Cảnh quan",
+                  avatar: "https://randomuser.me/api/portraits/men/75.jpg"
+                }
+              ].map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <div className="text-2xl text-gray-400 mb-6">"</div>
+                  <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">{testimonial.quote}</p>
+                  <div className="flex items-center">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name} 
+                      className="w-12 h-12 rounded-full mr-4 object-cover"
+                    />
+                    <div>
+                      <div className="font-bold dark:text-white">{testimonial.name}</div>
+                      <div className="text-gray-600 dark:text-gray-400">{testimonial.title}</div>
                     </div>
                   </div>
-                ))}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-4xl font-bold mb-6">Sẵn sàng chuyển đổi đô thị của bạn?</h2>
+              <p className="text-xl text-gray-300 mb-10">
+                Liên hệ với chúng tôi ngay hôm nay để nhận tư vấn và báo cáo chi tiết về giải pháp SmartUrban
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <motion.button
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 rounded-xl font-medium text-lg shadow-lg hover:shadow-xl transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Liên hệ tư vấn
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-gray-900 text-gray-400 py-12 dark:bg-gray-800">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div>
+                <h3 className="text-white text-lg font-bold mb-4">SmartUrban</h3>
+                <p className="mb-4 dark:text-gray-300">
+                  Giải pháp toàn diện cho đô thị thông minh tương lai
+                </p>
+                <div className="flex space-x-4">
+                  <motion.a 
+
+                    className="text-gray-400 hover:text-white dark:hover:text-blue-400"
+                    whileHover={{ y: -3 }}
+                    aria-label="Facebook"
+                  >
+                    <FiFacebook className="w-6 h-6" />
+                  </motion.a>
+                  <motion.a 
+
+                    className="text-gray-400 hover:text-white dark:hover:text-blue-400"
+                    whileHover={{ y: -3 }}
+                    aria-label="Twitter"
+                  >
+                    <FiTwitter className="w-6 h-6" />
+                  </motion.a>
+                  <motion.a 
+
+                    className="text-gray-400 hover:text-white dark:hover:text-blue-400"
+                    whileHover={{ y: -3 }}
+                    aria-label="LinkedIn"
+                  >
+                    <FiLinkedin className="w-6 h-6" />
+                  </motion.a>
+                  <motion.a 
+
+                    className="text-gray-400 hover:text-white dark:hover:text-red-400"
+                    whileHover={{ y: -3 }}
+                    aria-label="YouTube"
+                  >
+                    <FiYoutube className="w-6 h-6" />
+                  </motion.a>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-white text-lg font-bold mb-4 dark:text-gray-100">Giải pháp</h3>
+                <ul className="space-y-2">
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/home" className="hover:text-white dark:hover:text-gray-200">Không gian sống</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/garden" className="hover:text-white dark:hover:text-gray-200">Tiểu cảnh sinh thái</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/energy" className="hover:text-white dark:hover:text-gray-200">Năng lượng</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/waste" className="hover:text-white dark:hover:text-gray-200">Môi trường</a>
+                  </motion.li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="text-white text-lg font-bold mb-4 dark:text-gray-100">Công ty</h3>
+                <ul className="space-y-2">
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/energy/about" className="hover:text-white dark:hover:text-gray-200">Về chúng tôi</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/energy/privacy" className="hover:text-white dark:hover:text-gray-200">Bản quyền</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/energy/contact" className="hover:text-white dark:hover:text-gray-200">Liên hệ</a>
+                  </motion.li>
+                  <motion.li whileHover={{ x: 5 }}>
+                    <a href="/energy/support" className="hover:text-white dark:hover:text-gray-200">Hỗ trợ</a>
+                  </motion.li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="text-white text-lg font-bold mb-4 dark:text-gray-100">Liên hệ</h3>
+                <address className="not-italic space-y-2 dark:text-gray-300">
+                  <p>227 Đ. Nguyễn Văn Cừ, Phường 4, Quận 5, Hồ Chí Minh</p>
+                  <p>Email: nl700218@gmail.com</p>
+                  <p>Điện thoại: (032) 803 3***</p>
+                </address>
               </div>
             </div>
-          </div>
-        </FeatureCard>
-
-        {/* Waste Management */}
-        <FeatureCard 
-          icon={<FiTrash2 size={24} />}
-          title="Quản lý Chất thải Thông minh"
-          description="Hệ thống thu gom và xử lý rác thải tối ưu"
-          progress={5}
-          color="red"
-        >
-          <div className="text-center py-6">
-            <div className="inline-block bg-red-100 p-4 rounded-full mb-4">
-              <FiTrash2 size={32} className="text-red-600" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">Tính năng đang phát triển</h3>
-            <p className="text-gray-600 max-w-md mx-auto">
-              Chúng tôi đang xây dựng hệ thống quản lý chất thải thông minh với các cảm biến IoT 
-              để tối ưu hóa lộ trình thu gom rác và phân loại tự động.
-            </p>
-            <button className="mt-4 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg transition-colors">
-              Nhận thông báo khi ra mắt
-            </button>
-          </div>
-        </FeatureCard>
-
-        {/* Feedback Section */}
-        <div className="mt-12 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h3 className="text-xl font-medium text-center mb-4">Đóng góp ý kiến của bạn</h3>
-          <div className="max-w-md mx-auto">
-            <textarea 
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="4"
-              placeholder="Chúng tôi muốn nghe ý kiến của bạn để cải thiện Smart-Urban..."
-            ></textarea>
-            <div className="flex justify-between items-center mt-3">
-              <div className="flex space-x-2">
-                {['😊', '😍', '😐', '😕', '😞'].map(emoji => (
-                  <button key={emoji} className="text-2xl hover:scale-125 transition-transform">
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Gửi phản hồi
-              </button>
+            
+            <div className="border-t border-gray-800 mt-12 pt-8 text-sm text-center dark:text-gray-400">
+              <p>© {new Date().getFullYear()} SmartUrban. Bảo lưu mọi quyền.</p>
             </div>
           </div>
-        </div>
+        </footer>
       </div>
-    </div>
+    </ParallaxProvider>
   );
 };
 

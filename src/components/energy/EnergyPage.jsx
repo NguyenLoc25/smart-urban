@@ -1,202 +1,300 @@
-
 'use client';
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, onValue, remove, set, get } from "firebase/database";
+import { v4 as uuidv4 } from 'uuid';
 import { db } from "@/lib/firebaseConfig";
-// import TotalChart from "@/components/energy/chart/TotalChart"; 
-import TotalChart from "@/components/energy/total-chart"; 
-import QuantityTable from "@/components/energy/chart/QuantityTable";
-// import QuantityTable from "@/components/energy/tableDevide/index";
-import ResultChart from "@/components/energy/resultChart"; 
-// import ConsumpChart from "@/components/energy/consumpChart";
-// import ResultChart from "@/components/energy/consumpChart/index"; 
+import SyncStatus from "./SyncStatus";
+import LoadingState from "./LoadingState";
+import MobileView from "./MobileView";
+import DesktopView from "./DesktopView";
 import { calculateEnergyProduction } from "@/components/energy/ProductCalculator";
+import { useSyncStatus } from "./hooks/useSyncStatus";
+import useEnergyTypes from "./hooks/useEnergyTypes";
 
-function SyncStatus({ syncStatus, lastSyncTime }) {
-  return (
-    <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-      <div className="flex items-center space-x-2">
-        {syncStatus.isSyncing ? (
-          <>
-            <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div>
-            <span className="text-sm">Đang đồng bộ dữ liệu...</span>
-          </>
-        ) : (
-          <>
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-sm">Dữ liệu đã đồng bộ</span>
-          </>
-        )}
-      </div>
-      {lastSyncTime && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Cập nhật lúc: {new Date(lastSyncTime).toLocaleTimeString()}
-        </div>
-      )}
-    </div>
-  );
+// Constants
+const EFFECTIVE_HOURS_CONFIG = {
+  Solar: {
+    effectiveHours: [9, 10, 11, 12, 13],
+    energyField: "Electricity from solar - TWh"
+  },
+  Wind: {
+    effectiveHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    energyField: "Electricity from wind - TWh"
+  },
+  Hydro: {
+    effectiveHours: Array.from({ length: 24 }, (_, i) => i + 1),
+    energyField: "Electricity from hydro - TWh"
+  }
+};
+
+// Custom hooks
+function useDeviceData() {
+  const [energyDevices, setEnergyDevices] = useState([]);
+  const [energyData, setEnergyData] = useState([]);
+  
+  const loadDeviceData = useCallback(() => {
+    try {
+      const database = getDatabase();
+      const physicInfoRef = ref(database, 'energy/physic-info');
+
+      return onValue(physicInfoRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const devices = [];
+          
+          if (data.solar) {
+            Object.entries(data.solar).forEach(([id, device]) => {
+              if (device.status !== "Active") return;
+              devices.push(createDeviceObject(id, 'Solar', device));
+            });
+          }
+          
+          if (data.hydro) {
+            Object.entries(data.hydro).forEach(([id, device]) => {
+              if (device.status !== "Active") return;
+              devices.push(createDeviceObject(id, 'Hydro', device));
+            });
+          }
+          
+          if (data.wind) {
+            Object.entries(data.wind).forEach(([id, device]) => {
+              if (device.status !== "Active") return;
+              devices.push(createDeviceObject(id, 'Wind', device));
+            });
+          }
+          
+          setEnergyDevices(devices);
+        }
+      });
+    } catch (err) {
+      console.error("Error loading device data:", err);
+    }
+  }, []);
+
+  const fetchEnergyData = useCallback(() => {
+    const database = getDatabase();
+    const physicInfoRef = ref(database, 'energy/physic-info');
+    
+    const unsubscribe = onValue(physicInfoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setEnergyData(Object.values(data));
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return { energyDevices, energyData, loadDeviceData, fetchEnergyData };
 }
 
-export default function EnergyPage() {  
-  const [energyDevices, setEnergyDevices] = useState([]);
+function createDeviceObject(id, type, device) {
+  const baseInfo = {
+    id,
+    type,
+    energy_type: type,
+    model: device.question_header || 'default',
+    quantity: device.quantity || 0,
+    info: {
+      power: device.power || (type === 'Solar' ? '0 kW' : '0 MW'),
+      efficiency: device.efficiency || (type === 'Hydro' ? '80' : '0'),
+      quantity: device.quantity,
+      model: device.question_header || 'default',
+    }
+  };
+
+  if (type === 'Hydro') {
+    baseInfo.info.flow_rate = device.flowRate || '0';
+  }
+
+  return baseInfo;
+}
+
+function useEnergyData() {
   const [data, setData] = useState({ yearly: [], monthly: [], hourly: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [energyData, setEnergyData] = useState([]);
   const [dataProcessingStage, setDataProcessingStage] = useState('initial');
-  const [syncStatus, setSyncStatus] = useState({
-    isSyncing: false,
-    lastSyncTime: null,
-    syncInProgressBy: null
-  });
   const [dataVersion, setDataVersion] = useState(0);
 
-  const EFFECTIVE_HOURS_CONFIG = useMemo(() => ({
-    Solar: {
-      effectiveHours: [9, 10, 11, 12, 13],
-      energyField: "Electricity from solar - TWh"
-    },
-    Wind: {
-      effectiveHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-      energyField: "Electricity from wind - TWh"
-    },
-    Hydro: {
-      effectiveHours: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-      energyField: "Electricity from hydro - TWh"
-    }
-  }), []);
+  const normalizeData = useCallback((data, key) => {
+    return data.map((d) => ({
+      [key]: d[key],
+      energy: parseInt(d.energy, 10) || 0,
+      ...(d.year && { year: parseInt(d.year, 10) })
+    })).filter(d => d.energy > 0);
+  }, []);
 
+  const fetchData = useCallback(async (checkSyncStatus, retryCount = 0) => {
+    try {
+      setDataProcessingStage('fetching');
+  
+      const currentSyncStatus = await checkSyncStatus();
+      
+      if (currentSyncStatus.isSyncing) {
+        if (retryCount < 3) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return fetchData(checkSyncStatus, retryCount + 1);
+        } else {
+          throw new Error("Dữ liệu đang được cập nhật, vui lòng thử lại sau");
+        }
+      }
+  
+      // Tạo mảng các API endpoints cần fetch
+      const endpoints = [
+        "/api/energy/useData/year/solar",
+        "/api/energy/useData/year/wind",
+        "/api/energy/useData/year/hydro",
+        "/api/energy/useData/month/solar",
+        "/api/energy/useData/month/wind",
+        "/api/energy/useData/month/hydro",
+        "/api/energy/useData/hour/solar",
+        "/api/energy/useData/hour/wind",
+        "/api/energy/useData/hour/hydro",
+      ];
+  
+      // Fetch tất cả endpoints
+      const responses = await Promise.all(endpoints.map(url => fetch(url)));
+  
+      // Kiểm tra status của từng response trước khi parse JSON
+      for (const res of responses) {
+        if (!res.ok) {
+          throw new Error(`API request failed with status ${res.status}`);
+        }
+        if (!res.headers.get('content-type')?.includes('application/json')) {
+          throw new Error('API did not return JSON');
+        }
+      }
+  
+      // Parse JSON từ tất cả responses
+      const [
+        solarYear, windYear, hydroYear,
+        solarMonth, windMonth, hydroMonth,
+        solarHour, windHour, hydroHour
+      ] = await Promise.all(responses.map(res => res.json()));
+  
+      const formattedData = formatData(
+        normalizeData,
+        solarYear, windYear, hydroYear,
+        solarMonth, windMonth, hydroMonth,
+        solarHour, windHour, hydroHour
+      );
+  
+      setData(formattedData);
+      setDataProcessingStage('complete');
+      return formattedData;
+    } catch (err) {
+      if (retryCount < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchData(checkSyncStatus, retryCount + 1);
+      }
+      setDataProcessingStage('error');
+      throw err;
+    }
+  }, [normalizeData]);
+
+  function formatData(
+    normalizeData,
+    solarYear, windYear, hydroYear,
+    solarMonth, windMonth, hydroMonth,
+    solarHour, windHour, hydroHour
+  ) {
+    const solarYearData = normalizeData(solarYear, "year");
+    const windYearData = normalizeData(windYear, "year");
+    const hydroYearData = normalizeData(hydroYear, "year");
+
+    const solarMonthData = normalizeData(solarMonth, "month");
+    const windMonthData = normalizeData(windMonth, "month");
+    const hydroMonthData = normalizeData(hydroMonth, "month");
+
+    const allYears = [...new Set([
+      ...solarMonthData.filter(d => d.year).map(d => d.year),
+      ...windMonthData.filter(d => d.year).map(d => d.year),
+      ...hydroMonthData.filter(d => d.year).map(d => d.year)
+    ])].sort();
+
+    const solarHourData = normalizeData(solarHour, "hour");
+    const windHourData = normalizeData(windHour, "hour");
+    const hydroHourData = normalizeData(hydroHour, "hour");
+
+    const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
+    const uniqueHours = Array.from({ length: 24 }, (_, i) => i);
+
+    const formattedYearlyData = uniqueYears.map(year => ({
+      year,
+      solar: solarYearData.find(d => d.year === year)?.energy ?? 0,
+      wind: windYearData.find(d => d.year === year)?.energy ?? 0,
+      hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
+    }));
+
+    const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+
+    const formattedMonthlyData = allYears.flatMap(year => 
+      allMonths.map(month => ({
+        year,
+        month,
+        solar: solarMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+        wind: windMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+        hydro: hydroMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
+      }))
+    );
+
+    const formattedHourlyData = uniqueHours.map(hour => ({
+      hour,
+      solar: solarHourData.find(d => d.hour === hour)?.energy ?? 0,
+      wind: windHourData.find(d => d.hour === hour)?.energy ?? 0,
+      hydro: hydroHourData.find(d => d.hour === hour)?.energy ?? 0,
+    }));
+
+    return {
+      yearly: formattedYearlyData,
+      monthly: formattedMonthlyData,
+      hourly: formattedHourlyData
+    };
+  }
+
+  return { data, dataProcessingStage, dataVersion, setDataVersion, fetchData, setDataProcessingStage };
+}
+
+function useSyncOperations() {
+  const auth = getAuth();
+  const { checkSyncStatus, lockSync, unlockSync } = useSyncStatus(auth);
   const postedEntriesRef = useRef(new Set());
   const hasPostedRef = useRef(false);
-  const auth = getAuth();
 
-  const energyTypes = useMemo(() => ({
-    all: "Tất cả",
-    Solar: "Năng lượng mặt trời",
-    Wind: "Năng lượng gió",
-    Hydro: "Năng lượng thủy điện"
-  }), []);
-
-  const energyProduction = useMemo(() => 
-    calculateEnergyProduction(energyDevices, energyTypes),
-    [energyDevices, energyTypes]
-  );
-
-  const checkSyncStatus = useCallback(async () => {
-    const database = getDatabase();
-    const syncRef = ref(database, 'energy/syncStatus');
-    
-    return new Promise((resolve) => {
-      onValue(syncRef, (snapshot) => {
-        const status = snapshot.val();
-        resolve(status || { isSyncing: false, syncInProgressBy: null });
-      }, { onlyOnce: true });
-    });
-  }, []);
-
-  const lockSync = useCallback(async (userId) => {
-    const database = getDatabase();
-    const syncRef = ref(database, 'energy/syncStatus');
-    
-    try {
-      const newStatus = {
-        isSyncing: true,
-        syncInProgressBy: userId,
-        timestamp: Date.now()
-      };
-      
-      await set(syncRef, newStatus);
-      localStorage.setItem('energy_sync_status', JSON.stringify(newStatus));
-      return true;
-    } catch (error) {
-      console.error('Không thể khóa đồng bộ:', error);
-      return false;
-    }
-  }, []);
-
-  const unlockSync = useCallback(async () => {
-    const database = getDatabase();
-    const syncRef = ref(database, 'energy/syncStatus');
-    
-    try {
-      const newStatus = {
-        isSyncing: false,
-        syncInProgressBy: null,
-        timestamp: Date.now()
-      };
-      
-      await set(syncRef, newStatus);
-      localStorage.setItem('energy_sync_status', JSON.stringify(newStatus));
-      return true;
-    } catch (error) {
-      console.error('Không thể mở khóa đồng bộ:', error);
-      return false;
-    }
-  }, []);
-
-  const postAllData = useCallback(async () => {
+  const postAllData = useCallback(async (energyProduction) => {
     const user = auth.currentUser;
     
     if (!user) {
-      console.warn("Người dùng chưa đăng nhập");
-      return;
+      throw new Error("Người dùng chưa đăng nhập");
     }
-
+  
     const currentSyncStatus = await checkSyncStatus();
     
     if (currentSyncStatus.isSyncing) {
       if (currentSyncStatus.syncInProgressBy === user.uid) {
-        console.log("Bạn đang thực hiện đồng bộ từ một tab khác");
+        return;
       } else {
-        console.log("Đồng bộ đang được thực hiện bởi người dùng khác");
+        throw new Error("Đồng bộ đang được thực hiện bởi người dùng khác");
       }
-      return;
     }
-
+  
     const lockAcquired = await lockSync(user.uid);
     if (!lockAcquired) {
-      console.warn("Không thể khóa đồng bộ, có thể đang được thực hiện bởi người khác");
-      return;
+      throw new Error("Không thể khóa đồng bộ, có thể đang được thực hiện bởi người khác");
     }
-
+  
     try {
-      setDataProcessingStage('posting');
-      setLoading(true);
-
       const database = getDatabase();
-      const transactionRef = ref(database, 'energy/transactions/' + Date.now());
-      
-      await set(transactionRef, {
-        type: 'data_cleanup',
-        initiatedBy: user.uid,
-        status: 'started',
-        timestamp: Date.now()
-      });
-
       const renewableHourRef = ref(db, "energy/renewable/hour");
       await remove(renewableHourRef);
-      
-      await set(transactionRef, {
-        status: 'data_deleted',
-        timestamp: Date.now()
-      });
-
+  
       postedEntriesRef.current = new Set();
-      console.log("✅ Đã xóa toàn bộ dữ liệu cũ");
-
-      await set(transactionRef, {
-        status: 'posting_data',
-        entriesCount: Object.keys(energyProduction).length,
-        timestamp: Date.now()
-      });
-
+  
       const postRequests = Object.entries(energyProduction).flatMap(([type, values]) => {
         if (type === "all" || !values.dbEntries || values.dbEntries.length === 0) {
           return [];
         }
-
+  
         return values.dbEntries
           .filter(entry => {
             const key = `${type}-${entry.Entity}-${entry.Hour}-${entry.Month}-${entry.Year}`;
@@ -213,9 +311,9 @@ export default function EnergyPage() {
               Year: entry.Year,
               code: entry.code || "VNM"
             };
-
+  
             postedEntriesRef.current.add(key);
-
+  
             return fetch(`/api/energy/fetchData/hour/${type.toLowerCase()}`, {
               method: 'POST',
               headers: {
@@ -225,290 +323,199 @@ export default function EnergyPage() {
             });
           });
       });
-
+  
+      // First wait for all requests to complete
       const responses = await Promise.all(postRequests);
-      await Promise.all(responses.map(res => res.json()));
+      
+      // Then parse all responses as JSON
+      const results = await Promise.all(responses.map(res => {
+        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+        return res.json();
+      }));
       
       const versionRef = ref(database, 'energy/dataVersion');
       const currentVersion = (await get(versionRef)).val() || 0;
       await set(versionRef, currentVersion + 1);
       
-      console.log('All data posted successfully');
       hasPostedRef.current = true;
-      setDataProcessingStage('fetching');
-    } catch (error) {
-      console.error('Error posting data:', error);
-      setError('Lỗi khi gửi dữ liệu lên server');
-      setDataProcessingStage('error');
-      setLoading(false);
-      
-      const database = getDatabase();
-      const errorRef = ref(database, 'energy/transactions/' + Date.now());
-      await set(errorRef, {
-        error: error.message,
-        stack: error.stack,
-        timestamp: Date.now()
-      });
+      return results;
     } finally {
       await unlockSync();
-      setSyncStatus(prev => ({
-        ...prev,
-        isSyncing: false,
-        lastSyncTime: Date.now()
-      }));
     }
-  }, [energyProduction, EFFECTIVE_HOURS_CONFIG, checkSyncStatus, lockSync, unlockSync, auth]);
+  }, [checkSyncStatus, lockSync, unlockSync, auth]);
 
-  const fetchData = useCallback(async (retryCount = 0) => {
-    try {
-      setLoading(true);
-      setError(null);
+  return { postAllData, checkSyncStatus  };
+}
 
-      const syncStatus = await checkSyncStatus();
-      if (syncStatus.isSyncing) {
-        if (retryCount < 3) {
-          console.log(`Dữ liệu đang được đồng bộ, thử lại sau 2s... (${retryCount + 1}/3)`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          return fetchData(retryCount + 1);
-        } else {
-          throw new Error("Dữ liệu đang được cập nhật bởi người dùng khác, vui lòng thử lại sau");
-        }
-      }
-
-      const [
-        solarYearRes, windYearRes, hydroYearRes,
-        solarMonthRes, windMonthRes, hydroMonthRes,
-        solarHourRes, windHourRes, hydroHourRes
-      ] = await Promise.all([
-        fetch("/api/energy/useData/year/solar"),
-        fetch("/api/energy/useData/year/wind"),
-        fetch("/api/energy/useData/year/hydro"),
-        fetch("/api/energy/useData/month/solar"),
-        fetch("/api/energy/useData/month/wind"),
-        fetch("/api/energy/useData/month/hydro"),
-        fetch("/api/energy/useData/hour/solar"),
-        fetch("/api/energy/useData/hour/wind"),
-        fetch("/api/energy/useData/hour/hydro"),
-      ]);
-
-      const allRes = [
-        solarYearRes, windYearRes, hydroYearRes,
-        solarMonthRes, windMonthRes, hydroMonthRes,
-        solarHourRes, windHourRes, hydroHourRes
-      ];
-      const failedRes = allRes.filter(res => !res.ok);
-
-      if (failedRes.length > 0) {
-        failedRes.forEach((res) => {
-          console.error(`❌ Lỗi từ API: ${res.url} - Mã trạng thái: ${res.status}`);
-        });
-        throw new Error("Lỗi khi tải dữ liệu từ server");
-      }
-
-      const [
-        solarYear, windYear, hydroYear,
-        solarMonth, windMonth, hydroMonth,
-        solarHour, windHour, hydroHour
-      ] = await Promise.all([
-        solarYearRes.json(), windYearRes.json(), hydroYearRes.json(),
-        solarMonthRes.json(), windMonthRes.json(), hydroMonthRes.json(),
-        solarHourRes.json(), windHourRes.json(), hydroHourRes.json(),
-      ]);
-
-      const normalizeData = (data, key) =>
-        data.map((d) => ({
-          [key]: d[key],
-          energy: parseInt(d.energy, 10) || 0,
-          ...(d.year && { year: parseInt(d.year, 10) })
-        })).filter(d => d.energy > 0);
-
-      const solarYearData = normalizeData(solarYear, "year");
-      const windYearData = normalizeData(windYear, "year");
-      const hydroYearData = normalizeData(hydroYear, "year");
-
-      const solarMonthData = normalizeData(solarMonth, "month");
-      const windMonthData = normalizeData(windMonth, "month");
-      const hydroMonthData = normalizeData(hydroMonth, "month");
-
-      const allYears = [...new Set([
-        ...solarMonthData.filter(d => d.year).map(d => d.year),
-        ...windMonthData.filter(d => d.year).map(d => d.year),
-        ...hydroMonthData.filter(d => d.year).map(d => d.year)
-      ])].sort();
-
-      const solarHourData = normalizeData(solarHour, "hour");
-      const windHourData = normalizeData(windHour, "hour");
-      const hydroHourData = normalizeData(hydroHour, "hour");
-
-      const uniqueYears = [...new Set([...solarYearData, ...windYearData, ...hydroYearData].map(d => d.year))].sort((a, b) => a - b);
-      const uniqueMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-      const uniqueHours = Array.from({ length: 24 }, (_, i) => i);
-
-      const formattedYearlyData = uniqueYears.map(year => ({
-        year,
-        solar: solarYearData.find(d => d.year === year)?.energy ?? 0,
-        wind: windYearData.find(d => d.year === year)?.energy ?? 0,
-        hydro: hydroYearData.find(d => d.year === year)?.energy ?? 0,
-      }));
-
-      const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-
-      const formattedMonthlyData = allYears.flatMap(year => 
-        allMonths.map(month => ({
-          year,
-          month,
-          solar: solarMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
-          wind: windMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
-          hydro: hydroMonthData.find(d => d.month === month && d.year === year)?.energy ?? 0,
-        }))
-      );
-
-      const formattedHourlyData = uniqueHours.map(hour => ({
-        hour,
-        solar: solarHourData.find(d => d.hour === hour)?.energy ?? 0,
-        wind: windHourData.find(d => d.hour === hour)?.energy ?? 0,
-        hydro: hydroHourData.find(d => d.hour === hour)?.energy ?? 0,
-      }));
-
-      setData({
-        yearly: formattedYearlyData,
-        monthly: formattedMonthlyData,
-        hourly: formattedHourlyData
-      });
-
-      setDataProcessingStage('complete');
-      setSyncStatus(prev => ({
-        ...prev,
-        lastSyncTime: Date.now()
-      }));
-    } catch (err) {
-      if (retryCount < 3 && err.message.includes("tải dữ liệu")) {
-        console.log(`Thử lại fetchData... (${retryCount + 1}/3)`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return fetchData(retryCount + 1);
-      }
-      
-      console.error("❌ Lỗi:", err);
-      setError(err.message);
-      setDataProcessingStage('error');
-    } finally {
-      setLoading(false);
-    }
-  }, [checkSyncStatus]);
-
-  const loadData = useCallback(() => {
-    try {
-      const database = getDatabase();
-      const physicInfoRef = ref(database, 'energy/physic-info');
-
-      const unsubscribe = onValue(physicInfoRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const devices = [];
-          
-          if (data.solar) {
-            Object.entries(data.solar).forEach(([id, device]) => {
-              if (device.status !== "Active") return;
-              
-              devices.push({
-                id,
-                type: 'Solar',
-                energy_type: 'Solar',
-                model: device.question_header || 'default',
-                quantity: device.quantity || 0,
-                info: {
-                  power: device.power || '0 kW',
-                  efficiency: device.efficiency || '0',
-                  quantity: device.quantity,
-                  model: device.question_header || 'default',
-                }
-              });
-            });
-          }
-          
-          if (data.hydro) {
-            Object.entries(data.hydro).forEach(([id, device]) => {
-              if (device.status !== "Active") return;
-              
-              devices.push({
-                id,
-                type: 'Hydro',
-                energy_type: 'Hydro',
-                model: device.question_header || 'default',
-                quantity: device.quantity || 0,
-                info: {
-                  power: device.power || '0 MW',
-                  efficiency: device.efficiency || '80',
-                  flow_rate: device.flowRate || '0',
-                  quantity: device.quantity,
-                  model: device.question_header || 'default',
-                }
-              });
-            });
-          }
-          
-          if (data.wind) {
-            Object.entries(data.wind).forEach(([id, device]) => {
-              if (device.status !== "Active") return;
-              
-              devices.push({
-                id,
-                type: 'Wind',
-                energy_type: 'Wind',
-                model: device.question_header || 'default',
-                quantity: device.quantity || 0,
-                info: {
-                  power: device.power || '0 MW',
-                  efficiency: device.efficiency || '0',
-                  quantity: device.quantity,
-                  model: device.question_header || 'default',
-                }
-              });
-            });
-          }
-          
-          setEnergyDevices(devices);
-          setDataProcessingStage('initial');
-        } else {
-          setError("No data available");
-          setLoading(false);
-        }
-      });
-
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Error loading data:", err);
-      setError(err.message);
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const database = getDatabase();
-    const physicInfoRef = ref(database, 'energy/physic-info');
-    
-    const unsubscribe = onValue(physicInfoRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const dataArray = Object.values(data);
-        setEnergyData(dataArray);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+function useResponsiveLayout() {
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     
-    const resizeHandler = () => {
-      checkMobile();
-    };
-    
+    const resizeHandler = () => checkMobile();
     window.addEventListener('resize', resizeHandler);
     return () => window.removeEventListener('resize', resizeHandler);
   }, []);
+
+  return isMobile;
+}
+
+function useEnergyDataFetching() {
+  const [renewableEnergy, setRenewableEnergy] = useState(0);
+  const [consumption, setConsumption] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const db = getDatabase();
+    
+    const fetchData = () => {
+      const productionRef = ref(db, 'energy/totalProduction');
+      const productionUnsub = onValue(productionRef, (snapshot) => {
+        try {
+          const data = snapshot.val();
+          
+          // Find the Vietnam production record
+          const vietnamRecord = Object.values(data).find(
+            record => record.entity === "Vietnam"
+          );
+
+          if (vietnamRecord?.production) {
+            const { Hydro, Solar, Wind } = vietnamRecord.production;
+            const totalRenewable = (Hydro || 0) + (Solar || 0) + (Wind || 0);
+            
+            console.log('Energy Production:', {
+              Hydro,
+              Solar,
+              Wind,
+              Total: totalRenewable,
+            });
+            
+            setRenewableEnergy(totalRenewable);
+          } else {
+            console.warn('Vietnam production data not found');
+            setError('Dữ liệu sản xuất không tìm thấy');
+          }
+        } catch (err) {
+          setError('Lỗi khi đọc dữ liệu sản xuất năng lượng');
+          console.error('Production data processing error:', err);
+        }
+      }, (error) => {
+        setError('Lỗi kết nối đến dữ liệu sản xuất năng lượng');
+        console.error('Production connection error:', error);
+      });
+
+      const cityRef = ref(db, 'energy/city');
+      const cityUnsub = onValue(cityRef, (snapshot) => {
+        try {
+          const data = snapshot.val();
+          console.log('Raw consumption data:', data);
+
+          if (data && typeof data === 'object') {
+            const cityArray = Object.values(data);
+            if (cityArray.length > 0) {
+              const latest = cityArray.sort((a, b) => {
+                const dateA = new Date(a.year, a.month - 1, a.day);
+                const dateB = new Date(b.year, b.month - 1, b.day);
+                return dateB - dateA;
+              })[0];
+
+              const consumptionValue = latest.production;
+              console.log('Latest consumption data:', latest);
+              setConsumption(consumptionValue);
+              setLoading(false);
+            } else {
+              setError('Không có dữ liệu tiêu thụ năng lượng');
+            }
+          } else {
+            setError('Dữ liệu tiêu thụ năng lượng không hợp lệ');
+          }
+        } catch (err) {
+          setError('Lỗi khi đọc dữ liệu tiêu thụ năng lượng');
+          console.error('Consumption data error:', err);
+        }
+      }, (error) => {
+        setError('Lỗi kết nối đến dữ liệu tiêu thụ năng lượng');
+        console.error('Consumption connection error:', error);
+      });
+      
+      return () => {
+        productionUnsub();
+        cityUnsub();
+      };
+    };
+
+    const unsubscribe = fetchData();
+    return unsubscribe;
+  }, []);
+
+  return { renewableEnergy, consumption, loading, error };
+}
+
+export default function EnergyPage() {  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [syncStatus, setSyncStatus] = useState({
+    isSyncing: false,
+    lastSyncTime: null,
+    syncInProgressBy: null
+  });
+  const { renewableEnergy, consumption } = useEnergyDataFetching();
+
+  const isMobile = useResponsiveLayout();
+  const { energyDevices, energyData, loadDeviceData, fetchEnergyData } = useDeviceData();
+  const { data, dataProcessingStage, dataVersion, setDataVersion, fetchData, setDataProcessingStage } = useEnergyData();
+  const { postAllData, checkSyncStatus } = useSyncOperations();
+  const energyTypes = useEnergyTypes();
+  const auth = getAuth();
+
+  const energyProduction = useMemo(() => 
+    calculateEnergyProduction(energyDevices, energyTypes),
+    [energyDevices, energyTypes]
+  );
+
+  const saveProductionData = useCallback(async () => {
+    try {
+      const now = new Date().toISOString();
+      
+      const requestData = {
+        entity: "Vietnam",
+        metadata: {
+          production: {
+            Hydro: energyProduction.Hydro?.production || 0,
+            Solar: energyProduction.Solar?.production || 0,
+            Wind: energyProduction.Wind?.production || 0
+          }
+        }
+      };
+
+      const response = await fetch('/api/energy/totalProduction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      const result = await response.json();
+      console.log('API Response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to save production data');
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error saving production data:", error);
+      return { 
+        success: false, 
+        message: error.message,
+        error: error.toString() 
+      };
+    }
+  }, [energyProduction]);
 
   useEffect(() => {
     const database = getDatabase();
@@ -517,171 +524,109 @@ export default function EnergyPage() {
     const unsubscribe = onValue(versionRef, (snapshot) => {
       const version = snapshot.val();
       if (version && version > dataVersion) {
-        console.log(`Phát hiện phiên bản dữ liệu mới: ${version}`);
         setDataVersion(version);
-        fetchData();
+        fetchData(checkSyncStatus);
       }
     });
 
     return () => unsubscribe();
-  }, [dataVersion, fetchData]);
+  }, [dataVersion, fetchData, checkSyncStatus]);
 
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'energy_sync_status') {
-        const newStatus = JSON.parse(e.newValue);
-        setSyncStatus(newStatus);
-        
-        if (newStatus.isSyncing && newStatus.syncInProgressBy !== auth.currentUser?.uid) {
-          console.log('Phát hiện đồng bộ từ tab khác');
-        }
+        setSyncStatus(JSON.parse(e.newValue));
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [auth]);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     if (dataProcessingStage === 'initial' && energyDevices.length > 0) {
-      postAllData();
+      setLoading(true);
+      postAllData(energyProduction)
+        .catch(err => setError(err.message))
+        .finally(() => setLoading(false));
     } else if (dataProcessingStage === 'fetching') {
-      fetchData();
+      setLoading(true);
+      fetchData(checkSyncStatus)
+        .catch(err => setError(err.message))
+        .finally(() => setLoading(false));
     }
-  }, [dataProcessingStage, energyDevices, postAllData, fetchData]);
+  }, [dataProcessingStage, energyDevices, postAllData, fetchData, energyProduction, checkSyncStatus]);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(getAuth(), (user) => {
       if (user) {
-        loadData();
+        const unsubscribeDevice = loadDeviceData();
+        const unsubscribeEnergy = fetchEnergyData();
+        
+        return () => {
+          unsubscribeDevice();
+          unsubscribeEnergy();
+        };
       } else {
         setError("User not authenticated");
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
-  }, [loadData, auth]);
+    return unsubscribeAuth;
+  }, [loadDeviceData, fetchEnergyData]);
+
+  useEffect(() => {
+    const saveDataOnLoad = async () => {
+      if (energyDevices.length > 0 && dataProcessingStage === 'complete') {
+        try {
+          await saveProductionData();
+        } catch (error) {
+          console.error("Failed to save production data on load:", error);
+        }
+      }
+    };
+
+    saveDataOnLoad();
+  }, [energyDevices, dataProcessingStage, saveProductionData]);
+
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (energyDevices.length > 0) {
+        try {
+          await saveProductionData();
+        } catch (error) {
+          console.error("Failed to save production data before unload:", error);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [energyDevices, saveProductionData]);
 
   if (loading) {
-    const loadingMessages = {
-      initial: "⏳ Đang chuẩn bị dữ liệu...",
-      posting: "🔄 Đang gửi dữ liệu lên server...",
-      fetching: "📥 Đang tải dữ liệu mới từ server...",
-      complete: "✅ Hoàn tất! Đang hiển thị kết quả..."
-    };
-  
-    const loadingProgress = {
-      initial: 20,
-      posting: 50,
-      fetching: 80,
-      complete: 100
-    };
-  
-    const currentMessage = loadingMessages[dataProcessingStage] || "Đang tải...";
-    const currentProgress = loadingProgress[dataProcessingStage] || 30;
-  
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="flex flex-col items-center">
-            <div className="relative w-20 h-20 mb-4">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
-              <div 
-                className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"
-                style={{ animationDuration: '1.5s' }}
-              ></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl">
-                  {dataProcessingStage === 'posting' && '📤'}
-                  {dataProcessingStage === 'fetching' && '📥'}
-                  {dataProcessingStage === 'initial' && '⏳'}
-                  {dataProcessingStage === 'complete' && '✅'}
-                </span>
-              </div>
-            </div>
-            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 text-center">
-              {currentMessage}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">
-              {dataProcessingStage === 'posting' && 'Vui lòng chờ trong giây lát...'}
-              {dataProcessingStage === 'fetching' && 'Dữ liệu đang được xử lý...'}
-              {dataProcessingStage === 'initial' && 'Đang khởi tạo hệ thống...'}
-              {dataProcessingStage === 'complete' && 'Đang hoàn tất quá trình...'}
-            </p>
-          </div>
-  
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
-              <span>Tiến trình</span>
-              <span>{currentProgress}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2.5 rounded-full transition-all duration-500 ease-out" 
-                style={{ width: `${currentProgress}%` }}
-              ></div>
-            </div>
-          </div>
-  
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs text-gray-500 dark:text-gray-400">
-              <p>Trạng thái hiện tại: <span className="font-mono">{dataProcessingStage}</span></p>
-              <p className="mt-1">Số lượng thiết bị: <span className="font-mono">{energyDevices.length}</span></p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    return <LoadingState dataProcessingStage={dataProcessingStage} energyDevices={energyDevices} />;
   }
 
   if (error) return <div className="text-red-500 p-4">❌ Lỗi: {error}</div>;
 
-  const renderMobileView = () => (
-    <div className="p-4 space-y-6">
-      <div className="overflow-x-auto">
-        <QuantityTable data={energyData} />
-      </div>
-      <TotalChart energyData={data} />
-      <ResultChart />
-    </div>
-  );
-  
-  const renderDesktopView = () => (
-    <div className="p-6 space-y-6">
-      <QuantityTable data={energyData} />
-      <TotalChart energyData={data} />
-      <ResultChart />
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Sản lượng điện từ các nguồn</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(energyProduction).map(([type, values]) => (
-          <div 
-            key={type} 
-            className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-          >
-            <h3 className="font-medium text-gray-700 dark:text-gray-300">{energyTypes[type] || type}</h3>
-            <p className="text-2xl font-bold mt-2 text-gray-800 dark:text-white">{values.production} kWh</p>
-            <div className="flex items-center mt-3">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2 rounded-full" 
-                  style={{ width: `${values.percentage}%` }}
-                ></div>
-              </div>
-              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{values.percentage}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <>
-      {isMobile ? renderMobileView() : renderDesktopView()}
+      {isMobile ? 
+        <MobileView energyData={energyData} data={data} /> : 
+        <DesktopView 
+          energyData={energyData} 
+          data={data} 
+          renewableEnergy={renewableEnergy} 
+          consumption={consumption} 
+          error={error} 
+          loading={loading}  
+          energyProduction={energyProduction} 
+        />
+      }
       <SyncStatus 
         syncStatus={syncStatus} 
         lastSyncTime={syncStatus.lastSyncTime} 

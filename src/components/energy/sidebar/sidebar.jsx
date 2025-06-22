@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, Settings, Wifi, Scan, Menu, X } from "lucide-react";
+import { Home, Settings, Wifi, Scan, ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,7 @@ const navItems = [
 
 export default function Sidebar() {
   const [isMobile, setIsMobile] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -25,91 +25,57 @@ export default function Sidebar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      {!isMobile && (
-        <aside className="w-64 h-screen fixed top-16 left-0 
-          bg-gradient-to-b from-blue-100 to-blue-50 dark:from-gray-800 dark:to-gray-900 
-          border-r shadow-sm px-4 py-6
-          text-gray-800 dark:text-white"
-        >
-          <nav className="space-y-2">
+      {/* Floating Toggle Button */}
+      <button
+        onClick={toggleSidebar}
+        className={`fixed z-40 p-2 rounded-full bg-gray-800 dark:bg-gray-900 text-white dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-lg transition-all duration-300
+          ${isMobile ? 'bottom-1/2 left-4 translate-y-1/2' : 'top-1/2 left-4 -translate-y-1/2'}
+          hover:bg-gray-700 dark:hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50`}
+      >
+        {sidebarOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
+      </button>
+
+      {/* Sidebar Content */}
+      <aside
+        className={`fixed z-30 ${isMobile ? 'h-[calc(100vh-4rem)] bottom-0' : 'h-screen top-0'} left-0 mt-16 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 
+          shadow-lg transition-all duration-300 ease-in-out
+          ${sidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}
+      >
+        <nav className="space-y-2 p-4 h-full flex flex-col">
+          <div className="flex-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="flex items-center gap-3 px-3 py-2 rounded-md 
-                  hover:bg-blue-200/60 dark:hover:bg-gray-700 
+                  hover:bg-gray-200/60 dark:hover:bg-gray-700/80
                   text-sm font-medium transition 
-                  text-gray-800 dark:text-gray-100 
-                  hover:text-blue-800 dark:hover:text-blue-400"
+                  text-gray-800 dark:text-gray-200 
+                  hover:text-gray-900 dark:hover:text-gray-100
+                  whitespace-nowrap overflow-hidden"
               >
                 {item.icon}
-                {item.label}
+                <span className={`${sidebarOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
+                  {item.label}
+                </span>
               </Link>
             ))}
-          </nav>
-        </aside>
-      )}
+          </div>
+        </nav>
+      </aside>
 
-      {/* Mobile Hamburger Button */}
-      {isMobile && (
-        <button
-          onClick={toggleDrawer}
-          className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-md bg-blue-500 text-white shadow-lg"
-        >
-          <Menu size={24} />
-        </button>
-      )}
-
-      {/* Mobile Drawer Menu */}
-      {isMobile && (
-        <>
-          <div
-            className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300
-              ${drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            onClick={toggleDrawer}
-          />
-          
-          <aside
-            className={`fixed top-0 left-0 z-40 w-64 h-screen
-              bg-gradient-to-b from-blue-100 to-blue-50 dark:from-gray-800 dark:to-gray-900 
-              shadow-lg transform transition-transform duration-300
-              ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
-          >
-            <div className="flex justify-end p-4">
-              <button
-                onClick={toggleDrawer}
-                className="p-1 rounded-md hover:bg-blue-200/60 dark:hover:bg-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <nav className="space-y-2 px-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={toggleDrawer}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md 
-                    hover:bg-blue-200/60 dark:hover:bg-gray-700 
-                    text-sm font-medium transition 
-                    text-gray-800 dark:text-gray-100 
-                    hover:text-blue-800 dark:hover:text-blue-400"
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </aside>
-        </>
+      {/* Overlay for mobile */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 dark:bg-black/70"
+          onClick={toggleSidebar}
+        />
       )}
     </>
   );
