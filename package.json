@@ -39,7 +39,6 @@
     "next-auth": "^4.24.11",
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
-    "onnxruntime-node": "^1.22.0-rev",
     "p-retry": "^6.2.1",
     "plotly.js": "^3.0.1",
     "react": "^19.0.0",
