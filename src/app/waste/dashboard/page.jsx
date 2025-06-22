@@ -9,7 +9,7 @@ import { Truck, ActivitySquare, Trash2, Settings2 } from "lucide-react";
 
 export default function DashboardPage() {
   const [data, setData] = useState({
-    vehicles: 1,
+    vehicles: 2,
     conveyors: 3,
     trashToday: 560,
     energy: 3.2,
@@ -87,7 +87,7 @@ export default function DashboardPage() {
       {/* Biểu đồ */}
       <Card className="p-6 rounded-xl shadow-xl bg-white dark:bg-gray-900">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-          📊 Biểu đồ rác phân loại theo tháng
+          📊 Biểu đồ rác phân loại theo năm
         </h2>
         <EChartsOverview />
       </Card>
