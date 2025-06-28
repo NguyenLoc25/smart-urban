@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 
 export default function ARVideo() {
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -98,6 +99,11 @@ export default function ARVideo() {
       stopAnimation();
     };
 
+    const handleSceneError = (e) => {
+      console.error("AR Scene Error:", e);
+      setError("Failed to initialize AR scene");
+    };
+
     const marker = document.querySelector("a-marker-camera");
     if (marker) {
       marker.addEventListener("markerFound", onMarkerFound);
@@ -127,7 +133,7 @@ export default function ARVideo() {
       top: 0,
       left: 0,
       zIndex: 1000,
-      overflow: 'hidden'
+      backgroundColor: 'black'
     }}>
       {error && (
         <div style={{
@@ -137,27 +143,11 @@ export default function ARVideo() {
           transform: 'translate(-50%, -50%)',
           color: 'white',
           zIndex: 1001,
-          textAlign: 'center',
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          padding: '20px',
-          borderRadius: '10px'
+          textAlign: 'center'
         }}>
           <h2>Error</h2>
           <p>{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '8px 16px',
-              marginTop: '10px',
-              background: '#118AFF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Retry
-          </button>
+          <button onClick={() => window.location.reload()}>Retry</button>
         </div>
       )}
 
@@ -165,7 +155,11 @@ export default function ARVideo() {
         embedded
         vr-mode-ui="enabled: false"
         arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; cameraParametersUrl: https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/data/camera_para.dat"
-        renderer="logarithmicDepthBuffer: true; alpha: false; colorManagement: true;"
+        onLoaded={() => setIsLoading(false)}
+        onError={(e) => {
+          console.error("Scene error:", e);
+          setError("AR initialization failed");
+        }}
         style={{ display: 'block', width: '100%', height: '100%' }}
       >
         <a-assets>
@@ -180,15 +174,6 @@ export default function ARVideo() {
           />
         </a-assets>
 
-        {/* Thêm camera background */}
-        <a-entity id="camera" camera></a-entity>
-        <a-entity geometry="primitive: plane; height: 2; width: 2" 
-                 material="shader: flat; src: #videoTexture"
-                 position="0 0 -1"
-                 rotation="-90 0 0"
-                 visible="false">
-        </a-entity>
-
         <a-entity
           id="config"
           visible="false"
@@ -202,6 +187,12 @@ export default function ARVideo() {
           move-duration="1500"
           pause-duration="1000"
         />
+
+        {isLoading && (
+          <a-entity position="0 0 -1">
+            <a-text value="Loading AR..." align="center" color="white" width="5"></a-text>
+          </a-entity>
+        )}
 
         <a-entity id="arContent" visible="false">
           <a-entity id="pointsContainer">
@@ -242,17 +233,9 @@ export default function ARVideo() {
         <a-marker-camera 
           type="pattern" 
           url="/energy/pattern-hydro.patt" 
-          emitevents="true"
+          emitevents="true" 
           onError={() => setError("Marker pattern not found")}
-        >
-          {/* Thêm camera background khi marker được nhận diện */}
-          <a-entity geometry="primitive: plane; height: 2; width: 2" 
-                   material="shader: flat; src: #videoTexture"
-                   position="0 0 0"
-                   rotation="-90 0 0"
-                   visible="true">
-          </a-entity>
-        </a-marker-camera>
+        />
       </a-scene>
     </div>
   );
