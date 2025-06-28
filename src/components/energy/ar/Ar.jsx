@@ -181,4 +181,5 @@ export default function ARVideo() {
       <a-marker-camera type="pattern" url="/energy/pattern-hydro.patt" emitevents="true" />
     </a-scene>
   );
+  
 }
