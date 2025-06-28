@@ -165,7 +165,7 @@ export default function ARVideo() {
         embedded
         vr-mode-ui="enabled: false"
         arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; cameraParametersUrl: https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/data/camera_para.dat"
-        renderer="logarithmicDepthBuffer: true; alpha: true"
+        renderer="logarithmicDepthBuffer: true; alpha: false; colorManagement: true;"
         style={{ display: 'block', width: '100%', height: '100%' }}
       >
         <a-assets>
@@ -179,6 +179,15 @@ export default function ARVideo() {
             src="https://res.cloudinary.com/dkkaz58hl/video/upload/v1751094058/Hydro_v2_viii4z.mp4"
           />
         </a-assets>
+
+        {/* Thêm camera background */}
+        <a-entity id="camera" camera></a-entity>
+        <a-entity geometry="primitive: plane; height: 2; width: 2" 
+                 material="shader: flat; src: #videoTexture"
+                 position="0 0 -1"
+                 rotation="-90 0 0"
+                 visible="false">
+        </a-entity>
 
         <a-entity
           id="config"
@@ -235,7 +244,15 @@ export default function ARVideo() {
           url="/energy/pattern-hydro.patt" 
           emitevents="true"
           onError={() => setError("Marker pattern not found")}
-        />
+        >
+          {/* Thêm camera background khi marker được nhận diện */}
+          <a-entity geometry="primitive: plane; height: 2; width: 2" 
+                   material="shader: flat; src: #videoTexture"
+                   position="0 0 0"
+                   rotation="-90 0 0"
+                   visible="true">
+          </a-entity>
+        </a-marker-camera>
       </a-scene>
     </div>
   );
