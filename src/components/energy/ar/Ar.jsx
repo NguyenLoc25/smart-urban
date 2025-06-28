@@ -1,10 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function ARVideo() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   useEffect(() => {
     const video = document.querySelector("#videoTexture");
     const videoEntity = document.querySelector("#videoEntity");
@@ -86,10 +83,7 @@ export default function ARVideo() {
     };
 
     const onMarkerFound = () => {
-      video.play().catch((e) => {
-        console.error("Video play error:", e);
-        setError("Failed to play video");
-      });
+      video.play().catch((e) => console.error(e));
       arContent.setAttribute("visible", "true");
       startAnimation();
     };
@@ -99,16 +93,9 @@ export default function ARVideo() {
       stopAnimation();
     };
 
-    const handleSceneError = (e) => {
-      console.error("AR Scene Error:", e);
-      setError("Failed to initialize AR scene");
-    };
-
     const marker = document.querySelector("a-marker-camera");
-    if (marker) {
-      marker.addEventListener("markerFound", onMarkerFound);
-      marker.addEventListener("markerLost", onMarkerLost);
-    }
+    marker?.addEventListener("markerFound", onMarkerFound);
+    marker?.addEventListener("markerLost", onMarkerLost);
 
     document.addEventListener("componentchanged", (e) => {
       if (e.detail.name === "position" && e.target.classList.contains("point")) {
@@ -117,126 +104,81 @@ export default function ARVideo() {
     });
 
     return () => {
-      if (marker) {
-        marker.removeEventListener("markerFound", onMarkerFound);
-        marker.removeEventListener("markerLost", onMarkerLost);
-      }
+      marker?.removeEventListener("markerFound", onMarkerFound);
+      marker?.removeEventListener("markerLost", onMarkerLost);
       stopAnimation();
     };
   }, []);
 
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 1000,
-      backgroundColor: 'black'
-    }}>
-      {error && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          color: 'white',
-          zIndex: 1001,
-          textAlign: 'center'
-        }}>
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Retry</button>
-        </div>
-      )}
-
-      <a-scene
-        embedded
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; cameraParametersUrl: https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/data/camera_para.dat"
-        onLoaded={() => setIsLoading(false)}
-        onError={(e) => {
-          console.error("Scene error:", e);
-          setError("AR initialization failed");
-        }}
-        style={{ display: 'block', width: '100%', height: '100%' }}
-      >
-        <a-assets>
-          <video
-            id="videoTexture"
-            autoPlay
-            loop
-            muted
-            crossOrigin="anonymous"
-            playsInline
-            src="https://res.cloudinary.com/dkkaz58hl/video/upload/v1751094058/Hydro_v2_viii4z.mp4"
-          />
-        </a-assets>
-
-        <a-entity
-          id="config"
-          visible="false"
-          video-width="0.7"
-          video-height="0.4"
-          video-depth="0.01"
-          point-radius="0.05"
-          point-color="#FF3E96"
-          line-color="#118AFF"
-          line-width="0.02"
-          move-duration="1500"
-          pause-duration="1000"
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; cameraParametersUrl: https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/data/camera_para.dat"
+    >
+      <a-assets>
+        <video
+          id="videoTexture"
+          autoPlay
+          loop
+          muted
+          crossOrigin="anonymous"
+          playsInline
+          src="https://res.cloudinary.com/dkkaz58hl/video/upload/v1751094058/Hydro_v2_viii4z.mp4"
         />
+      </a-assets>
 
-        {isLoading && (
-          <a-entity position="0 0 -1">
-            <a-text value="Loading AR..." align="center" color="white" width="5"></a-text>
-          </a-entity>
-        )}
+      <a-entity
+        id="config"
+        visible="false"
+        video-width="0.7"
+        video-height="0.4"
+        video-depth="0.01"
+        point-radius="0.05"
+        point-color="#FF3E96"
+        line-color="#118AFF"
+        line-width="0.02"
+        move-duration="1500"
+        pause-duration="1000"
+      />
 
-        <a-entity id="arContent" visible="false">
-          <a-entity id="pointsContainer">
-            {["-0.6 -0.2 0", "-0.3 0.1 0", "0 0.4 0", "0.3 0.1 0", "0.6 -0.2 0"].map((pos, i) => (
-              <a-sphere
-                key={i}
-                class="point"
-                position={pos}
-                radius="0.05"
-                color="#FF3E96"
-                draggable=""
-                super-hands="colliderEvent: raycaster-intersected; colliderEventProperty: els; colliderEndEvent: raycaster-intersected-cleared; colliderEndEventProperty: els"
-              />
-            ))}
-          </a-entity>
-
-          <a-entity id="linesContainer">
-            <a-entity class="connecting-line" line="start: -0.6 -0.2 0; end: -0.3 0.1 0; color: #118AFF" />
-            <a-entity class="connecting-line" line="start: -0.3 0.1 0; end: 0 0.4 0; color: #118AFF" />
-            <a-entity class="connecting-line" line="start: 0 0.4 0; end: 0.3 0.1 0; color: #118AFF" />
-            <a-entity class="connecting-line" line="start: 0.3 0.1 0; end: 0.6 -0.2 0; color: #118AFF" />
-            <a-entity class="connecting-line" line="start: 0.6 -0.2 0; end: -0.6 -0.2 0; color: #118AFF" />
-          </a-entity>
-
-          <a-entity id="videoEntity" position="-0.6 -0.2 0.01">
-            <a-box
-              class="video-box"
-              position="0 0 0"
-              width="0.7"
-              height="0.4"
-              depth="0.01"
-              rotation="-90 0 0"
-              material="shader: flat; src: #videoTexture"
+      <a-entity id="arContent" visible="false">
+        <a-entity id="pointsContainer">
+          {["-0.6 -0.2 0", "-0.3 0.1 0", "0 0.4 0", "0.3 0.1 0", "0.6 -0.2 0"].map((pos, i) => (
+            <a-sphere
+              key={i}
+              class="point"
+              position={pos}
+              radius="0.05"
+              color="#FF3E96"
+              draggable=""
+              super-hands="colliderEvent: raycaster-intersected; colliderEventProperty: els; colliderEndEvent: raycaster-intersected-cleared; colliderEndEventProperty: els"
             />
-          </a-entity>
+          ))}
         </a-entity>
 
-        <a-marker-camera 
-          type="pattern" 
-          url="/energy/pattern-hydro.patt" 
-          emitevents="true" 
-          onError={() => setError("Marker pattern not found")}
-        />
-      </a-scene>
-    </div>
+        <a-entity id="linesContainer">
+          <a-entity class="connecting-line" line="start: -0.6 -0.2 0; end: -0.3 0.1 0; color: #118AFF" />
+          <a-entity class="connecting-line" line="start: -0.3 0.1 0; end: 0 0.4 0; color: #118AFF" />
+          <a-entity class="connecting-line" line="start: 0 0.4 0; end: 0.3 0.1 0; color: #118AFF" />
+          <a-entity class="connecting-line" line="start: 0.3 0.1 0; end: 0.6 -0.2 0; color: #118AFF" />
+          <a-entity class="connecting-line" line="start: 0.6 -0.2 0; end: -0.6 -0.2 0; color: #118AFF" />
+        </a-entity>
+
+        <a-entity id="videoEntity" position="-0.6 -0.2 0.01">
+          <a-box
+            class="video-box"
+            position="0 0 0"
+            width="0.7"
+            height="0.4"
+            depth="0.01"
+            rotation="-90 0 0"
+            material="shader: flat; src: #videoTexture"
+          />
+        </a-entity>
+      </a-entity>
+
+      <a-marker-camera type="pattern" url="/energy/pattern-hydro.patt" emitevents="true" />
+    </a-scene>
   );
 }
