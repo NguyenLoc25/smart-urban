@@ -56,7 +56,8 @@ const ARVideo = () => {
     frameId: null,
     running: true,
     lastFrameTime: null,
-    startTime: null
+    startTime: null,
+    speedMultiplier: 1.0
   });
 
   useEffect(() => {
@@ -65,32 +66,45 @@ const ARVideo = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    camera.position.set(0, 5, 15);
+    camera.position.set(0, 1, 10); // Đặt camera thấp hơn và gần hơn
+    camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); // Limit for mobile performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2));
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.6, 0.2, 0.05);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.8, 0.4, 0.1); // Tăng bloom để tạo cảm giác tốc độ
     composer.addPass(bloomPass);
 
+    // Màu sắc neon sáng hơn
     const pinkColors = ['#ff00cc', '#ff66ff', '#cc00aa', '#ff3399', '#ff0099', '#ff99cc'].map(c => new THREE.Color(c));
     const blueColors = ['#00ccff', '#0066ff', '#00ffff', '#0099ff', '#00aaff', '#33ccff'].map(c => new THREE.Color(c));
 
-    const beamGeometry = new THREE.PlaneGeometry(0.2, 40);
-    const pinkMaterials = pinkColors.map(color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.8, side: THREE.DoubleSide }));
-    const blueMaterials = blueColors.map(color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.8, side: THREE.DoubleSide }));
+    const beamGeometry = new THREE.PlaneGeometry(0.15, 60); // Beam dài hơn
+    const pinkMaterials = pinkColors.map(color => new THREE.MeshBasicMaterial({ 
+      color, 
+      transparent: true, 
+      opacity: 0.9, 
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    }));
+    const blueMaterials = blueColors.map(color => new THREE.MeshBasicMaterial({ 
+      color, 
+      transparent: true, 
+      opacity: 0.9, 
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    }));
 
     const pinkBeams = new THREE.Group();
     const blueBeams = new THREE.Group();
     scene.add(pinkBeams, blueBeams);
 
     const beams = [];
-    const beamCount = 16;
-    const maxSpread = 14;
-    const planeY = -2;
+    const beamCount = 32; // Tăng số lượng beam
+    const maxSpread = 20; // Mở rộng phạm vi
 
     for (let i = 0; i < beamCount; i++) {
       const isPink = i < beamCount / 2;
@@ -98,38 +112,69 @@ const ARVideo = () => {
       const mat = matGroup[i % matGroup.length];
       const x = ((i / beamCount) * 2 - 1) * maxSpread;
       const mesh = new THREE.Mesh(beamGeometry, mat);
-      mesh.position.set(x, planeY, isPink ? -100 : 20);
+      mesh.position.set(x, -1, isPink ? -200 : 50); // Vị trí ban đầu xa hơn
       mesh.rotation.x = Math.PI / 2;
 
-      const speed = (isPink ? 1 : -1) * (0.6 + Math.random() * 0.6);
+      // Tốc độ nhanh hơn và biến thiên nhiều hơn
+      const speed = (isPink ? 1 : -1) * (1.5 + Math.random() * 1.5);
 
       (isPink ? pinkBeams : blueBeams).add(mesh);
       beams.push({
         beam: mesh,
         speed,
+        originalZ: mesh.position.z,
+        offset: Math.random() * 100 // Thêm offset để các beam không đồng bộ
+      });
+    }
+
+    // Thêm các beam ngang để tạo cảm giác tốc độ
+    const horizontalBeamGeometry = new THREE.PlaneGeometry(40, 0.1);
+    const horizontalBeams = new THREE.Group();
+    scene.add(horizontalBeams);
+    
+    for (let i = 0; i < 10; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const mesh = new THREE.Mesh(horizontalBeamGeometry, mat);
+      mesh.position.set(0, -1, -50 - i * 30);
+      mesh.rotation.y = Math.PI / 2;
+      horizontalBeams.add(mesh);
+      beams.push({
+        beam: mesh,
+        speed: 2.0,
         originalZ: mesh.position.z
       });
     }
 
-    // Particles (reduced for mobile)
+    // Particles (tăng số lượng và giảm kích thước)
     const particleGeometry = new THREE.BufferGeometry();
-    const count = 100;
+    const count = 500; // Tăng số lượng particle
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 80;
-      positions[i + 1] = (Math.random() - 0.5) * 10 + 2;
-      positions[i + 2] = (Math.random() - 0.5) * 80;
+      positions[i] = (Math.random() - 0.5) * 100;
+      positions[i + 1] = (Math.random() - 0.5) * 10;
+      positions[i + 2] = (Math.random() - 0.5) * 200 - 50;
     }
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const particleMaterial = new THREE.PointsMaterial({
-      size: 0.06,
+      size: 0.04, // Giảm kích thước particle
       color: 0xffffff,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.4,
       blending: THREE.AdditiveBlending
     });
     const particles = new THREE.Points(particleGeometry, particleMaterial);
     scene.add(particles);
+
+    // Thêm hiệu ứng mờ khi di chuyển (motion blur)
+    let velocity = 0;
+    let targetVelocity = 1.0;
+    let acceleration = 0.2;
 
     const animate = (now = performance.now()) => {
       if (!animationState.current.running) return;
@@ -142,18 +187,47 @@ const ARVideo = () => {
 
       animationState.current.frameId = requestAnimationFrame(animate);
 
+      // Điều khiển tốc độ dần dần
+      if (velocity < targetVelocity) {
+        velocity = Math.min(velocity + acceleration * delta, targetVelocity);
+      } else if (velocity > targetVelocity) {
+        velocity = Math.max(velocity - acceleration * delta, targetVelocity);
+      }
+
+      // Di chuyển camera tạo cảm giác đang tiến về phía trước
+      camera.position.z = 10 + Math.sin(time * 0.5) * 0.5;
+      camera.position.y = 1 + Math.sin(time * 0.3) * 0.2;
+
       beams.forEach(b => {
-        b.beam.position.z += b.speed * 100 * delta;
-        if ((b.speed > 0 && b.beam.position.z > 30) || (b.speed < 0 && b.beam.position.z < -80)) {
+        b.beam.position.z += b.speed * 100 * delta * velocity;
+        // Reset position khi ra khỏi tầm nhìn
+        if ((b.speed > 0 && b.beam.position.z > 50) || (b.speed < 0 && b.beam.position.z < -250)) {
           b.beam.position.z = b.originalZ;
         }
-        const pulse = Math.sin(time * 3 + b.beam.position.x) * 0.1 + 0.9;
-        b.beam.material.opacity = 0.7 * pulse;
+        // Hiệu ứng nhấp nháy
+        const pulse = Math.sin(time * 5 + b.offset) * 0.2 + 0.8;
+        b.beam.material.opacity = 0.8 * pulse * velocity;
       });
 
-      particles.rotation.y += 0.0015 * 60 * delta;
+      // Xoay particles nhanh hơn
+      particles.rotation.y += 0.003 * 60 * delta * velocity;
+      
+      // Tăng bloom khi tốc độ cao
+      bloomPass.strength = 0.8 + Math.sin(time * 2) * 0.2;
+      
       composer.render();
     };
+
+    // Xử lý sự kiện chuột/điện thoại để tăng tốc
+    const handleInteraction = () => {
+      targetVelocity = 3.0; // Tốc độ cao khi tương tác
+      setTimeout(() => {
+        targetVelocity = 1.0; // Trở lại tốc độ bình thường sau 3s
+      }, 3000);
+    };
+
+    mountRef.current.addEventListener('mousedown', handleInteraction);
+    mountRef.current.addEventListener('touchstart', handleInteraction);
 
     mountRef.current.appendChild(renderer.domElement);
     animate();
@@ -180,12 +254,15 @@ const ARVideo = () => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      mountRef.current?.removeEventListener('mousedown', handleInteraction);
+      mountRef.current?.removeEventListener('touchstart', handleInteraction);
       cancelAnimationFrame(animationState.current.frameId);
       animationState.current.running = false;
       if (mountRef.current?.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
       beamGeometry.dispose();
+      horizontalBeamGeometry.dispose();
       pinkMaterials.forEach(m => m.dispose());
       blueMaterials.forEach(m => m.dispose());
       particleGeometry.dispose();
