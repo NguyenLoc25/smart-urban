@@ -56,8 +56,10 @@
     "recharts": "^2.15.1",
     "sass": "^1.85.1",
     "scss": "^0.2.4",
+    "styled-components": "^6.1.19",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.177.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
