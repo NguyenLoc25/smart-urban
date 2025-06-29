@@ -66,7 +66,7 @@ const ARVideo = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    camera.position.set(0, 1, 10); // Đặt camera thấp hơn và gần hơn
+    camera.position.set(0, 1, 10);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -75,14 +75,18 @@ const ARVideo = () => {
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.8, 0.4, 0.1); // Tăng bloom để tạo cảm giác tốc độ
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.8, 0.4, 0.1);
     composer.addPass(bloomPass);
 
-    // Màu sắc neon sáng hơn
     const pinkColors = ['#ff00cc', '#ff66ff', '#cc00aa', '#ff3399', '#ff0099', '#ff99cc'].map(c => new THREE.Color(c));
     const blueColors = ['#00ccff', '#0066ff', '#00ffff', '#0099ff', '#00aaff', '#33ccff'].map(c => new THREE.Color(c));
+    
+    const beamLength = 80;
+    const beamWidth = 0.15;
+    const baseSpeed = 2.0;
 
-    const beamGeometry = new THREE.PlaneGeometry(0.15, 60); // Beam dài hơn
+    const beamGeometry = new THREE.PlaneGeometry(beamWidth, beamLength);
+
     const pinkMaterials = pinkColors.map(color => new THREE.MeshBasicMaterial({ 
       color, 
       transparent: true, 
@@ -103,31 +107,44 @@ const ARVideo = () => {
     scene.add(pinkBeams, blueBeams);
 
     const beams = [];
-    const beamCount = 32; // Tăng số lượng beam
-    const maxSpread = 20; // Mở rộng phạm vi
+    const beamCount = 32;
+    const maxSpread = 20;
+
+    // Randomly select 1 leader for pink beams and 1 for blue beams
+    const pinkLeaderIndex = Math.floor(Math.random() * (beamCount / 2));
+    const blueLeaderIndex = Math.floor(Math.random() * (beamCount / 2)) + (beamCount / 2);
 
     for (let i = 0; i < beamCount; i++) {
       const isPink = i < beamCount / 2;
+      const isLeader = i === pinkLeaderIndex || i === blueLeaderIndex;
+      
       const matGroup = isPink ? pinkMaterials : blueMaterials;
       const mat = matGroup[i % matGroup.length];
       const x = ((i / beamCount) * 2 - 1) * maxSpread;
+      
       const mesh = new THREE.Mesh(beamGeometry, mat);
-      mesh.position.set(x, -1, isPink ? -200 : 50); // Vị trí ban đầu xa hơn
+      mesh.position.set(x, -1, isPink ? -250 : 50);
       mesh.rotation.x = Math.PI / 2;
-
-      // Tốc độ nhanh hơn và biến thiên nhiều hơn
-      const speed = (isPink ? 1 : -1) * (1.5 + Math.random() * 1.5);
-
+    
+      const speedMultiplier = isLeader ? 2.25 : 0.8 + Math.random() * 0.4;
+      const speed = (isPink ? 1 : -1) * baseSpeed * speedMultiplier;
+    
+      if (isLeader) {
+        mesh.scale.set(1.3, 1.3, 1.3);
+        mat.color.setHSL(isPink ? 0.9 : 0.6, 1, 0.7);
+        mat.opacity = 1.0;
+      }
+    
       (isPink ? pinkBeams : blueBeams).add(mesh);
       beams.push({
         beam: mesh,
         speed,
+        isLeader,
         originalZ: mesh.position.z,
-        offset: Math.random() * 100 // Thêm offset để các beam không đồng bộ
+        offset: Math.random() * 100
       });
     }
 
-    // Thêm các beam ngang để tạo cảm giác tốc độ
     const horizontalBeamGeometry = new THREE.PlaneGeometry(40, 0.1);
     const horizontalBeams = new THREE.Group();
     scene.add(horizontalBeams);
@@ -151,9 +168,8 @@ const ARVideo = () => {
       });
     }
 
-    // Particles (tăng số lượng và giảm kích thước)
     const particleGeometry = new THREE.BufferGeometry();
-    const count = 500; // Tăng số lượng particle
+    const count = 500;
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
       positions[i] = (Math.random() - 0.5) * 100;
@@ -162,7 +178,7 @@ const ARVideo = () => {
     }
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const particleMaterial = new THREE.PointsMaterial({
-      size: 0.04, // Giảm kích thước particle
+      size: 0.04,
       color: 0xffffff,
       transparent: true,
       opacity: 0.4,
@@ -171,7 +187,6 @@ const ARVideo = () => {
     const particles = new THREE.Points(particleGeometry, particleMaterial);
     scene.add(particles);
 
-    // Thêm hiệu ứng mờ khi di chuyển (motion blur)
     let velocity = 0;
     let targetVelocity = 1.0;
     let acceleration = 0.2;
@@ -187,42 +202,35 @@ const ARVideo = () => {
 
       animationState.current.frameId = requestAnimationFrame(animate);
 
-      // Điều khiển tốc độ dần dần
       if (velocity < targetVelocity) {
         velocity = Math.min(velocity + acceleration * delta, targetVelocity);
       } else if (velocity > targetVelocity) {
         velocity = Math.max(velocity - acceleration * delta, targetVelocity);
       }
 
-      // Di chuyển camera tạo cảm giác đang tiến về phía trước
       camera.position.z = 10 + Math.sin(time * 0.5) * 0.5;
       camera.position.y = 1 + Math.sin(time * 0.3) * 0.2;
 
       beams.forEach(b => {
         b.beam.position.z += b.speed * 100 * delta * velocity;
-        // Reset position khi ra khỏi tầm nhìn
         if ((b.speed > 0 && b.beam.position.z > 50) || (b.speed < 0 && b.beam.position.z < -250)) {
           b.beam.position.z = b.originalZ;
         }
-        // Hiệu ứng nhấp nháy
         const pulse = Math.sin(time * 5 + b.offset) * 0.2 + 0.8;
         b.beam.material.opacity = 0.8 * pulse * velocity;
       });
 
-      // Xoay particles nhanh hơn
       particles.rotation.y += 0.003 * 60 * delta * velocity;
       
-      // Tăng bloom khi tốc độ cao
       bloomPass.strength = 0.8 + Math.sin(time * 2) * 0.2;
       
       composer.render();
     };
 
-    // Xử lý sự kiện chuột/điện thoại để tăng tốc
     const handleInteraction = () => {
-      targetVelocity = 3.0; // Tốc độ cao khi tương tác
+      targetVelocity = 3.0;
       setTimeout(() => {
-        targetVelocity = 1.0; // Trở lại tốc độ bình thường sau 3s
+        targetVelocity = 1.0;
       }, 3000);
     };
 
