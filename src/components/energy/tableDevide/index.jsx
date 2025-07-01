@@ -175,7 +175,7 @@ export default function QuantityTable({ data = [] }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <SummaryCard
           title="Tổng vị trí"
-          value={energyTypes.hydro.maxSlots + energyTypes.wind.maxSlots + energyTypes.solar.maxSlots}
+          value={(energyTypes.hydro.maxSlots + energyTypes.wind.maxSlots + energyTypes.solar.maxSlots).toLocaleString()}
           icon={
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -196,7 +196,7 @@ export default function QuantityTable({ data = [] }) {
         />
         <SummaryCard
           title="Tổng đã sử dụng"
-          value={quantityData.hydro + quantityData.wind + quantityData.solar}
+          value={(quantityData.hydro + quantityData.wind + quantityData.solar).toLocaleString()}
           icon={
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -218,8 +218,8 @@ export default function QuantityTable({ data = [] }) {
         <SummaryCard
           title="Tổng còn trống"
           value={
-            energyTypes.hydro.maxSlots + energyTypes.wind.maxSlots + energyTypes.solar.maxSlots -
-            (quantityData.hydro + quantityData.wind + quantityData.solar)
+            (energyTypes.hydro.maxSlots + energyTypes.wind.maxSlots + energyTypes.solar.maxSlots -
+            (quantityData.hydro + quantityData.wind + quantityData.solar)).toLocaleString()
           }
           icon={
             <svg

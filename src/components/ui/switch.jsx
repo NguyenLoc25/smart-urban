@@ -24,3 +24,4 @@ export function Switch({ checked, onCheckedChange }) {
     </button>
   );
 }
+

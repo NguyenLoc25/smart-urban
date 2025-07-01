@@ -156,7 +156,6 @@ const MonthlyChart = ({ data, selectedYear, mobile = false }) => {
     ...getChartConfig('monthly', mobile),
     scrollZoom: true,
     responsive: true,
-    displayModeBar: true,
     modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
     modeBarButtonsToAdd: mobile ? [] : [
       {
