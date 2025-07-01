@@ -13,74 +13,39 @@ import {
 } from 'recharts';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import useGardenData from '@/app/garden/useGardenData';
-import { useRouter } from 'next/navigation'; // ⬅️ thêm dòng này
+import { useRouter } from 'next/navigation';
 
 const chartConfigs = [
   {
     title: 'Nhiệt độ & Độ ẩm gà',
     lines: [
-      {
-        key: 'chickenTemp',
-        name: 'Nhiệt độ gà (°C)',
-        color: '#f97316',
-        yAxisId: 'left'
-      },
-      {
-        key: 'chickenHum',
-        name: 'Độ ẩm gà (%)',
-        color: '#60a5fa',
-        yAxisId: 'right'
-      }
+      { key: 'chickenTemp', name: 'Nhiệt độ gà (°C)', color: '#f97316', yAxisId: 'left' },
+      { key: 'chickenHum', name: 'Độ ẩm gà (%)', color: '#60a5fa', yAxisId: 'right' }
     ]
   },
   {
     title: 'Nhiệt độ & Độ ẩm nhà nấm',
     lines: [
-      {
-        key: 'mushroomTemp',
-        name: 'Nhiệt độ nấm (°C)',
-        color: '#facc15',
-        yAxisId: 'left'
-      },
-      {
-        key: 'mushroomHum',
-        name: 'Độ ẩm nấm (%)',
-        color: '#34d399',
-        yAxisId: 'right'
-      }
+      { key: 'mushroomTemp', name: 'Nhiệt độ nấm (°C)', color: '#facc15', yAxisId: 'left' },
+      { key: 'mushroomHum', name: 'Độ ẩm nấm (%)', color: '#34d399', yAxisId: 'right' }
     ]
   },
   {
     title: 'Độ ẩm đất',
     lines: [
-      {
-        key: 'soilHum',
-        name: 'Độ ẩm đất (%)',
-        color: '#10b981',
-        yAxisId: 'left'
-      }
+      { key: 'soilHum', name: 'Độ ẩm đất (%)', color: '#10b981', yAxisId: 'left' }
     ]
   },
   {
     title: 'Mực nước',
     lines: [
-      {
-        key: 'waterLevel',
-        name: 'Mực nước (%)',
-        color: '#06b6d4',
-        yAxisId: 'left'
-      }
+      { key: 'waterLevel', name: 'Mực nước (%)', color: '#06b6d4', yAxisId: 'left' }
     ]
   },
   {
     title: 'Nhiệt độ nước',
     lines: [
-      {
-        key: 'waterTemp',
-        name: 'Nhiệt độ nước (°C)',
-        color: '#f87171',
-        yAxisId: 'left'
-      }
+      { key: 'waterTemp', name: 'Nhiệt độ nước (°C)', color: '#f87171', yAxisId: 'left' }
     ]
   }
 ];
@@ -97,7 +62,7 @@ export default function Chart() {
     fishWaterLevel,
     hydroWaterTemp
   } = useGardenData();
-  const router = useRouter(); // ⬅️ khởi tạo router
+  const router = useRouter();
 
   // Load từ localStorage khi mount
   useEffect(() => {
@@ -105,7 +70,7 @@ export default function Chart() {
     if (stored) setData(JSON.parse(stored));
   }, []);
 
-  // Cập nhật khi có dữ liệu mới
+  // Cập nhật dữ liệu mới
   useEffect(() => {
     if (
       chickenTemperature !== null &&
@@ -137,7 +102,7 @@ export default function Chart() {
             waterTemp: hydroWaterTemp
           }
         ];
-        const trimmed = newData.slice(-5);
+        const trimmed = newData.slice(-15); // Giữ 15 điểm gần nhất
         localStorage.setItem('chartData', JSON.stringify(trimmed));
         return trimmed;
       });
@@ -152,10 +117,18 @@ export default function Chart() {
     hydroWaterTemp
   ]);
 
+  // Tự động chuyển biểu đồ sau mỗi 5 giây
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % chartConfigs.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const chart = chartConfigs[index];
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 w-full" >
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 w-full">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setIndex((prev) => (prev - 1 + chartConfigs.length) % chartConfigs.length)}
@@ -163,7 +136,12 @@ export default function Chart() {
         >
           <ArrowLeft />
         </button>
-        <h2 className="text-xl font-bold text-gray-800">{chart.title}</h2>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-800">{chart.title}</h2>
+          <p className="text-sm text-gray-500">
+            {index + 1} / {chartConfigs.length}
+          </p>
+        </div>
         <button
           onClick={() => setIndex((prev) => (prev + 1) % chartConfigs.length)}
           className="p-2 rounded-full hover:bg-gray-100"

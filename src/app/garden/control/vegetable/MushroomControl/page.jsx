@@ -1,3 +1,4 @@
+//src/app/garden/control/vegetable/MushroomControl/page.jsx
 'use client';
 
 import { useEffect, useState } from 'react';
