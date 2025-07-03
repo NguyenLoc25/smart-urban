@@ -1,3 +1,4 @@
+//src/app/garden/layout.jsx
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -27,19 +28,20 @@ export default function GardenLayout({ children }) {
   };
 
   return (
-    <div className="flex">
-      {/* Sidebar */}
-      <div className="w-60 bg-green-100 min-h-screen p-4 flex flex-col gap-4 shadow-md">
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar cố định bên tráiiiiii */}
+      <div className="w-60 bg-green-100 p-4 flex flex-col gap-4 shadow-md">
         <h2 className="text-xl font-bold mb-4 text-green-800">Smart Garden</h2>
-          <NavItem label="Trang chủ" icon={HomeIcon} path="home" currentPath={pathname} onClick={navigate} />
-          <NavItem label="Điều khiển" icon={SlidersIcon} path="control" currentPath={pathname} onClick={navigate} />
-          <NavItem label="Biểu đồ" icon={BarChartIcon} path="chart" currentPath={pathname} onClick={navigate} />
-          <NavItem label="Cài đặt" icon={SettingsIcon} path="setting" currentPath={pathname} onClick={navigate} />
-
+        <NavItem label="Trang chủ" icon={HomeIcon} path="home" currentPath={pathname} onClick={navigate} />
+        <NavItem label="Điều khiển" icon={SlidersIcon} path="control" currentPath={pathname} onClick={navigate} />
+        <NavItem label="Biểu đồ" icon={BarChartIcon} path="chart" currentPath={pathname} onClick={navigate} />
+        <NavItem label="Cài đặt" icon={SettingsIcon} path="setting" currentPath={pathname} onClick={navigate} />
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 min-h-screen bg-green-50 p-6">{children}</main>
+      {/* Main content cuộn được */}
+      <main className="flex-1 overflow-y-auto p-6 bg-green-50">
+        {children}
+      </main>
     </div>
   );
 }

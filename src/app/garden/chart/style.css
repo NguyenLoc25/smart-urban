@@ -1,0 +1,16 @@
+/*File: src/app/garden/chart/style.css*/
+.smart-garden-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #d1fae5, #ffffff, #ecfccb);
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+.dashboard-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  text-align: center;
+  color: #065f46;
+  margin-bottom: 1rem;
+}
