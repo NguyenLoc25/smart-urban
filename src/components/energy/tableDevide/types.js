@@ -23,7 +23,7 @@ export const energyTypes = {
     },
     solar: {
       name: "Điện mặt trời",
-      maxSlots: 4000000,
+      maxSlots: 40000000,
       color: "amber",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,7 +43,7 @@ export const energyTypes = {
       textDark: "dark:text-blue-400"
     },
     green: {
-      bg: "bg-green-500",
+      bg: "bg-green-300",
       bgLight: "bg-green-100",
       text: "text-green-600",
       bgDark: "dark:bg-green-900/30",

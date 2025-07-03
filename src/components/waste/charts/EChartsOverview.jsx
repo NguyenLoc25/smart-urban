@@ -3,29 +3,45 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import ReactEChartsCore from 'echarts-for-react'
 import * as echarts from 'echarts/core'
-import { LineChart } from 'echarts/charts'
+import { PieChart } from 'echarts/charts'
 import {
   TooltipComponent,
   LegendComponent,
-  GridComponent,
-  DataZoomComponent,
-  ToolboxComponent
+  TitleComponent
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([
-  LineChart,
+  PieChart,
   TooltipComponent,
   LegendComponent,
-  GridComponent,
-  CanvasRenderer,
-  DataZoomComponent,
-  ToolboxComponent
+  TitleComponent,
+  CanvasRenderer
 ])
 
 export function EChartsOverview() {
   const containerRef = useRef(null)
   const [ready, setReady] = useState(false)
+
+  // ✅ KHÔNG dùng <boolean> vì file là .jsx
+  const [isDarkMode, setIsDarkMode] = useState(() =>
+    typeof window !== 'undefined'
+      ? document.documentElement.classList.contains('dark')
+      : false
+  )
+
+  // Theo dõi thay đổi class="dark"
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setIsDarkMode(isDark)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -39,124 +55,79 @@ export function EChartsOverview() {
   const option = useMemo(() => {
     if (!ready) return null
 
-    const years = ['2018', '2019', '2020', '2021', '2022', '2023']
-    const dataOrganic = [6500, 6400, 6300, 6200, 6100, 6000]
-    const dataNonRecyclable = [2500, 2600, 2700, 2800, 2900, 3000]
-    const dataRecyclable = [1000, 1000, 1000, 1000, 1000, 1000]
+    const data = [
+      { name: 'Hữu cơ', value: 7150 },
+      { name: 'Tái chế được', value: 3510 },
+      { name: 'Không tái chế', value: 2340 }
+    ]
+
+    const textColor = isDarkMode ? '#f3f4f6' : '#1F2937'
+    const tooltipBg = isDarkMode ? '#1f2937ee' : '#ffffffee'
+    const tooltipBorder = isDarkMode ? '#374151' : '#ccc'
 
     return {
+      backgroundColor: 'transparent',
+      title: {
+        text: 'Phân loại rác thải tại TP.HCM năm 2024',
+        left: 'center',
+        top: 10,
+        textStyle: {
+          fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: textColor
+        }
+      },
+      textStyle: {
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+        fontSize: 14,
+        fontWeight: 500,
+        color: textColor
+      },
       tooltip: {
-        trigger: 'axis',
-        backgroundColor: '#ffffffee',
-        borderColor: '#ccc',
-        textStyle: { color: '#111' }
+        trigger: 'item',
+        backgroundColor: tooltipBg,
+        borderColor: tooltipBorder,
+        textStyle: {
+          color: textColor
+        },
+        formatter: '{b}: {c} tấn/ngày ({d}%)'
       },
       legend: {
-        bottom: 10,
-        icon: 'circle',
-        itemWidth: 10,
-        itemHeight: 10,
-        textStyle: { fontSize: 12 }
-      },
-      grid: { left: '5%', right: '5%', top: '8%', bottom: '20%', containLabel: true },
-      toolbox: {
-        feature: {
-          saveAsImage: { title: 'Lưu ảnh' },
-          restore: { title: 'Khôi phục' },
-          dataZoom: { title: { zoom: 'Phóng to', back: 'Thu nhỏ' } },
-        },
-        right: 15,
-        top: 10,
-        iconStyle: {
-          borderColor: '#4b5563',
-          borderWidth: 1.5
-        },
-        emphasis: {
-          iconStyle: {
-            color: '#10b981'
-          }
+        orient: 'vertical',
+        left: 10,
+        top: 'center',
+        textStyle: {
+          fontSize: 14,
+          fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          color: textColor
         }
-      },
-      dataZoom: [
-        { type: 'inside', start: 0, end: 100 },
-        {
-          type: 'slider',
-          height: 18,
-          bottom: 0,
-          start: 0,
-          end: 100,
-          borderColor: '#d1d5db',
-          handleSize: '100%',
-          handleStyle: { color: '#10b981' },
-          textStyle: { color: '#6b7280' }
-        }
-      ],
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        axisLine: { lineStyle: { color: '#d1d5db' } },
-        axisTick: { show: false },
-        axisLabel: { fontSize: 12, color: '#374151' },
-        data: years
-      },
-      yAxis: {
-        type: 'value',
-        axisLine: { show: false },
-        splitLine: { lineStyle: { color: '#e5e7eb' } },
-        axisLabel: { fontSize: 12, color: '#4b5563' }
       },
       series: [
         {
-          name: 'Hữu cơ',
-          type: 'line',
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 8,
-          lineStyle: { width: 3, color: '#22c55e' },
-          itemStyle: { color: '#22c55e' },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#22c55e88' },
-              { offset: 1, color: '#ffffff00' }
-            ])
+          name: 'Phân loại rác 2024',
+          type: 'pie',
+          radius: '70%',
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{b}: {d}%',
+            fontSize: 14,
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+            fontWeight: 500,
+            color: textColor
           },
-          data: dataOrganic
-        },
-        {
-          name: 'Không tái chế',
-          type: 'line',
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 8,
-          lineStyle: { width: 3, color: '#f97316' },
-          itemStyle: { color: '#f97316' },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#f9731688' },
-              { offset: 1, color: '#ffffff00' }
-            ])
+          labelLine: {
+            length: 20,
+            length2: 10,
+            smooth: true
           },
-          data: dataNonRecyclable
-        },
-        {
-          name: 'Tái chế được',
-          type: 'line',
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 8,
-          lineStyle: { width: 3, color: '#3b82f6' },
-          itemStyle: { color: '#3b82f6' },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#3b82f688' },
-              { offset: 1, color: '#ffffff00' }
-            ])
-          },
-          data: dataRecyclable
+          data,
+          color: ['#22c55e', '#3b82f6', '#f97316']
         }
       ]
     }
-  }, [ready])
+  }, [ready, isDarkMode])
 
   return (
     <div ref={containerRef} style={{ height: 400, width: '100%' }}>

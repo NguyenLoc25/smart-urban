@@ -5,7 +5,7 @@ import Sidebar from "@/components/waste/layout/Sidebar";
 export default function WasteLayout({ children }) {
   return (
     <div className="fixed top-16 left-0 right-0 bottom-0 flex">
-      {/* Sidebar chiếm 64px bên trái */}
+      {/* Sidebar chiếm 48px bên trái */}
       <div className="w-48 h-full">
         <Sidebar />
       </div>

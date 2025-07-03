@@ -8,12 +8,15 @@ import { generateHoverTemplate } from '../helpers/chart-helpers'
 const HourlyChart = ({ data, mobile = false }) => {
   if (!data || data.length === 0) return null
 
+    // Convert hour values from 0-23 to 1-24
+  const hours = data.map(item => item.hour)
+
   const yAxisConfig = getYAxisConfig('hourly')
   const hoverTemplate = generateHoverTemplate('hourly', yAxisConfig.hoverformat, 'GWh')
 
   const chartData = [
     {
-      x: data.map(item => item.hour),
+      x: hours,
       y: data.map(item => item.wind / 1000000), // Convert to GWh
       type: 'scatter',
       mode: 'lines+markers',
@@ -33,7 +36,7 @@ const HourlyChart = ({ data, mobile = false }) => {
       fillcolor: `${CHART_COLORS.wind}20`
     },
     {
-      x: data.map(item => item.hour),
+      x: hours,
       y: data.map(item => item.solar / 1000000),
       type: 'scatter',
       mode: 'lines+markers',
@@ -53,7 +56,7 @@ const HourlyChart = ({ data, mobile = false }) => {
       fillcolor: `${CHART_COLORS.solar}20`
     },
     {
-      x: data.map(item => item.hour),
+      x: hours,
       y: data.map(item => item.hydro / 1000000),
       type: 'scatter',
       mode: 'lines+markers',

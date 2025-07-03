@@ -23,7 +23,7 @@ export default function ControlPage() {
 
       {/* Tiêu đề */}
       <div className="text-center space-y-1">
-        <h1 className="text-4xl font-bold tracking-tight">🌿 Control Center</h1>
+        <h1 className="text-4xl font-bold tracking-tight">🌿 Điều khiển thiết bị</h1>
         <p className="text-sm text-gray-500">Điều khiển mọi thành phần trong vườn thông minh</p>
       </div>
 
@@ -36,7 +36,7 @@ export default function ControlPage() {
               <div className="text-[20vw] md:text-[8rem] lg:text-[10rem] leading-none">🐔</div>
             </div>
             <PawPrint className="z-10 text-green-600 w-10 h-10 group-hover:scale-110 transition-transform" />
-            <span className="z-10 mt-4 text-xl font-medium text-center">Animal Control</span>
+            <span className="z-10 mt-4 text-xl font-medium text-center">Vật nuôi</span>
           </div>
         </Link>
 
@@ -47,7 +47,7 @@ export default function ControlPage() {
               <div className="text-[20vw] md:text-[8rem] lg:text-[10rem] leading-none">🥬</div>
             </div>
             <Leaf className="z-10 text-green-600 w-10 h-10 group-hover:scale-110 transition-transform" />
-            <span className="z-10 mt-4 text-xl font-medium text-center">Vegetable Control</span>
+            <span className="z-10 mt-4 text-xl font-medium text-center">Vườn rau</span>
           </div>
         </Link>
 
@@ -58,7 +58,7 @@ export default function ControlPage() {
               <div className="text-[20vw] md:text-[8rem] lg:text-[10rem] leading-none">🚜</div>
             </div>
             <Tractor className="z-10 text-green-600 w-10 h-10 group-hover:scale-110 transition-transform" />
-            <span className="z-10 mt-4 text-xl font-medium text-center">Irrigation Cable Car</span>
+            <span className="z-10 mt-4 text-xl font-medium text-center">Hệ thống phun thuốc</span>
           </div>
         </Link>
 
@@ -69,7 +69,7 @@ export default function ControlPage() {
               <div className="text-[20vw] md:text-[8rem] lg:text-[10rem] leading-none">💡</div>
             </div>
             <Lightbulb className="z-10 text-green-600 w-10 h-10 group-hover:scale-110 transition-transform" />
-            <span className="z-10 mt-4 text-xl font-medium text-center">Light Control</span>
+            <span className="z-10 mt-4 text-xl font-medium text-center">Hệ thống chiếu sáng</span>
           </div>
         </Link>
         
