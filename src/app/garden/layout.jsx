@@ -29,7 +29,7 @@ export default function GardenLayout({ children }) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar cố định bên trái */}
+      {/* Sidebar cố định bên tráiiiiii */}
       <div className="w-60 bg-green-100 p-4 flex flex-col gap-4 shadow-md">
         <h2 className="text-xl font-bold mb-4 text-green-800">Smart Garden</h2>
         <NavItem label="Trang chủ" icon={HomeIcon} path="home" currentPath={pathname} onClick={navigate} />
