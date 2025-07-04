@@ -1,7 +1,8 @@
 'use client';
+
 import useGardenData from "@/app/garden/useGardenData";
-import Chart from "./Chart";
 import Chatbox from "./Chatbox";
+import Chart from "@/app/garden/home/Chart"; // 👈 Thêm dòng này
 
 export default function SmartGardenDashboard() {
   const {
@@ -22,7 +23,7 @@ export default function SmartGardenDashboard() {
           “Mỗi chiếc lá là một cảm biến của sự sống – và khu vườn là trái tim thông minh của ngôi nhà.”
         </p>
         <img
-          src="/garden/garden4.jpg"
+          src="/garden/garden4.png"
           alt="Smart Garden"
           className="w-full max-w-xl mx-auto rounded-xl shadow-lg"
         />
@@ -69,15 +70,11 @@ export default function SmartGardenDashboard() {
       </div>
 
       {/* Chart Section */}
-      <div
-        className="bg-white rounded-2xl shadow p-4 text-center cursor-pointer hover:shadow-lg transition"
-      >
-        <h2 className="text-xl font-semibold mb-2 pointer-events-none">
+      <div className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition">
+        <h2 className="text-xl font-semibold mb-4 text-center">
           Biểu đồ
         </h2>
-        <div className="pointer-events-none">
-          <Chart />
-        </div>
+        <Chart />
       </div>
 
       {/* Status Section */}
