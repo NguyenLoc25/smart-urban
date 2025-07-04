@@ -14,12 +14,12 @@ export default function Floor1() {
   const pathname = usePathname();
   const [lightOn, setLightOn] = useState(false);
   const [doorOpened, setDoorOpened] = useState(false);
+  const [garageOpen, setGarageOpen] = useState(false);
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
   const [buzzerActive, setBuzzerActive] = useState(false);
   const [alarmEnabled, setAlarmEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const [wc1Light, setWc1Light] = useState(false);
   const [wc2Light, setWc2Light] = useState(false);
 
@@ -35,6 +35,7 @@ export default function Floor1() {
       alarmEnabled: ref(db, 'home/floor_1/alarm_enabled_1'),
       wc1: ref(db, 'home/floor_1/wc1_light'),
       wc2: ref(db, 'home/floor_1/wc2_light'),
+      garageStatus: ref(db, 'home/floor_1/garage/status'),
     };
 
     const unsub = [
@@ -59,6 +60,10 @@ export default function Floor1() {
       onValue(refs.alarmEnabled, (snap) => setAlarmEnabled(!!snap.val())),
       onValue(refs.wc1, (snap) => setWc1Light(!!snap.val())),
       onValue(refs.wc2, (snap) => setWc2Light(!!snap.val())),
+      onValue(refs.garageStatus, (snap) => {
+        const status = snap.val();
+        setGarageOpen(status === 'open');
+      }),
     ];
 
     return () => {
@@ -69,6 +74,8 @@ export default function Floor1() {
 
   const toggleLight = () => set(ref(db, 'home/floor_1/light_room_1'), !lightOn);
   const toggleAlarmEnabled = () => set(ref(db, 'home/floor_1/alarm_enabled_1'), !alarmEnabled);
+  const openGarage = () => set(ref(db, 'home/floor_1/garage/command'), 'open');
+  const closeGarage = () => set(ref(db, 'home/floor_1/garage/command'), 'close');
 
   const floorLinks = [
     { label: 'Tầng 1', href: '/home/floor1' },
@@ -110,7 +117,7 @@ export default function Floor1() {
           </Link>
 
           <h1 className="text-2xl font-bold text-center text-blue-800 dark:text-yellow-400">
-             Điều khiển Tầng 1
+            Điều khiển Tầng 1
           </h1>
 
           {loading ? (
@@ -119,7 +126,7 @@ export default function Floor1() {
             </p>
           ) : (
             <div className="flex flex-col gap-6">
-              {/* Cụm 1: Đèn & cửa */}
+              {/* Cụm 1: Đèn, cửa chính, cửa nhà xe */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
                   className={`w-full px-4 py-4 rounded-2xl shadow-md text-center font-bold text-xl tracking-wide ${
@@ -131,15 +138,17 @@ export default function Floor1() {
                   <div className="flex justify-center items-center gap-3">
                     {doorOpened ? (
                       <>
-                        <BsCheckCircleFill size={28} /> 🚪CỬA CHÍNH ĐANG MỞ
+                        <BsCheckCircleFill size={28} /> 🚪 CỬA CHÍNH ĐANG MỞ
                       </>
                     ) : (
                       <>
-                        <BsCheckCircleFill size={28} className="rotate-45 opacity-40" />🚪 CỬA CHÍNH ĐÃ ĐÓNG
+                        <BsCheckCircleFill size={28} className="rotate-45 opacity-40" />
+                        🚪 CỬA CHÍNH ĐÃ ĐÓNG
                       </>
                     )}
                   </div>
                 </div>
+
                 <DeviceCard
                   icon={lightOn ? <MdLightbulb size={28} /> : <MdLightbulbOutline size={28} />}
                   label="Đèn tầng 1"
@@ -147,9 +156,36 @@ export default function Floor1() {
                   onToggle={toggleLight}
                   color="#42a5f5"
                 />
+
+                {/* Cửa nhà xe */}
+                <div className="w-full bg-white dark:bg-gray-800 border rounded-2xl p-4 shadow-md space-y-4 text-center col-span-full">
+                  <div
+                    className={`text-xl font-bold tracking-wide py-2 rounded-xl ${
+                      garageOpen
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                    }`}
+                  >
+                    🚗 Cửa nhà xe: {garageOpen ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+                  </div>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={openGarage}
+                      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow"
+                    >
+                      MỞ CỬA NHÀ XE
+                    </button>
+                    <button
+                      onClick={closeGarage}
+                      className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl shadow"
+                    >
+                      ĐÓNG CỬA NHÀ XE
+                    </button>
+                  </div>
+                </div>
               </section>
 
-              {/* Cụm 2: Đèn WC */}
+              {/* Cụm 2: WC */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DeviceCard
                   icon={wc1Light ? <MdLightbulb size={28} /> : <MdLightbulbOutline size={28} />}
@@ -165,7 +201,7 @@ export default function Floor1() {
                 />
               </section>
 
-              {/* Cụm 3: Nhiệt độ & còi */}
+              {/* Cụm 3: Nhiệt độ & báo động */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-[#e0f7fa] dark:bg-[#004d40] border-2 border-cyan-500 dark:border-teal-300 rounded-2xl p-4 shadow-inner text-center font-mono text-lg tracking-wider">
                   <div className="mb-2">
