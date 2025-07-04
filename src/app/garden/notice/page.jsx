@@ -122,7 +122,7 @@ export default function NotificationPage() {
               </Card>
             ))
           )}
-        </div>
+   <div className="" />     </div>
       </div>
     </div>
   );

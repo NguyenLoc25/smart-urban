@@ -6,7 +6,7 @@ import {
   HomeIcon, SlidersIcon, BarChartIcon, BellIcon
 } from 'lucide-react';
 import '../globals.css';
-import Notice from './Notice';
+import Notice from './notice';
 
 const NavItem = ({ label, icon: Icon, path, currentPath, onClick }) => (
   <div
