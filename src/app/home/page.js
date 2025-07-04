@@ -7,7 +7,8 @@ import {
   PiLightbulbFilamentFill,
   PiGarageFill,
 } from 'react-icons/pi';
-import ChatAssistant from '@/components/ChatAssistant';
+// ❌ Xoá dòng dưới nếu không còn dùng chat assistant
+// import ChatAssistant from '@/components/ChatAssistant';
 
 export default function HomePage() {
   const floors = [
@@ -82,8 +83,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Assistant floating button */}
-      <ChatAssistant />
+      {/* ❌ Bỏ phần chat box */}
+      {/* <ChatAssistant /> */}
     </div>
   );
 }
