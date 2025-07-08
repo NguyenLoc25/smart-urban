@@ -4,52 +4,25 @@ import { useEffect, useState } from 'react';
 import { getDatabase, ref, get, set } from 'firebase/database';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
-import { Sun, Moon, Settings } from 'lucide-react';
+import { Sun, Moon, Settings, Timer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginButtonFixed from '@/components/waste/LoginButtonFixed';
 
 export default function ControlPage() {
-  const [user, setUser]   = useState(null);
+  const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
-  const [mode, setMode]   = useState('loading');
+  const [mode, setMode] = useState('loading');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
-  const db      = getDatabase();
+  const db = getDatabase();
   const isNight = mode === 'night';
 
-  // ✅ Tính thời gian mô phỏng theo chu kỳ 6 phút
-  function getCycleTime() {
-    const cycleMs = 6 * 60 * 1000;
-    const now = Date.now();
-    const elapsed = now % cycleMs;
-
-    const minutes = Math.floor(elapsed / 60000);
-    const seconds = Math.floor((elapsed % 60000) / 1000);
-    const mockMode = elapsed < 3 * 60 * 1000 ? 'day' : 'night';
-
-    const remaining = mockMode === 'day'
-      ? 3 * 60 * 1000 - elapsed
-      : cycleMs - elapsed;
-
-    const remMin = Math.floor(remaining / 60000);
-    const remSec = Math.floor((remaining % 60000) / 1000);
-
-    return { minutes, seconds, mode: mockMode, remMin, remSec };
-  }
-
-  const [mockTime, setMockTime] = useState(getCycleTime());
-
+  // Kiểm tra đăng nhập
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMockTime(getCycleTime());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // ✅ Kiểm tra đăng nhập
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, u => {
+    const unsub = onAuthStateChanged(auth, (u) => {
       if (u && u.email !== 'nguyenhoangviet4969@gmail.com') {
-        alert('❌ Email không được cấp quyền truy cập trang này!');
+        alert('❌ Email không được cấp quyền truy cập!');
         signOut(auth);
         setUser(null);
       } else {
@@ -60,7 +33,7 @@ export default function ControlPage() {
     return unsub;
   }, []);
 
-  // ✅ Đọc chế độ từ Firebase
+  // Đọc chế độ từ Firebase
   useEffect(() => {
     if (!user) return;
     const fetchMode = async () => {
@@ -74,26 +47,80 @@ export default function ControlPage() {
     fetchMode();
   }, [user]);
 
-  // ✅ Chuyển chế độ thủ công
+  // Toggle thủ công
   const toggleDayNight = async () => {
+    if (isSimulating) {
+      alert('⚠️ Đang bật mô phỏng, không thể điều khiển thủ công!');
+      return;
+    }
     const newMode = isNight ? 'day' : 'night';
     try {
       await set(ref(db, '/waste/carControl/mode'), newMode);
+      await set(ref(db, '/waste/carControl/source'), 'manual');
       setMode(newMode);
     } catch (err) {
-      alert('⚠️ Không đủ quyền thay đổi chế độ!');
+      alert('⚠️ Không đủ quyền đổi chế độ!');
     }
   };
 
-  // ✅ Giao diện
+  // Toggle mô phỏng
+  const toggleSimulation = async () => {
+    if (isSimulating) {
+      // Tắt mô phỏng
+      setIsSimulating(false);
+      setCountdown(0);
+      await set(ref(db, '/waste/carControl/mode'), 'day');
+      await set(ref(db, '/waste/carControl/source'), 'simulate');
+      setMode('day');
+      return;
+    }
+    if (mode === 'night') {
+      alert('⚠️ Hãy tắt chế độ thủ công trước khi bật mô phỏng!');
+      return;
+    }
+
+    try {
+      await set(ref(db, '/waste/carControl/mode'), 'night');
+      await set(ref(db, '/waste/carControl/source'), 'simulate');
+      setMode('night');
+      setIsSimulating(true);
+      setCountdown(60);
+
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsSimulating(false);
+            setMode('day');
+            set(ref(db, '/waste/carControl/mode'), 'day');
+            set(ref(db, '/waste/carControl/source'), 'simulate');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      alert('⚠️ Không đủ quyền bật mô phỏng!');
+    }
+  };
+
+  // Giao diện
   if (!ready)
-    return <div className="text-center py-10 text-gray-500">Đang kiểm tra đăng nhập…</div>;
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Đang kiểm tra đăng nhập…
+      </div>
+    );
 
   if (!user)
     return (
       <div className="w-full text-center py-12">
-        <h1 className="text-2xl font-semibold">Bạn cần đăng nhập để điều khiển hệ thống</h1>
-        <p className="text-gray-600 mt-2">Chỉ người dùng đã xác thực mới có thể thao tác.</p>
+        <h1 className="text-2xl font-semibold">
+          Bạn cần đăng nhập để điều khiển hệ thống
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Chỉ người dùng đã xác thực mới có thể thao tác.
+        </p>
         <div className="mt-6">
           <LoginButtonFixed />
         </div>
@@ -107,12 +134,12 @@ export default function ControlPage() {
         Điều khiển hệ thống
       </h1>
 
-      {/* ✅ Toggle chế độ thủ công */}
+      {/* Toggle thủ công */}
       <Card className="border-blue-300 dark:border-blue-700">
         <CardHeader className="flex items-center justify-between pb-2">
           <CardTitle className="flex items-center gap-2">
             {isNight ? <Moon size={20} /> : <Sun size={20} />}
-            Chế độ hoạt động
+            Chế độ thủ công
           </CardTitle>
 
           <label className="relative inline-flex items-center cursor-pointer scale-90">
@@ -120,12 +147,12 @@ export default function ControlPage() {
               type="checkbox"
               checked={isNight}
               onChange={toggleDayNight}
+              disabled={isSimulating}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full dark:bg-gray-600 peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
           </label>
         </CardHeader>
-
         <CardContent>
           <p className="text-sm">
             {isNight
@@ -135,35 +162,41 @@ export default function ControlPage() {
         </CardContent>
       </Card>
 
-      {/* ✅ Thời gian mô phỏng ngày/đêm */}
-      <Card className="border-gray-300 dark:border-gray-600">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            ⏰ Mô phỏng chu kỳ ngày/đêm (6 phút)
+      {/* Toggle mô phỏng */}
+      <Card className="border-indigo-300 dark:border-indigo-700">
+        <CardHeader className="flex items-center justify-between pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Timer size={20} />
+            Mô phỏng 1 phút ban đêm
           </CardTitle>
-        </CardHeader>
 
-        <CardContent className="space-y-1 text-sm text-gray-800 dark:text-gray-300">
-          <p>
-            Thời gian hiện tại trong chu kỳ:{" "}
-            <span className="font-mono">
-              {mockTime.minutes.toString().padStart(2, '0')}:
-              {mockTime.seconds.toString().padStart(2, '0')}
-            </span>
-          </p>
-          <p>
-            Trạng thái:{" "}
-            <span className="font-semibold">
-              {mockTime.mode === 'day' ? '🌞 Ban ngày' : '🌙 Ban đêm'}
-            </span>
-          </p>
-          <p>
-            Sắp chuyển sang {mockTime.mode === 'day' ? 'ban đêm' : 'ban ngày'} sau:{" "}
-            <span className="font-mono">
-              {mockTime.remMin.toString().padStart(2, '0')}:
-              {mockTime.remSec.toString().padStart(2, '0')}
-            </span>
-          </p>
+          <label className="relative inline-flex items-center cursor-pointer scale-90">
+            <input
+              type="checkbox"
+              checked={isSimulating}
+              onChange={toggleSimulation}
+              disabled={isNight && !isSimulating}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full dark:bg-gray-600 peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+          </label>
+        </CardHeader>
+        <CardContent>
+          {isSimulating ? (
+            <p className="text-sm">
+              ⏳ Đang mô phỏng, còn{' '}
+              <strong>
+                {Math.floor(countdown / 60).toString().padStart(2, '0')}:
+                {(countdown % 60).toString().padStart(2, '0')}
+              </strong>{' '}
+              sẽ tự tắt.
+            </p>
+          ) : (
+            <p className="text-sm">
+              Khi bật, sẽ chạy <strong>ban đêm</strong> 1 phút rồi tự chuyển về{' '}
+              <strong>ban ngày</strong>.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
