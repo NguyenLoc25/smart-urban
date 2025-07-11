@@ -15,15 +15,14 @@ export default function FishFeeding() {
 
   const feedOnce = async () => {
     setIsFeeding(true);
-    const feedRef = ref(db, "garden/fish/eating");
     try {
-      await set(feedRef, true);
+      await set(ref(db, "garden/fish/eating"), true);
       setTimeout(async () => {
-        await set(feedRef, false);
+        await set(ref(db, "garden/fish/eating"), false);
         setIsFeeding(false);
       }, 3000);
     } catch (error) {
-      console.error("Feed error:", error);
+      console.error("Lỗi khi cho cá ăn:", error);
       setIsFeeding(false);
     }
   };
@@ -65,7 +64,6 @@ export default function FishFeeding() {
     if (!autoFeed) feedOnce();
   };
 
-  // Lắng nghe mực nước từ Firebase
   useEffect(() => {
     const autoFeedRef = ref(db, "garden/fish/autoFeed");
     const waterRef = ref(db, "garden/fish/waterlevel");
@@ -79,11 +77,10 @@ export default function FishFeeding() {
     });
 
     const unsubWater = onValue(waterRef, (snapshot) => {
-      const rawValue = snapshot.val();
-      if (typeof rawValue === "number") {
-        const percent = Math.min(Math.round(rawValue), 100);
+      const value = snapshot.val();
+      if (typeof value === "number") {
+        const percent = Math.min(Math.round(value), 100);
         setWaterLevel(percent);
-        console.log("💧 Nhận từ Firebase:", percent);
       }
     });
 
@@ -94,22 +91,30 @@ export default function FishFeeding() {
     };
   }, []);
 
-
   return (
     <>
-      <div className="p-4 rounded-xl shadow-md bg-white max-w-sm w-full space-y-4 mx-auto">
+      <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-auto">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg sm:text-xl font-semibold">🐟 Fish</h2>
-          <Switch checked={autoFeed} onCheckedChange={handleToggleAutoFeed} />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            🐟 Cá
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600"></span>
+            <Switch
+              checked={autoFeed}
+              onCheckedChange={handleToggleAutoFeed}
+              className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white"
+            />
+          </div>
         </div>
 
-        <div className="text-sm text-gray-700">
-          🌊 Mực nước: {waterLevel !== null ? `${waterLevel}%` : "đang tải..."}
+        <div className="text-sm text-gray-700 dark:text-gray-200">
+          🌊 Mực nước: {waterLevel !== null ? `${waterLevel}%` : "Đang tải..."}
         </div>
 
-        <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 transition-all"
+            className="h-full bg-blue-500 transition-all duration-300"
             style={{ width: `${waterLevel || 0}%` }}
           ></div>
         </div>
@@ -129,8 +134,8 @@ export default function FishFeeding() {
 
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
-          <div className="bg-white w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
-            <h3 className="text-center text-base font-semibold">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
+            <h3 className="text-center text-base font-semibold text-gray-900 dark:text-white">
               ⏲️ Nhập khoảng thời gian (giây)
             </h3>
             <input
@@ -138,18 +143,18 @@ export default function FishFeeding() {
               min="3"
               value={feedInterval}
               onChange={(e) => setFeedInterval(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border rounded-md text-sm"
+              className="w-full px-3 py-2 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={cancelAutoFeed}
-                className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400 text-sm"
+                className="px-4 py-1 bg-gray-300 dark:bg-gray-600 text-sm rounded hover:bg-gray-400 dark:hover:bg-gray-500"
               >
                 Hủy
               </button>
               <button
                 onClick={confirmAutoFeed}
-                className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                className="px-4 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm"
               >
                 OK
               </button>

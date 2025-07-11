@@ -1,15 +1,14 @@
-//src/app/garden/home/page.jsx
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { db, ref, onValue, set } from "@/lib/firebaseConfig";
-import { Switch } from "@/components/ui/switch"; // Dùng switch UI có sẵn
+import { Switch } from "@/components/ui/switch";
+import { Lightbulb, SunMoon, Sun, Moon } from "lucide-react";
 
-export default function HomePage() {
+export default function LightControl() {
   const [lightStatus, setLightStatus] = useState("off");
-  const [mode, setMode] = useState("manual"); // "manual" | "auto"
-        const [sensorValue, setSensorValue] = useState("Tối"); // hoặc "Sáng"
+  const [mode, setMode] = useState("manual");
+  const [sensorValue, setSensorValue] = useState("Tối");
 
   useEffect(() => {
     const statusRef = ref(db, "garden/light/status");
@@ -27,9 +26,8 @@ export default function HomePage() {
     });
 
     const unsubSensor = onValue(sensorRef, (snapshot) => {
-    const value = snapshot.val();
-    // Không cần parseInt, chỉ cần gán chuỗi "Sáng" / "Tối"
-    if (value === "Sáng" || value === "Tối") setSensorValue(value);
+      const value = snapshot.val();
+      if (value === "Sáng" || value === "Tối") setSensorValue(value);
     });
 
     return () => {
@@ -52,76 +50,80 @@ export default function HomePage() {
   };
 
   return (
-  <div style={{ padding: "24px", display: "flex", justifyContent: "center" }}>
-    <div
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        padding: "24px",
-        width: "100%",
-        maxWidth: "500px"
-      }}
-    >
-      {/* Tiêu đề + Switch chế độ auto */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "24px"
-      }}>
-      <h2 className="text-2xl font-bold">💡Light Control</h2>
+    <section className="relative flex flex-col items-center">
+      {/* Card */}
+      <div className="bg-white dark:bg-gray-900 dark:border-gray-700 shadow-lg rounded-2xl border border-green-200 p-8 w-full max-w-md space-y-6 z-10 relative">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+            <Lightbulb className="text-green-900 dark:text-green-300" />
+            Điều khiển đèn
+          </h1>
+          <div className="flex items-center gap-2">
+            <SunMoon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <Switch
+              checked={mode === "auto"}
+              onCheckedChange={toggleMode}
+              className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white"
+            />
+          </div>
+        </div>
 
-        <Switch checked={mode === "auto"} onCheckedChange={toggleMode} />
-      </div>
+        {/* Sensor info */}
+        <div className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          {sensorValue === "Sáng" ? (
+            <>
+              <Sun className="w-5 h-5 text-yellow-400" />
+              <span className="font-semibold">Sáng</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-5 h-5 text-blue-400" />
+              <span className="font-semibold">Tối</span>
+            </>
+          )}
+        </div>
 
-      {/* Khung chung: cảm biến + trạng thái đèn */}
-<div
-  style={{
-    border: "1px solid #e0e0e0",
-    borderRadius: "10px",
-    padding: "16px",
-    marginBottom: "16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px"
-  }}
->
-  {/* Cảm biến ánh sáng */}
-      <div style={{ fontSize: "16px" }}>
-        🌞 Cảm biến ánh sáng: <b>{sensorValue}</b>
-      </div>
-
-      {/* Trạng thái đèn */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "4px 0"
-        }}
-      >
-        <span style={{ fontSize: "16px" }}>Đèn:</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span
-            style={{
-              fontWeight: "bold",
-              color: lightStatus === "on" ? "#4CAF50" : "#F44336",
-              minWidth: "40px"
-            }}
-          >
-            {lightStatus === "on" ? "BẬT" : "TẮT"}
-          </span>
-          <Switch
-            checked={lightStatus === "on"}
-            onCheckedChange={toggleLight}
-            disabled={mode === "auto"}
-          />
+        {/* Light control */}
+        <div className="flex justify-between items-center">
+          <span className="text-lg text-gray-700 dark:text-gray-300">Đèn:</span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`font-bold text-lg ${
+                lightStatus === "on" ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {lightStatus === "on" ? "BẬT" : "TẮT"}
+            </span>
+            <Switch
+              checked={lightStatus === "on"}
+              onCheckedChange={toggleLight}
+              disabled={mode === "auto"}
+              className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  </div>
-);
 
+      {/* Multiple lamp images */}
+      <div className="mt-10 flex justify-center gap-4 flex-wrap z-0">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="relative">
+            <img
+              src="/garden/lamp.png"
+              alt={`Lamp ${index + 1}`}
+              className={`h-40 transition-all duration-500 ${
+                lightStatus === "on"
+                  ? "brightness-110 drop-shadow-[0_0_12px_#facc15]"
+                  : "brightness-75"
+              }`}
+            />
+            {lightStatus === "on" && (
+              <div className="absolute top-[60%] left-[65%] w-3 h-3 bg-yellow-400 rounded-full blur-md animate-ping" />
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

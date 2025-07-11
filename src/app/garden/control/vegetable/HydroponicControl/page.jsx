@@ -1,5 +1,3 @@
-//src/app/garden/control/vegetable/HydropnicControl/page.jsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,11 +9,14 @@ export default function HydroponicControl() {
   const [waterTemp, setWaterTemp] = useState(0);
   const [isAuto, setIsAuto] = useState(false);
   const [isPumpOn, setIsPumpOn] = useState(false);
+  const [autoTime, setAutoTime] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const tempRef = ref(db, 'garden/hydroponic/mode/water_temp');
     const autoRef = ref(db, 'garden/hydroponic/mode/auto_mode');
     const pumpRef = ref(db, 'garden/hydroponic/mode/pump_status');
+    const timeRef = ref(db, 'garden/hydroponic/mode/auto_time');
 
     onValue(tempRef, (snapshot) => {
       const val = snapshot.val();
@@ -36,6 +37,7 @@ export default function HydroponicControl() {
       off(tempRef);
       off(autoRef);
       off(pumpRef);
+      off(timeRef);
     };
   }, []);
 
@@ -51,27 +53,59 @@ export default function HydroponicControl() {
   };
 
   const handleAutoToggle = async (checked) => {
-    setIsAuto(checked);
+    if (checked) {
+      setShowModal(true);
+    } else {
+      setIsAuto(false);
+      try {
+        await set(ref(db, 'garden/hydroponic/mode/auto_mode'), false);
+        await set(ref(db, 'garden/hydroponic/mode/auto_time'), '');
+      } catch (error) {
+        console.error('Lỗi khi tắt chế độ tự động:', error);
+      }
+    }
+  };
+
+  const confirmAuto = async () => {
+    setIsAuto(true);
+    setShowModal(false);
     try {
-      await set(ref(db, 'garden/hydroponic/mode/auto_mode'), checked);
+      const delay = parseInt(autoTime);
+
+      // Ghi auto_mode và auto_time vào Firebase
+      await set(ref(db, 'garden/hydroponic/mode/auto_mode'), true);
+      await set(ref(db, 'garden/hydroponic/mode/auto_time'), delay);
+
+      // Sau delay giây, bật pump ON, và sau 5 giây thì tắt
+      setTimeout(async () => {
+        await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'ON');
+
+        // Sau 5 giây tắt bơm
+        setTimeout(async () => {
+          await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'OFF');
+        }, 5000);
+      }, delay * 1000);
     } catch (error) {
-      console.error('Lỗi khi bật/tắt chế độ tự động:', error);
+      console.error('Lỗi khi xác nhận chế độ tự động:', error);
     }
   };
 
   return (
     <section className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">🥬 Vegetable Control</h1>
-      <div className="bg-white shadow-md rounded-2xl p-6 space-y-4">
+      <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-aut">
         <div className="flex justify-between items-start">
           <h2 className="text-xl font-semibold">💧 Thủy Canh</h2>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Tự động</span>
-            <Switch checked={isAuto} onCheckedChange={handleAutoToggle} />
+            <Switch
+              checked={isAuto}
+              onCheckedChange={handleAutoToggle}
+              className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white"
+            />
           </div>
         </div>
 
-        <p className="text-gray-700">
+        <p className="text-gray-900 dark:text-white">
           Nhiệt độ nước: <strong>{waterTemp}°C</strong>
         </p>
 
@@ -89,6 +123,38 @@ export default function HydroponicControl() {
           {isPumpOn ? 'Tắt bơm' : 'Bật bơm'}
         </button>
       </div>
+
+      {/* Modal nhập thời gian */}
+      {showModal && (
+       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
+            <h3 className="text-center text-base font-semibold text-gray-900 dark:text-white">
+              ⏱️ Nhập thời gian chờ (giây)</h3>
+            <input
+              type="number"
+              min="1"
+              className="w-full px-3 py-2 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={autoTime}
+              onChange={(e) => setAutoTime(e.target.value)}
+              placeholder="Nhập số giây..."
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmAuto}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

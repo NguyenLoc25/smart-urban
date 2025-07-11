@@ -52,17 +52,16 @@ export default function MushroomControlPage() {
   return (
     <section className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">🥬 Vegetable Control</h1>
-      <div className="bg-white shadow-md rounded-2xl p-6 space-y-4">
+      <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-auto">
         <div className="flex justify-between items-start">
           <h2 className="text-xl font-semibold">🏠 Nhà nấm</h2>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Tự động</span>
-            <Switch checked={isAuto} onCheckedChange={handleAutoToggle} />
+            <Switch checked={isAuto} onCheckedChange={handleAutoToggle} className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white" />
           </div>
         </div>
 
-        <p className="text-gray-700">Độ ẩm: <strong>{humidity}%</strong></p>
-        <p className="text-gray-700">Nhiệt độ: <strong>{temperature}°C</strong></p>
+        <p className="text-gray-900 dark:text-white">Độ ẩm: <strong>{humidity}%</strong></p>
+        <p className="text-gray-900 dark:text-white">Nhiệt độ: <strong>{temperature}°C</strong></p>
 
         <button
           onClick={handleMistToggle}

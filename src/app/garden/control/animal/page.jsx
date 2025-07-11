@@ -11,7 +11,7 @@ export default function AnimalPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">🐔 Animal Control</h2>
+      <h2 className="text-2xl font-bold">🐔 Vật nuôi</h2>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b pb-2">
@@ -41,7 +41,7 @@ export default function AnimalPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="p-4 bg-white rounded-md shadow-md">
+      <div className="">
         {tab === 'chicken' && <ChickenControl />}
         {tab === 'fish' && <FishControl />}
       </div>
