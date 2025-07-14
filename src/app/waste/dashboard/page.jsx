@@ -1,33 +1,53 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from "firebase/database";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { EChartsOverview } from "@/components/waste/charts/EChartsOverview";
-import { Truck, ActivitySquare, Trash2, Zap, TrendingUp, Eye } from "lucide-react";
+import { Truck, ActivitySquare, Trash2, Wind, TrendingUp, Eye } from "lucide-react";
 
 export default function DashboardPage() {
   const [data, setData] = useState({
     vehicles: 2,
     conveyors: 3,
-    trashToday: 560,
-    energy: 3.2,
-    conveyorsStatus: {
-      garden: true,
-      energy: false,
-      store: true,
-    },
+    trashToday: 0,
+    gasGenerated: 0,
+    lastUpdated: null,
   });
 
   useEffect(() => {
     const db = getDatabase();
-    const vehiclesRef = ref(db, "waste/vehicles/count");
-    onValue(vehiclesRef, (snapshot) => {
+    
+    // Lấy dữ liệu rác gần nhất từ Firebase
+    const wasteRef = ref(db, "waste/report/simulateSessions");
+    const latestWasteQuery = query(wasteRef, orderByChild("timestamp"), limitToLast(1));
+    
+    onValue(latestWasteQuery, (snapshot) => {
       if (snapshot.exists()) {
-        setData((prev) => ({ ...prev, vehicles: snapshot.val() }));
+        const latestData = Object.values(snapshot.val())[0];
+        if (latestData && latestData.tong_all) {
+          // Lấy tổng rác từ Firebase
+          const totalWaste = latestData.tong_all.tong || 0;
+          
+          // Lấy khí được tạo ra trực tiếp từ Firebase
+          const gasFromWaste = latestData.tong_all.khi_vo_co || 
+                              latestData.khi_vo_co || 
+                              0; // Fallback nếu không có dữ liệu
+          
+          // Chuyển đổi timestamp thành ngày
+          const lastUpdated = latestData.timestamp ? new Date(latestData.timestamp * 1000) : null;
+          
+          setData((prev) => ({ 
+            ...prev, 
+            trashToday: totalWaste,
+            gasGenerated: gasFromWaste,
+            lastUpdated: lastUpdated
+          }));
+        }
       }
     });
+
   }, []);
 
   const statsCards = [
@@ -54,7 +74,7 @@ export default function DashboardPage() {
       unit: "dây"
     },
     {
-      title: "Rác xử lý hôm nay",
+      title: "Rác xử lý",
       value: data.trashToday,
       icon: <Trash2 size={26} />,
       bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
@@ -62,18 +82,18 @@ export default function DashboardPage() {
       iconColor: "text-emerald-700 dark:text-emerald-300",
       textColor: "text-emerald-900 dark:text-emerald-100",
       accentColor: "text-emerald-600 dark:text-emerald-400",
-      unit: "kg"
+      unit: "tấn"
     },
     {
-      title: "Năng lượng tái tạo",
-      value: data.energy,
-      icon: <Zap size={26} />,
-      bgColor: "bg-amber-50 dark:bg-amber-900/20",
-      iconBg: "bg-amber-100 dark:bg-amber-800/50",
-      iconColor: "text-amber-700 dark:text-amber-300",
-      textColor: "text-amber-900 dark:text-amber-100",
-      accentColor: "text-amber-600 dark:text-amber-400",
-      unit: "kWh"
+      title: "Khí sinh rác",
+      value: data.gasGenerated,
+      icon: <Wind size={26} />,
+      bgColor: "bg-orange-50 dark:bg-orange-900/20",
+      iconBg: "bg-orange-100 dark:bg-orange-800/50",
+      iconColor: "text-orange-700 dark:text-orange-300",
+      textColor: "text-orange-900 dark:text-orange-100",
+      accentColor: "text-orange-600 dark:text-orange-400",
+      unit: "m³"
     }
   ];
 
@@ -116,7 +136,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="flex items-baseline gap-2">
                       <p className={`text-2xl font-bold ${stat.textColor}`}>
-                        {stat.value.toLocaleString()}
+                        {stat.value}
                       </p>
                       <span className={`text-sm ${stat.accentColor}`}>
                         {stat.unit}
@@ -137,6 +157,18 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Thông tin cập nhật dữ liệu */}
+        {data.lastUpdated && (
+          <Card className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/50 dark:border-blue-800/50 rounded-2xl p-4">
+            <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">
+                Dữ liệu được cập nhật từ ngày: {data.lastUpdated.toLocaleDateString('vi-VN')} lúc {data.lastUpdated.toLocaleTimeString('vi-VN')}
+              </span>
+            </div>
+          </Card>
+        )}
+
         {/* Biểu đồ với thiết kế tinh tế */}
         <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-sm rounded-3xl overflow-hidden">
           <div className="bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-700 dark:to-slate-800 p-6">
@@ -153,34 +185,6 @@ export default function DashboardPage() {
           
           <div className="p-6 bg-slate-50/50 dark:bg-slate-800/50">
             <EChartsOverview />
-          </div>
-        </Card>
-
-        {/* Trạng thái băng chuyền */}
-        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-sm rounded-3xl p-6">
-          <h3 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-            <ActivitySquare size={20} className="text-slate-600 dark:text-slate-400" />
-            Trạng Thái Băng Chuyền
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { name: "Vườn", status: data.conveyorsStatus.garden },
-              { name: "Năng lượng", status: data.conveyorsStatus.energy },
-              { name: "Cửa hàng", status: data.conveyorsStatus.store }
-            ].map((conveyor, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50/70 dark:bg-slate-700/50 rounded-xl backdrop-blur-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-200">
-                  {conveyor.name}
-                </span>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${conveyor.status ? 'bg-emerald-500' : 'bg-slate-400'} shadow-sm`}></div>
-                  <span className={`text-xs font-medium ${conveyor.status ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
-                    {conveyor.status ? 'Hoạt động' : 'Dừng'}
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </Card>
       </div>
