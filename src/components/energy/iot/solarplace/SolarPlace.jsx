@@ -7,6 +7,7 @@ const SolarPlace = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedPanel, setSelectedPanel] = useState(null);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -74,9 +75,15 @@ const SolarPlace = () => {
     return () => unsubscribe();
   }, []);
 
+  const handlePanelClick = useCallback((panelId) => {
+    if (!isMobile) return;
+    setSelectedPanel(selectedPanel === panelId ? null : panelId);
+  }, [isMobile, selectedPanel]);
+
   const renderPanel = useCallback((panel, index) => {
     const panelSize = isMobile ? 12 : 16;
     const iconSize = isMobile ? 10 : 12;
+    const panelId = panel?.id || `empty-${index}`;
 
     if (!panel) {
       return (
@@ -97,7 +104,10 @@ const SolarPlace = () => {
       `drop-shadow(0 0 ${isMobile ? '4px' : '6px'} rgba(255, ${200 + intensity}, 0, ${intensity/100}))` : 'none';
 
     return (
-      <div className="relative flex flex-col items-center">
+      <div 
+        className="relative flex flex-col items-center"
+        onClick={() => handlePanelClick(panelId)}
+      >
         <div className={`w-${panelSize} h-${panelSize} rounded-full flex items-center justify-center mb-1 transition-all duration-300 ${
           panel.status === 'active' 
             ? 'bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-800 dark:to-yellow-900' 
@@ -126,14 +136,16 @@ const SolarPlace = () => {
             )}
           </svg>
         </div>
-        <div className="text-center">
-          <p className={`text-xs font-medium ${panel.status === 'active' ? 'text-yellow-600 dark:text-yellow-300' : 'text-gray-600 dark:text-gray-300'}`}>
-            {panel.powerOutput.toFixed(1)} kW
-          </p>
-        </div>
+        {(selectedPanel === panelId || !isMobile) && (
+          <div className="text-center">
+            <p className={`text-xs font-medium whitespace-nowrap ${panel.status === 'active' ? 'text-yellow-600 dark:text-yellow-300' : 'text-gray-600 dark:text-gray-300'}`}>
+              {Math.round(panel.powerOutput).toLocaleString()} kW
+            </p>
+          </div>
+        )}
       </div>
     );
-  }, [isMobile]);
+  }, [isMobile, selectedPanel, handlePanelClick]);
 
   if (loading) {
     return (
@@ -228,38 +240,38 @@ const SolarPlace = () => {
               )}
   
               {/* Sun with Rays - Fixed Positioning */}
-<div className={`absolute ${isMobile ? 'top-[15%] right-[15%]' : 'top-[20%] right-[20%]'} z-0`}>
-  <div className="relative" style={{ width: isMobile ? '5rem' : '8rem', height: isMobile ? '5rem' : '8rem' }}>
-    {/* Sun Core */}
-    <div
-      className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500"
-      style={{
-        filter: 'blur(8px)',
-        boxShadow: isMobile 
-          ? '0 0 30px 15px rgba(255, 200, 0, 0.4)' 
-          : '0 0 50px 25px rgba(255, 200, 0, 0.5)',
-      }}
-    ></div>
-    
-    {/* Sun Rays - only on desktop */}
-    {!isMobile && (
-      <div
-        className="absolute top-0 left-0 w-full h-full animate-spin-slow"
-        style={{
-          backgroundImage: `
-            repeating-conic-gradient(
-              from 0deg,
-              rgba(255,255,255,0) 0deg 10deg,
-              rgba(255,255,255,0.3) 10deg 20deg
-            )`,
-          borderRadius: '50%',
-          transformOrigin: 'center center',
-        }}
-      ></div>
-    )}
-  </div>
-</div>
-  
+              <div className={`absolute ${isMobile ? 'top-[15%] right-[15%]' : 'top-[20%] right-[20%]'} z-0`}>
+                <div className="relative" style={{ width: isMobile ? '5rem' : '8rem', height: isMobile ? '5rem' : '8rem' }}>
+                  {/* Sun Core */}
+                  <div
+                    className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500"
+                    style={{
+                      filter: 'blur(8px)',
+                      boxShadow: isMobile 
+                        ? '0 0 30px 15px rgba(255, 200, 0, 0.4)' 
+                        : '0 0 50px 25px rgba(255, 200, 0, 0.5)',
+                    }}
+                  ></div>
+                  
+                  {/* Sun Rays - only on desktop */}
+                  {!isMobile && (
+                    <div
+                      className="absolute top-0 left-0 w-full h-full animate-spin-slow"
+                      style={{
+                        backgroundImage: `
+                          repeating-conic-gradient(
+                            from 0deg,
+                            rgba(255,255,255,0) 0deg 10deg,
+                            rgba(255,255,255,0.3) 10deg 20deg
+                          )`,
+                        borderRadius: '50%',
+                        transformOrigin: 'center center',
+                      }}
+                    ></div>
+                  )}
+                </div>
+              </div>
+              
               {/* Solar Farm Ground */}
               <div
                 className="absolute bottom-0 left-0 w-full h-1/3 z-10"
