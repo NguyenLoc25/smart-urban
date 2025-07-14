@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import useGardenData from '@/app/garden/useGardenData';
-import { useRouter } from 'next/navigation'; // ⬅️ thêm dòng này
+import { useRouter } from 'next/navigation';
 
 const chartConfigs = [
   {
@@ -21,7 +21,6 @@ const chartConfigs = [
     lines: [
       { key: 'chickenTemp', name: 'Nhiệt độ gà (°C)', color: '#f97316', yAxisId: 'left' },
       { key: 'chickenHum', name: 'Độ ẩm gà (%)', color: '#60a5fa', yAxisId: 'right' }
-
     ]
   },
   {
@@ -63,7 +62,6 @@ export default function Chart() {
     fishWaterLevel,
     hydroWaterTemp
   } = useGardenData();
-  const router = useRouter(); // ⬅️ khởi tạo router
 
   // Load từ localStorage khi mount
   useEffect(() => {
@@ -103,8 +101,7 @@ export default function Chart() {
             waterTemp: hydroWaterTemp
           }
         ];
-        const trimmed = newData.slice(-
-5);
+        const trimmed = newData.slice(-5);
         localStorage.setItem('chartData', JSON.stringify(trimmed));
         return trimmed;
       });
@@ -119,41 +116,49 @@ export default function Chart() {
     hydroWaterTemp
   ]);
 
-    // Tự động chuyển biểu đồ sau mỗi 5 giây
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % chartConfigs.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
   const chart = chartConfigs[index];
 
   return (
-      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 w-full">      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => setIndex((prev) => (prev - 1 + chartConfigs.length) % chartConfigs.length)}
-          className="p-2 rounded-full hover:bg-gray-100"
-        >
-          <ArrowLeft />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">{chart.title}</h2>
-        <button
-          onClick={() => setIndex((prev) => (prev + 1) % chartConfigs.length)}
-          className="p-2 rounded-full hover:bg-gray-100"
-        >
-          <ArrowRight />
-        </button>
-      </div>
+    <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 w-full">
+      {/* Tiêu đề ở giữa trên */}
+      <h2 className="text-xl font-bold text-center text-gray-800 dark:text-white mb-4">
+        {chart.title}
+      </h2>
+
+      {/* Nút mũi tên trái */}
+      <button
+        onClick={() => setIndex((prev) => (prev - 1 + chartConfigs.length) % chartConfigs.length)}
+        className="absolute top-1/2 left-0 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 z-10"
+      >
+        <ArrowLeft className="text-gray-800 dark:text-white" />
+      </button>
+
+      {/* Nút mũi tên phải */}
+      <button
+        onClick={() => setIndex((prev) => (prev + 1) % chartConfigs.length)}
+        className="absolute top-1/2 right-0 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 z-10"
+      >
+        <ArrowRight className="text-gray-800 dark:text-white" />
+      </button>
+
+      {/* Biểu đồ */}
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" />
-          <YAxis yAxisId="left" />
+          <XAxis dataKey="time" tick={{ fill: 'currentColor' }} />
+          <YAxis yAxisId="left" tick={{ fill: 'currentColor' }} />
           {chart.lines.some((line) => line.yAxisId === 'right') && (
-            <YAxis yAxisId="right" orientation="right" />
+            <YAxis yAxisId="right" orientation="right" tick={{ fill: 'currentColor' }} />
           )}
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: '#1f2937',
+              border: 'none',
+              color: 'white'
+            }}
+            labelStyle={{ color: 'white' }}
+            itemStyle={{ color: 'white' }}
+          />
           <Legend />
           {chart.lines.map((line) => (
             <Line

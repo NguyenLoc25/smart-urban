@@ -99,18 +99,18 @@ export default function ChickenFeeding() {
 
   return (
     <>
-      <div className="p-4 rounded-xl shadow-md bg-white max-w-sm w-full space-y-4 mx-auto">
+      <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h2 className="text-lg sm:text-xl font-semibold">🐔 Chicken</h2>
-          <Switch checked={autoFeed} onCheckedChange={handleToggleAutoFeed} />
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">🐔 Chicken</h2>
+          <Switch checked={autoFeed} onCheckedChange={handleToggleAutoFeed}  className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white" />
         </div>
 
         {/* Temperature and Humidity */}
-        <div className="text-sm text-gray-700">
+        <div className="text-sm text-gray-700 dark:text-gray-200">
           🌡️ Nhiệt độ: {temperature !== null ? `${temperature} °C` : "đang tải..."}
         </div>
-        <div className="text-sm text-gray-700">
+        <div className="text-sm text-gray-700 dark:text-gray-200">
           💧 Độ ẩm: {humidity !== null ? `${humidity} %` : "đang tải..."}
         </div>
 
@@ -131,19 +131,21 @@ export default function ChickenFeeding() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
-          <div className="bg-white w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
-            <h3 className="text-center text-base font-semibold">⏲️ Nhập khoảng thời gian (giây)</h3>
+          <div className="bg-white dark:bg-gray-800 w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
+            <h3 className="text-center text-base font-semibold text-gray-900 dark:text-white">
+              ⏲️ Nhập khoảng thời gian (giây)
+            </h3>
             <input
               type="number"
               min="3"
               value={feedInterval}
               onChange={(e) => setFeedInterval(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border rounded-md text-sm"
+              className="w-full px-3 py-2 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={cancelAutoFeed}
-                className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400 text-sm"
+                className="px-4 py-1 bg-gray-300 dark:bg-gray-600 text-sm rounded hover:bg-gray-400 dark:hover:bg-gray-500"
               >
                 Hủy
               </button>
@@ -160,4 +162,3 @@ export default function ChickenFeeding() {
     </>
   );
 }
-
