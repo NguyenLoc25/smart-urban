@@ -1,169 +1,210 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2, Upload, Camera, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-
-const DETECT_URL  = process.env.NEXT_PUBLIC_DETECT_URL;
-const SNAP_URL    = process.env.NEXT_PUBLIC_SNAPSHOT_URL;   // API /snapshot → JSON + base64
-const CAPTURE_URL = process.env.NEXT_PUBLIC_CAPTURE_URL;    // /capture → JPEG liên tục
+import { useEffect, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 export default function ClassifyWastePage() {
-  const [mode,    setMode]  = useState('upload');   // 'upload' | 'esp'
-  const [preview, setPrev]  = useState(null);       // URL ảnh hiển thị
-  const [result,  setRes]   = useState(null);       // kết quả AI
-  const [loading, setLoad]  = useState(false);      // spinner
+  const [isClient, setIsClient] = useState(false);
+  const [result, setResult] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [idToken, setIdToken] = useState(null);
 
-  /* ----- auto-refresh ảnh /capture mỗi 2 s khi ở chế độ ESP32-CAM ----- */
+  // Firebase thông tin
+  const API_KEY = 'AIzaSyBBDrRw2cqSv8yuiQToX3NR-1B_ci_awZo';
+  const DB_URL = 'https://datn-5b6dc-default-rtdb.firebaseio.com';
+  const EMAIL = 'waste@project.com';
+  const PASSWORD = '123456789';
+
+  // Mapping label -> code
+  const LABEL_TO_GROUP = {
+    chemical_container: 'N',
+    food_waste: 'O',
+    paper_box: 'R',
+    plastic_bottle: 'R',
+  };
+
+  const GROUP_TEXT = {
+    O: 'Hữu cơ',
+    R: 'Tái chế',
+    N: 'Không tái chế',
+  };
+
+  const wasteGroups = [
+    { code: 'O', name: 'Hữu cơ' },
+    { code: 'R', name: 'Tái chế' },
+    { code: 'N', name: 'Không tái chế' },
+  ];
+
   useEffect(() => {
-    if (mode !== 'esp') return;
-    const id = setInterval(() => {
-      setPrev(`${CAPTURE_URL}?t=${Date.now()}`);    // tránh cache
-    }, 2000);
-    return () => clearInterval(id);
-  }, [mode]);
+    setIsClient(true);
+  }, []);
 
-  /* ----- upload file từ máy ----- */
-  const handleSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPrev(URL.createObjectURL(file));
-    await classifyFile(file);
+  useEffect(() => {
+    if (!isClient) return;
+    loginFirebase();
+  }, [isClient]);
+
+  useEffect(() => {
+    if (!idToken) return;
+
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [idToken]);
+
+  const loginFirebase = async () => {
+    setLoading(true);
+    try {
+      const loginRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: EMAIL,
+            password: PASSWORD,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      if (!loginRes.ok) {
+        setResult({ error: `Đăng nhập thất bại: HTTP ${loginRes.status}` });
+        setLoading(false);
+        return;
+      }
+
+      const loginData = await loginRes.json();
+      setIdToken(loginData.idToken);
+    } catch (err) {
+      console.error(err);
+      setResult({ error: err.message });
+      setLoading(false);
+    }
   };
 
-  /* ----- gọi AI /detect ----- */
-  async function classifyFile(blob) {
-    setRes(null);
-    setLoad(true);
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const form = new FormData();
-      form.append('file', blob, 'image.jpg');
-      const rsp  = await fetch(DETECT_URL, { method: 'POST', body: form });
-      if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
+      if (!idToken) {
+        setResult({ error: 'Chưa có token xác thực' });
+        setLoading(false);
+        return;
+      }
+
+      const rsp = await fetch(`${DB_URL}/waste/ai.json?auth=${idToken}`);
+      if (!rsp.ok) {
+        setResult({ error: `HTTP ${rsp.status}` });
+        setLoading(false);
+        return;
+      }
+
       const data = await rsp.json();
-      if (data.error) throw new Error(data.error);
-      setRes({ label: data.label, code: data.code, group: data.group, confidence: data.conf });
-    } catch (err) {
-      console.error(err);
-      setRes({ error: 'Không phân loại được!' });
-    }
-    setLoad(false);
-  }
 
-  /* ----- bấm nút “Chụp / Phân loại” → /snapshot ----- */
-  const shootEspCam = async () => {
-    if (loading) return;
-    setLoad(true);
-    setRes(null);
-    try {
-      const rsp = await fetch(`${SNAP_URL}?t=${Date.now()}`);
-      if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
-      const { label, code, group, conf, error, image } = await rsp.json();
-      if (error) throw new Error(error);
-      setPrev(`data:image/jpeg;base64,${image}`);
-      setRes({ label, code, group, confidence: conf });
+      setImageUrl(
+        `https://smartwaste-ai-1.onrender.com/static/last_boxed.jpg?t=${Date.now()}`
+      );
+
+      if (!data || Object.keys(data).length === 0 || !data.label) {
+        setLoading(false);
+        return;
+      }
+
+      const groupCode = LABEL_TO_GROUP[data.label] || 'N';
+
+      setResult({
+        label: data.label || 'N/A',
+        groupCode: groupCode,
+        confidence: data.confidence || 0,
+      });
     } catch (err) {
       console.error(err);
-      setRes({ error: 'Không lấy được ảnh từ ESP32-CAM!' });
+      setResult({ error: err.message });
     }
-    setLoad(false);
+    setLoading(false);
   };
+
+  if (!isClient) return null;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
-      {/* --- tiêu đề --- */}
+    <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
+      {/* Tiêu đề */}
       <header className="text-center space-y-1">
-        <h1 className="text-4xl font-bold text-emerald-700">Phân loại rác tự động</h1>
+        <h1 className="text-4xl font-bold text-emerald-700">
+          Phân loại rác tự động
+        </h1>
         <p className="text-gray-500 text-sm">
-          Chụp hoặc tải ảnh để hệ thống AI nhận diện loại rác
+          Dữ liệu từ ESP32-CAM qua Firebase
         </p>
       </header>
 
-      {/* --- nút chọn chế độ --- */}
-      <div className="flex justify-center gap-4">
-        <ModeBtn m="upload" mode={mode} setMode={setMode} icon={<Upload size={18}/>}>
-          Upload ảnh
-        </ModeBtn>
-        <ModeBtn m="esp" mode={mode} setMode={setMode} icon={<Camera size={18}/>}>
-          ESP32-CAM
-        </ModeBtn>
-      </div>
-
-      {/* --- upload file --- */}
-      {mode === 'upload' && (
-        <label className="flex items-center gap-2 cursor-pointer
-                           px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl w-fit mx-auto">
-          <Upload size={18}/> Chọn ảnh
-          <input type="file" accept="image/*" className="hidden" onChange={handleSelect}/>
-        </label>
-      )}
-
-      {/* --- ESP32-CAM --- */}
-      {mode === 'esp' && (
-        <div className="flex flex-col items-center space-y-4">
-          {preview && (
-            <img src={preview} alt="snapshot"
-                 className="rounded-xl shadow-lg max-h-[400px] object-contain border"/>
-          )}
-          <button
-            onClick={shootEspCam}
-            disabled={loading}
-            className={`px-5 py-2 rounded-xl font-semibold ${
-              loading ? 'bg-gray-400 cursor-not-allowed'
-                       : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}>
-            {loading ? 'Đang xử lý…' : 'Chụp / Phân loại'}
-          </button>
+      {/* Ảnh */}
+      {imageUrl && (
+        <div className="flex justify-center">
+          <img
+            src={imageUrl}
+            alt="Ảnh kết quả"
+            className="rounded-xl shadow-lg max-h-[400px] object-contain border"
+          />
         </div>
       )}
 
-      {/* --- loading spinner --- */}
+      {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center gap-2 text-blue-600">
-          <Loader2 className="animate-spin"/> <span>Đang suy luận…</span>
+        <div className="text-center text-gray-500">Đang tải dữ liệu...</div>
+      )}
+
+      {/* 3 ô nhóm */}
+      {result && !result.error && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {wasteGroups.map((group) => (
+            <div
+              key={group.code}
+              className={`flex flex-col items-center justify-center border rounded-xl p-4 text-center
+                ${
+                  result.groupCode === group.code
+                    ? 'bg-emerald-600 text-white font-semibold'
+                    : 'bg-gray-100 text-gray-800'
+                }`}
+            >
+              {group.name}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* --- kết quả thành công --- */}
+      {/* Thông tin nhãn */}
       {result && !result.error && (
-        <Card className="flex flex-col md:flex-row items-center gap-4 p-4 bg-green-50 rounded-xl">
-          <CheckCircle2 size={40} className="text-green-600"/>
-          <div>
-            <p className="text-lg font-semibold">
-              Phân loại:&nbsp;
-              <span className="font-bold text-emerald-700">{result.group}</span>
-              <span className="text-sm text-gray-500 ml-2">
-                ({result.label} • {result.code})
-              </span>
-            </p>
-            {Number.isFinite(result.confidence) && (
-              <p className="text-sm text-gray-700">
-                Độ tin cậy: {(result.confidence * 100).toFixed(1)}%
-              </p>
-            )}
-          </div>
-        </Card>
+        <div className="text-center mt-4 text-gray-600 text-sm">
+          Nhãn AI:{' '}
+          <strong>{result.label}</strong>
+          {result.confidence > 0 && (
+            <>
+              {' · '}Độ tin cậy:{' '}
+              {(result.confidence * 100).toFixed(1)}%
+            </>
+          )}
+          {result.groupCode && GROUP_TEXT[result.groupCode] && (
+            <>
+              {' · '}Loại rác:{' '}
+              <strong>{GROUP_TEXT[result.groupCode]}</strong>
+            </>
+          )}
+        </div>
       )}
 
-      {/* --- lỗi --- */}
+      {/* Lỗi */}
       {result?.error && (
-        <Card className="flex items-center gap-4 p-4 bg-red-100 rounded-xl">
-          <AlertCircle size={32} className="text-red-600"/>
-          <p className="text-red-800">{result.error}</p>
-        </Card>
+        <div className="flex items-center justify-center gap-2 text-red-600 mt-4">
+          <AlertCircle size={20} />
+          {result.error}
+        </div>
       )}
     </div>
-  );
-}
-
-/* ====== component nút chuyển chế độ ====== */
-function ModeBtn({ m, mode, setMode, icon, children }) {
-  const active = mode === m;
-  return (
-    <button
-      onClick={() => setMode(m)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold shadow-sm ${
-        active ? 'bg-emerald-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}>
-      {icon}{children}
-    </button>
   );
 }
