@@ -92,7 +92,7 @@ export default function Floor2() {
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DeviceCard
                   icon={bedroomLight ? <MdLightbulb size={28} /> : <MdLightbulbOutline size={28} />}
-                  label="Đèn phòng ngủ"
+                  label="Đèn phòng"
                   isOn={bedroomLight}
                   onToggle={() => toggle('home/floor_2/light_room_2', bedroomLight)}
                   color="#7e57c2"
