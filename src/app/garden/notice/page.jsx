@@ -80,49 +80,55 @@ export default function NotificationPage() {
   }, [data]);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-green-50 min-h-screen">
+    <div className="p-6 max-w-4xl mx-auto bg-green-50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
       <div className="mb-6 text-center">
-        <h1 className="text-4xl font-bold text-green-700 flex items-center justify-center gap-3">
+        <h1 className="text-4xl font-bold text-green-700 dark:text-green-300 flex items-center justify-center gap-3">
           <Bell className="w-8 h-8" />
           Thông báo vườn thông minh
         </h1>
-        <p className="text-gray-600 mt-2">Cập nhật trạng thái và hoạt động mới nhất</p>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">
+          Cập nhật trạng thái và hoạt động mới nhất
+        </p>
       </div>
 
-      <div className="h-[500px] overflow-y-auto rounded-xl border shadow-lg bg-white">
+      <div className="h-[500px] overflow-y-auto rounded-xl border border-green-200 dark:border-gray-700 shadow-lg bg-white dark:bg-slate-900">
         <div className="flex flex-col gap-4 p-4">
           {notifications.length === 0 ? (
-            <div className="text-center text-gray-500">✅ Không có cảnh báo nào</div>
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              ✅ Không có cảnh báo nào
+            </div>
           ) : (
             notifications.map((n) => (
               <Card
                 key={n.id}
                 onClick={() => n.redirectTo && router.push(n.redirectTo)}
-                className="relative bg-white border-l-4 border-green-500 hover:border-green-600 hover:shadow-xl transition-all cursor-pointer"
+                className="relative bg-white dark:bg-slate-800 border-l-4 border-green-500 hover:border-green-600 hover:shadow-xl transition-all cursor-pointer"
               >
                 <CardContent className="p-5">
                   <div className="flex gap-4 items-start">
                     <div className="mt-1">{n.icon}</div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <h2 className="text-xl font-semibold text-green-800">
+                        <h2 className="text-xl font-semibold text-green-800 dark:text-green-300">
                           {n.title}
                         </h2>
-                        <Badge className="text-xs bg-green-100 text-green-700 border border-green-300">
+                        <Badge className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-600">
                           {n.type}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                      <p className="text-sm text-gray-700 dark:text-gray-200 mt-1 leading-relaxed">
                         {n.message}
                       </p>
-                      <p className="text-xs text-gray-400 mt-2 italic">{n.time}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 italic">
+                        {n.time}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))
           )}
-   <div className="" />     </div>
+        </div>
       </div>
     </div>
   );

@@ -89,12 +89,6 @@ export default function SmartGardenDashboard() {
           <span className="text-yellow-500 text-sm font-medium">🟡 Cần kiểm tra</span>
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="text-sm text-center text-green-900 dark:text-gray-400">
-        Thiết kế bởi Nhóm Smart Garden • Cập nhật lần cuối: 13/06/2025
-      </div>
-
     </div>
   );
 }

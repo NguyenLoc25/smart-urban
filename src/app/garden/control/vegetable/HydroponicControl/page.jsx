@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ref, onValue, set, off } from 'firebase/database';
+import { useEffect, useState, useRef } from 'react';
+import { ref, onValue, set, off, get } from 'firebase/database';
 import { db } from '@/lib/firebaseConfig';
 import { Switch } from '@/components/ui/switch';
+import ThuyCanh from './ThuyCanh';
 
 export default function HydroponicControl() {
   const [waterTemp, setWaterTemp] = useState(0);
@@ -11,12 +12,42 @@ export default function HydroponicControl() {
   const [isPumpOn, setIsPumpOn] = useState(false);
   const [autoTime, setAutoTime] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const intervalRef = useRef(null);
+
+  const setupAutoInterval = (delay) => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(async () => {
+      await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'ON');
+      setTimeout(async () => {
+        await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'OFF');
+      }, 5000);
+    }, delay * 1000 + 5000);
+  };
 
   useEffect(() => {
     const tempRef = ref(db, 'garden/hydroponic/mode/water_temp');
     const autoRef = ref(db, 'garden/hydroponic/mode/auto_mode');
     const pumpRef = ref(db, 'garden/hydroponic/mode/pump_status');
     const timeRef = ref(db, 'garden/hydroponic/mode/auto_time');
+
+    // Lấy dữ liệu ban đầu
+    const fetchInitialData = async () => {
+      try {
+        const [autoSnap, timeSnap] = await Promise.all([get(autoRef), get(timeRef)]);
+        const autoVal = autoSnap.val();
+        const timeVal = parseInt(timeSnap.val());
+
+        if (autoVal && !isNaN(timeVal)) {
+          setIsAuto(true);
+          setAutoTime(String(timeVal));
+          setupAutoInterval(timeVal);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu ban đầu:', error);
+      }
+    };
+
+    fetchInitialData();
 
     onValue(tempRef, (snapshot) => {
       const val = snapshot.val();
@@ -25,7 +56,7 @@ export default function HydroponicControl() {
 
     onValue(autoRef, (snapshot) => {
       const val = snapshot.val();
-      if (val !== null) setIsAuto(val);
+      setIsAuto(val);
     });
 
     onValue(pumpRef, (snapshot) => {
@@ -38,6 +69,7 @@ export default function HydroponicControl() {
       off(autoRef);
       off(pumpRef);
       off(timeRef);
+      clearInterval(intervalRef.current);
     };
   }, []);
 
@@ -57,9 +89,11 @@ export default function HydroponicControl() {
       setShowModal(true);
     } else {
       setIsAuto(false);
+      clearInterval(intervalRef.current);
       try {
         await set(ref(db, 'garden/hydroponic/mode/auto_mode'), false);
         await set(ref(db, 'garden/hydroponic/mode/auto_time'), '');
+        await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'OFF');
       } catch (error) {
         console.error('Lỗi khi tắt chế độ tự động:', error);
       }
@@ -67,24 +101,16 @@ export default function HydroponicControl() {
   };
 
   const confirmAuto = async () => {
+    const delay = parseInt(autoTime);
+    if (isNaN(delay) || delay < 1) return;
+
     setIsAuto(true);
     setShowModal(false);
-    try {
-      const delay = parseInt(autoTime);
 
-      // Ghi auto_mode và auto_time vào Firebase
+    try {
       await set(ref(db, 'garden/hydroponic/mode/auto_mode'), true);
       await set(ref(db, 'garden/hydroponic/mode/auto_time'), delay);
-
-      // Sau delay giây, bật pump ON, và sau 5 giây thì tắt
-      setTimeout(async () => {
-        await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'ON');
-
-        // Sau 5 giây tắt bơm
-        setTimeout(async () => {
-          await set(ref(db, 'garden/hydroponic/mode/pump_status'), 'OFF');
-        }, 5000);
-      }, delay * 1000);
+      setupAutoInterval(delay);
     } catch (error) {
       console.error('Lỗi khi xác nhận chế độ tự động:', error);
     }
@@ -92,7 +118,7 @@ export default function HydroponicControl() {
 
   return (
     <section className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">🥬 Vegetable Control</h1>
+      <h1 className="text-2xl font-bold">🥬 Trồng trọt </h1>
       <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-aut">
         <div className="flex justify-between items-start">
           <h2 className="text-xl font-semibold">💧 Thủy Canh</h2>
@@ -124,12 +150,12 @@ export default function HydroponicControl() {
         </button>
       </div>
 
-      {/* Modal nhập thời gian */}
       {showModal && (
-       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
           <div className="bg-white dark:bg-gray-800 w-full max-w-xs p-5 rounded-xl shadow-lg space-y-4">
             <h3 className="text-center text-base font-semibold text-gray-900 dark:text-white">
-              ⏱️ Nhập thời gian chờ (giây)</h3>
+              ⏱️ Nhập thời gian chờ (giây)
+            </h3>
             <input
               type="number"
               min="1"
@@ -155,6 +181,8 @@ export default function HydroponicControl() {
           </div>
         </div>
       )}
+
+      <ThuyCanh isPumpOn={isPumpOn} />
     </section>
   );
 }
