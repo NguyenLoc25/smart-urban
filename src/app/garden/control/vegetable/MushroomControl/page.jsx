@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { db, ref, onValue, set } from '@/lib/firebaseConfig';
 import { Switch } from '@/components/ui/switch';
+import PhunSuong from './PhunSuong'; // đúng đường dẫn bạn đã lưu
 
 export default function MushroomControlPage() {
   const [humidity, setHumidity] = useState(0);
@@ -51,7 +52,7 @@ export default function MushroomControlPage() {
 
   return (
     <section className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">🥬 Vegetable Control</h1>
+      <h1 className="text-2xl font-bold">🥬Trồng trọt</h1>
       <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-auto">
         <div className="flex justify-between items-start">
           <h2 className="text-xl font-semibold">🏠 Nhà nấm</h2>
@@ -77,6 +78,7 @@ export default function MushroomControlPage() {
           {isMisting ? 'Tắt phun sương' : 'Phun sương'}
         </button>
       </div>
+      <PhunSuong isMisting={isMisting} />
     </section>
   );
 }

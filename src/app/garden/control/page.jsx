@@ -23,7 +23,7 @@ export default function ControlPage() {
 
       {/* Tiêu đề */}
       <div className="text-center space-y-1">
-        <h1 className="text-4xl font-bold tracking-tight">🌿 Control Center</h1>
+        <h1 className="text-4xl font-bold tracking-tight">🌿 Trung tâm điều khiển</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">Điều khiển mọi thành phần trong vườn thông minh</p>
       </div>
 

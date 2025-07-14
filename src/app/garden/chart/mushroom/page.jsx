@@ -55,16 +55,16 @@ export default function MushroomChart() {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="bg-white rounded-2xl shadow-lg p-6 border border-green-200 transition duration-300"
+      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-green-200 dark:border-gray-600 transition duration-300"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-green-700 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-green-700 dark:text-lime-300 flex items-center gap-2">
            <Sparkles className="text-yellow-500 w-5 h-5" />
              Nhiệt độ & Độ ẩm nhà nấm
         </h2>
         <Button
           onClick={() => setShowChart(!showChart)}
-          className="bg-green-500 hover:bg-green-600 text-white"
+          className="bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
         >
           {showChart ? 'Ẩn biểu đồ' : 'Hiện biểu đồ'}
         </Button>
