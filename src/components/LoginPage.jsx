@@ -57,7 +57,7 @@ export default function LoginPage() {
     try {
       const loggedInUser = await loginUser(email, password);
       setUser(loggedInUser);
-      router.push("/");
+      router.back();
     } catch (err) {
       setError("Tài khoản hoặc mật khẩu không chính xác.");
     } finally {

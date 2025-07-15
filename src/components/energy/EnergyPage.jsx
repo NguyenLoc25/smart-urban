@@ -462,19 +462,25 @@ export default function EnergyPage() {
     lastSyncTime: null,
     syncInProgressBy: null
   });
-  const { renewableEnergy, consumption } = useEnergyDataFetching();
+  
+  // Get energy data from custom hook
+  const { renewableEnergy, consumption, loading: energyLoading, error: energyError } = useEnergyDataFetching();
 
   const isMobile = useResponsiveLayout();
   const { energyDevices, energyData, loadDeviceData, fetchEnergyData } = useDeviceData();
   const { data, dataProcessingStage, dataVersion, setDataVersion, fetchData, setDataProcessingStage } = useEnergyData();
   const { postAllData, checkSyncStatus } = useSyncOperations();
   const energyTypes = useEnergyTypes();
-  const auth = getAuth();
 
   const energyProduction = useMemo(() => 
     calculateEnergyProduction(energyDevices, energyTypes),
     [energyDevices, energyTypes]
   );
+
+  // Combine loading states
+  const isLoading = loading || energyLoading;
+  const hasError = error || energyError;
+
 
   const saveProductionData = useCallback(async () => {
     try {
@@ -613,20 +619,29 @@ export default function EnergyPage() {
 
   if (error) return <div className="text-red-500 p-4">❌ Lỗi: {error}</div>;
 
-  return (
+   return (
     <>
-      {isMobile ? 
-        <MobileView energyData={energyData} data={data} /> : 
+      {isMobile ? (
+        <MobileView 
+          energyData={energyData} 
+          data={data} 
+          renewableEnergy={renewableEnergy || 0} // Ensure it's always defined
+          consumption={consumption || 0} 
+          error={hasError} 
+          loading={isLoading}  
+          energyProduction={energyProduction} 
+        />
+      ) : (
         <DesktopView 
           energyData={energyData} 
           data={data} 
-          renewableEnergy={renewableEnergy} 
-          consumption={consumption} 
-          error={error} 
-          loading={loading}  
+          renewableEnergy={renewableEnergy || 0} // Ensure it's always defined
+          consumption={consumption || 0} 
+          error={hasError} 
+          loading={isLoading}  
           energyProduction={energyProduction} 
         />
-      }
+      )}
       <SyncStatus 
         syncStatus={syncStatus} 
         lastSyncTime={syncStatus.lastSyncTime} 

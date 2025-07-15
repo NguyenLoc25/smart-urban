@@ -22,7 +22,7 @@ const slides = [
     subtitle: "5 tuabin gió công suất cao",
     bg: "bg-gradient-to-br from-green-100 via-white to-cyan-100 dark:from-green-900/30 dark:via-gray-900 dark:to-cyan-900/30",
     icon: "🌬️",
-    stats: "Công suất tối đa 7.5 MW",
+    stats: "6 cánh quạt gió, hiệu suất tốt",
     color: "text-green-600 dark:text-green-300",
     highlight: "from-green-400 to-green-600",
     link: "/energy/iot/windplace"  // Added link for wind farm
@@ -33,7 +33,7 @@ const slides = [
     subtitle: "Hệ thống quang điện hiệu suất cao",
     bg: "bg-gradient-to-br from-purple-100 via-white to-pink-100 dark:from-purple-900/30 dark:via-gray-900 dark:to-pink-900/30",
     icon: "☀️",
-    stats: "3.000 tấm pin, công suất 3 MW",
+    stats: "10 tấm pin, phát hiện những ngày nắng",
     color: "text-purple-600 dark:text-purple-300",
     highlight: "from-purple-400 to-purple-600",
     link: "/energy/iot/solarplace"  // Added link for solar farm

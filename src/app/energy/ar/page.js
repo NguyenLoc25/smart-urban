@@ -67,7 +67,7 @@ const AR = () => {
             Truy cập bị hạn chế
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Bạn cần đăng nhập để xem bảng điều khiển năng lượng thông minh.
+            Xin mời đăng nhập đế tận hưởng giao diện tuyệt vời này
           </p>
           <div className="space-y-3">
             <a
@@ -75,12 +75,6 @@ const AR = () => {
               className="block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
             >
               Đăng nhập ngay
-            </a>
-            <a
-              href="/register"
-              className="block w-full px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg shadow-sm transition-colors"
-            >
-              Tạo tài khoản mới
             </a>
           </div>
         </div>

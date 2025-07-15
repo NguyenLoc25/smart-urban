@@ -348,9 +348,9 @@ const WindPlace = () => {
             </div>
           </div>
         </div>
-      </section>
-    </div>
-  );
-};
+        </section>
+      </div>
+    );
+  };
 
 export default WindPlace;
