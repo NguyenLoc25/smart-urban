@@ -114,9 +114,12 @@ export default function FishFeeding() {
 
         <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 transition-all duration-300"
+            className={`h-full transition-all duration-300 ${
+              waterLevel < 40 ? "bg-red-500" : "bg-blue-500"
+            }`}
             style={{ width: `${waterLevel || 0}%` }}
           ></div>
+
         </div>
 
         <button

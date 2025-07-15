@@ -2,14 +2,31 @@
 
 import useGardenData from "@/app/garden/useGardenData";
 import Chart from "@/app/garden/home/Chart";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 export default function SmartGardenDashboard() {
+  const router = useRouter();
+
   const {
     soilHumidity,
     hydroWaterTemp,
     mushroomTemperature,
     chickenTemperature,
+    lastWateredTime,
+    lastFedTime,
   } = useGardenData();
+
+  const formatTime = (isoString) => {
+    if (!isoString) return "Đang tải...";
+    try {
+      const date = new Date(isoString);
+      return format(date, "HH:mm 'ngày' dd/MM/yyyy", { locale: vi });
+    } catch {
+      return "Dữ liệu lỗi";
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -30,7 +47,10 @@ export default function SmartGardenDashboard() {
 
       {/* Garden Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4">
+        <div
+          onClick={() => router.push("/garden/control/vegetable/GardenControl")}
+          className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:shadow-lg transition"
+        >
           <div className="text-green-500 text-2xl">🥬</div>
           <div>
             <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Rau sạch</h2>
@@ -39,7 +59,11 @@ export default function SmartGardenDashboard() {
             </p>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4">
+
+        <div
+          onClick={() => router.push("/garden/control/vegetable/HydroponicControl")}
+          className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:shadow-lg transition"
+        >
           <div className="text-blue-500 text-2xl">💧</div>
           <div>
             <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Thủy canh</h2>
@@ -48,7 +72,11 @@ export default function SmartGardenDashboard() {
             </p>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4">
+
+        <div
+          onClick={() => router.push("/garden/control/vegetable/MushroomControl")}
+          className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:shadow-lg transition"
+        >
           <div className="text-indigo-500 text-2xl">🍄</div>
           <div>
             <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Nhà nấm</h2>
@@ -57,7 +85,11 @@ export default function SmartGardenDashboard() {
             </p>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4">
+
+        <div
+          onClick={() => router.push("/garden/control/animal")}
+          className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:shadow-lg transition"
+        >
           <div className="text-orange-500 text-2xl">🐔</div>
           <div>
             <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Chuồng gà</h2>
@@ -80,13 +112,17 @@ export default function SmartGardenDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4">
           <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Tưới nước tự động</h2>
-          <p className="text-sm text-green-900 dark:text-green-400">Lần gần nhất: 07:30 sáng hôm nay</p>
+          <p className="text-sm text-green-900 dark:text-green-400">
+            Lần gần nhất: {formatTime(lastWateredTime)}
+          </p>
           <span className="text-green-500 text-sm font-medium">🟢 Hoạt động</span>
         </div>
         <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4">
           <h2 className="text-lg font-semibold text-green-900 dark:text-green-200">Cho gà ăn</h2>
-          <p className="text-sm text-green-900 dark:text-green-400">Lần gần nhất: 18:00 hôm qua</p>
-          <span className="text-yellow-500 text-sm font-medium">🟡 Cần kiểm tra</span>
+          <p className="text-sm text-green-900 dark:text-green-400">
+            Lần gần nhất: {formatTime(lastFedTime)}
+          </p>
+          <span className="text-green-500 text-sm font-medium">🟢 Hoạt động</span>
         </div>
       </div>
     </div>

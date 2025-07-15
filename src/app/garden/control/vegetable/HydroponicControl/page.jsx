@@ -131,9 +131,14 @@ export default function HydroponicControl() {
           </div>
         </div>
 
-        <p className="text-gray-900 dark:text-white">
+        <p
+          className={`${
+            waterTemp > 30 ? 'text-red-600' : 'text-gray-900'
+          } dark:${waterTemp > 30 ? 'text-red-400' : 'text-white'}`}
+        >
           Nhiệt độ nước: <strong>{waterTemp}°C</strong>
         </p>
+
 
         <button
           onClick={handleManualPump}

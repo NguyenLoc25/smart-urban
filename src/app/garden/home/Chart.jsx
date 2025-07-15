@@ -13,7 +13,6 @@ import {
 } from 'recharts';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import useGardenData from '@/app/garden/useGardenData';
-import { useRouter } from 'next/navigation';
 
 const chartConfigs = [
   {

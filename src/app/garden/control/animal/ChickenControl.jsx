@@ -11,14 +11,18 @@ export default function ChickenFeeding() {
   const [showModal, setShowModal] = useState(false);
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
+  const [lastFed, setLastFed] = useState(null);
   const intervalRef = useRef(null);
   const userHasInteracted = useRef(false);
 
   const feedOnce = async () => {
     setIsFeeding(true);
     const feedRef = ref(db, "garden/chicken/eating");
+    const lastFeedRef = ref(db, "garden/chicken/feeding/last_fed_time");
+
     try {
       await set(feedRef, true);
+      await set(lastFeedRef, Date.now());
       setTimeout(async () => {
         await set(feedRef, false);
         setIsFeeding(false);
@@ -72,6 +76,7 @@ export default function ChickenFeeding() {
     const autoFeedRef = ref(db, "garden/chicken/autoFeed");
     const tempRef = ref(db, "garden/chicken/heating/temperature");
     const humiRef = ref(db, "garden/chicken/heating/humidity");
+    const lastFedRef = ref(db, "garden/chicken/feeding/last_fed_time");
 
     const unsubAuto = onValue(autoFeedRef, (snapshot) => {
       const isAuto = snapshot.val();
@@ -89,11 +94,19 @@ export default function ChickenFeeding() {
       setHumidity(snapshot.val());
     });
 
+    const unsubLastFed = onValue(lastFedRef, (snapshot) => {
+      const timestamp = snapshot.val();
+      if (timestamp) {
+        setLastFed(new Date(timestamp));
+      }
+    });
+
     return () => {
       stopAutoFeed();
       unsubAuto();
       unsubTemp();
       unsubHumi();
+      unsubLastFed();
     };
   }, []);
 
@@ -102,8 +115,14 @@ export default function ChickenFeeding() {
       <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 max-w-sm w-full space-y-4 mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">🐔 Chicken</h2>
-          <Switch checked={autoFeed} onCheckedChange={handleToggleAutoFeed}  className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white" />
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+            🐔 Chicken
+          </h2>
+          <Switch
+            checked={autoFeed}
+            onCheckedChange={handleToggleAutoFeed}
+            className="bg-white data-[state=checked]:bg-white dark:bg-white dark:data-[state=checked]:bg-white"
+          />
         </div>
 
         {/* Temperature and Humidity */}
@@ -114,6 +133,7 @@ export default function ChickenFeeding() {
           💧 Độ ẩm: {humidity !== null ? `${humidity} %` : "đang tải..."}
         </div>
 
+  
         {/* Feeding Button */}
         <button
           onClick={handleManualFeed}

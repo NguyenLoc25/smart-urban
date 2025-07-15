@@ -18,7 +18,7 @@ export default function Notice() {
       newNotices.push({ id: 'soil', message: `🌱 Độ ẩm đất thấp: ${data.soilHumidity}%` });
     }
 
-    if (data.fishWaterLevel !== null && data.fishWaterLevel < 10) {
+    if (data.fishWaterLevel !== null && data.fishWaterLevel < 40) {
       newNotices.push({ id: 'fish', message: `🐟 Mực nước hồ cá thấp: ${data.fishWaterLevel}` });
     }
 
