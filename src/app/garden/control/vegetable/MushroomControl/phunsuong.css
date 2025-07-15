@@ -10,11 +10,24 @@
 }
 
 .sprayer {
-  font-size: 36px;
+  font-size: 60px;
   z-index: 2;
 }
 
-.mushroom {
+.mushroom1 {
+  font-size: 50px;
+  z-index: 2;
+}
+
+.mushroom2 {
+  font-size: 50px;
+  z-index: 2;
+}
+.mushroom3 {
+  font-size: 50px;
+  z-index: 2;
+}
+.mushroom4 {
   font-size: 50px;
   z-index: 2;
 }
@@ -33,9 +46,9 @@
   opacity: 0.7;
 }
 
-.jet1 { transform: rotate(-5deg); top: 115px; }
-.jet2 { transform: rotate(0deg); top: 120px; }
-.jet3 { transform: rotate(5deg); top: 125px; }
+.jet1 { transform: rotate(-5deg); top: 90px; }
+.jet2 { transform: rotate(0deg); top: 95px; }
+.jet3 { transform: rotate(5deg); top: 100px; }
 
 @keyframes jet-pulse {
   0%, 100% { opacity: 0.7; }

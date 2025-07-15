@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 export default function ThuyCanh({ isPumpOn }) {
   const [waterLevel, setWaterLevel] = useState(0); // phần trăm chiều cao nước
 
-  const MAX_WATER_HEIGHT = 82; // chỉ dân tới 65% chiều cao
+  const MAX_WATER_HEIGHT = 73; // chỉ dân tới 65% chiều cao
 
   useEffect(() => {
     let interval = null;
@@ -22,7 +22,7 @@ export default function ThuyCanh({ isPumpOn }) {
   }, [isPumpOn]);
 
   return (
-    <div className="relative w-full h-64 border-4 border-blue-300 rounded-xl overflow-hidden bg-sky-100">
+    <div className="relative w-full h-40 border-4 border-blue-300 rounded-xl overflow-hidden bg-sky-100">
       {/* Mặt nước */}
       <div
         className="absolute bottom-0 left-0 w-full bg-blue-400 transition-all duration-300"

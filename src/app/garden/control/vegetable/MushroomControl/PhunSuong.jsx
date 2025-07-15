@@ -13,7 +13,11 @@ export default function PhunSuong({ isMisting }) {
         </>
       )}
 
-      <div className="mushroom">🍄</div>
+      <div className="mushroom1">🍄</div>     
+      <div className="mushroom2">🍄</div>
+      <div className="mushroom3">🍄</div>
+      <div className="mushroom4">🍄</div>
+
     </div>
   );
 }

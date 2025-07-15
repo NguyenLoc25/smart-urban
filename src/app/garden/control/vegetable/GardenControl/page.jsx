@@ -5,24 +5,23 @@ import { useEffect, useState } from 'react';
 import { db, ref, onValue, set } from '@/lib/firebaseConfig';
 import { Switch } from '@/components/ui/switch';
 import WateringPlant  from './tuoicay';
+import useGardenData from '@/app/garden/useGardenData';
 
 export default function GardenControlPage() {
-  const [soilMoisture, setSoilMoisture] = useState(0);
+  const {
+    soilHumidity,
+    lastWateredTime,
+  } = useGardenData();
+
   const [isAuto, setIsAuto] = useState(false);
   const [isPumpOn, setIsPumpOn] = useState(false);
   const [targetMoisture, setTargetMoisture] = useState(60);
   const [inputValue, setInputValue] = useState(60);
 
   useEffect(() => {
-    const soilRef = ref(db, 'garden/soil_watering/mode/soil_percent');
     const autoRef = ref(db, 'garden/soil_watering/mode/auto_mode');
     const pumpRef = ref(db, 'garden/soil_watering/mode/pump_status');
     const targetRef = ref(db, 'garden/soil_watering/mode/target_soil_percent');
-
-    const unsubSoil = onValue(soilRef, (snapshot) => {
-      const val = snapshot.val();
-      if (val !== null) setSoilMoisture(val);
-    });
 
     const unsubAuto = onValue(autoRef, (snapshot) => {
       const val = snapshot.val();
@@ -43,7 +42,6 @@ export default function GardenControlPage() {
     });
 
     return () => {
-      unsubSoil();
       unsubAuto();
       unsubPump();
       unsubTarget();
@@ -54,6 +52,13 @@ export default function GardenControlPage() {
     if (!isAuto) {
       const newStatus = isPumpOn ? 'OFF' : 'ON';
       set(ref(db, 'garden/soil_watering/mode/pump_status'), newStatus);
+
+      // Nếu bật bơm -> cập nhật thời gian tưới
+      if (newStatus === 'ON') {
+        const now = new Date();
+        const formattedTime = now.toLocaleString(); // Ví dụ: "15/07/2025, 10:30:21"
+        set(ref(db, 'garden/soil_watering/last_watered_time'), formattedTime);
+      }
     }
   };
 
@@ -89,7 +94,7 @@ export default function GardenControlPage() {
           </div>
 
           <p className="text-gray-900 dark:text-white">
-            Độ ẩm đất: <strong>{soilMoisture}%</strong>
+            Độ ẩm đất: <strong>{soilHumidity ?? '---'}%</strong>
           </p>
 
           {isAuto && (
