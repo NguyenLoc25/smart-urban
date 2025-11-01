@@ -275,7 +275,7 @@ export default function ControlPage() {
             className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
           >
             <Bug size={20} />
-            <span>Debug Xóa dữ liệu Conveyor</span>
+            {/* <span>Debug Xóa dữ liệu Conveyor</span> */}
           </button>
         </div>
 
