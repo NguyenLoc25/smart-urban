@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getDatabase, ref, get, set } from 'firebase/database';
-import { Sun, Moon, Settings, Timer, Activity } from 'lucide-react';
+import { Sun, Moon, Settings, Timer, Activity, Bug } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ControlPage() {
@@ -91,59 +91,71 @@ export default function ControlPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Xóa dữ liệu conveyor (Debug)
+  const clearConveyorData = async () => {
+    try {
+      await set(ref(db, '/waste/conveyor'), null);
+      alert('✅ Đã xóa dữ liệu conveyor thành công!');
+      console.log('🗑️ Conveyor data cleared');
+    } catch (err) {
+      alert('❌ Không thể xóa dữ liệu: ' + err.message);
+      console.error('Error clearing conveyor:', err);
+    }
+  };
+
   // Giao diện
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2 flex items-center justify-center gap-3">
-            <Settings className="text-green-600 dark:text-green-400" size={40} />
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2 flex items-center justify-center gap-2 sm:gap-3">
+            <Settings className="text-green-600 dark:text-green-400" size={32} />
             Điều khiển hệ thống
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base md:text-lg px-4">
             Quản lý chế độ hoạt động của xe thông minh
           </p>
         </div>
 
         {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 rounded-full ${isNight ? 'bg-slate-100 dark:bg-slate-800' : 'bg-orange-100 dark:bg-orange-900'}`}>
-                {isNight ? <Moon className="text-slate-600 dark:text-slate-400" size={24} /> : <Sun className="text-orange-600 dark:text-orange-400" size={24} />}
+                {isNight ? <Moon className="text-slate-600 dark:text-slate-400" size={20} /> : <Sun className="text-orange-600 dark:text-orange-400" size={20} />}
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Chế độ hiện tại</p>
-                <p className="font-semibold text-gray-800 dark:text-white">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Chế độ hiện tại</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white">
                   {isNight ? 'Ban đêm' : 'Ban ngày'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 rounded-full ${isSimulating ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                <Timer className={`${isSimulating ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} size={24} />
+                <Timer className={`${isSimulating ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} size={20} />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Mô phỏng</p>
-                <p className="font-semibold text-gray-800 dark:text-white">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Mô phỏng</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white">
                   {isSimulating ? 'Đang chạy' : 'Tắt'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg border border-gray-200 dark:border-gray-700 sm:col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 rounded-full ${isNight ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                <Activity className={`${isNight ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} size={24} />
+                <Activity className={`${isNight ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} size={20} />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Trạng thái xe</p>
-                <p className="font-semibold text-gray-800 dark:text-white">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Trạng thái xe</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white">
                   {isNight ? 'Hoạt động' : 'Dừng'}
                 </p>
               </div>
@@ -256,8 +268,19 @@ export default function ControlPage() {
           </Card>
         </div>
 
+        {/* Debug Button */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={clearConveyorData}
+            className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+          >
+            <Bug size={20} />
+            <span>Debug Xóa dữ liệu Conveyor</span>
+          </button>
+        </div>
+
         {/* Footer */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Hệ thống điều khiển xe thông minh • Phiên bản 2.0
           </p>
