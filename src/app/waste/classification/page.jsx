@@ -106,9 +106,15 @@ export default function ClassifyWastePage() {
 
       const data = await rsp.json();
 
+      // setImageUrl(
+      //   `https://smartwaste-ai-1.onrender.com/static/last_boxed.jpg?t=${Date.now()}`
+      // );
       setImageUrl(
-        `https://smartwaste-ai-1.onrender.com/static/last_boxed.jpg?t=${Date.now()}`
-      );
+  `http://localhost:8000/static/last_boxed.jpg?t=${Date.now()}`
+);
+
+
+
 
       if (!data || Object.keys(data).length === 0 || !data.label) {
         setLoading(false);
