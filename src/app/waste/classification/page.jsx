@@ -110,8 +110,8 @@ export default function ClassifyWastePage() {
       //   `https://smartwaste-ai-1.onrender.com/static/last_boxed.jpg?t=${Date.now()}`
       // );
       setImageUrl(
-  `http://localhost:8000/static/last_boxed.jpg?t=${Date.now()}`
-);
+        'https://ai.koomaru.com/static/last_boxed.jpg?t=${Date.now()}'
+      );
 
 
 
